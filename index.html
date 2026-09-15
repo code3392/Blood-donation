@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b91c1c" />
+  <meta name="description" content="Lifeline — a smart blood donation and emergency donor matching platform for Bangladesh." />
+  <title>Lifeline — Blood. Hope. Together.</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div id="toast-root" aria-live="polite"></div>
+
+  <div class="announcement">
+    <span class="pulse-dot"></span>
+    <span><strong>Emergency network:</strong> connect with nearby willing donors faster.</span>
+    <button class="announcement-link" data-scroll="request">Request blood</button>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Lifeline home">
+      <span class="brand-mark">✚</span>
+      <span>
+        <strong>Lifeline</strong>
+        <small>Blood. Hope. Together.</small>
+      </span>
+    </a>
+
+    <nav id="main-nav" class="main-nav">
+      <a href="#home">Home</a>
+      <a href="#find">Find Donors</a>
+      <a href="#request">Request Blood</a>
+      <a href="#donate">Become a Donor</a>
+      <a href="#how">How it works</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn mobile-menu" id="mobile-menu" aria-label="Open menu">☰</button>
+      <button class="btn btn-ghost" id="login-btn">Sign in</button>
+      <button class="btn btn-primary" data-scroll="donate">Become a donor</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="hero section">
+      <div class="hero-copy">
+        <div class="eyebrow"><span>●</span> Built for fast, human connection</div>
+        <h1>One donation can become someone's <span>second chance.</span></h1>
+        <p class="hero-text">
+          Lifeline helps people find willing blood donors, publish urgent requests,
+          and coordinate lifesaving support across Bangladesh — without the chaos.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-large" data-scroll="find">Find a donor <span>→</span></button>
+          <button class="btn btn-light btn-large" data-scroll="donate">I want to donate</button>
+        </div>
+
+        <div class="trust-row">
+          <div class="avatar-stack" aria-hidden="true">
+            <span>R</span><span>S</span><span>A</span><span>M</span>
+          </div>
+          <div>
+            <strong id="hero-donor-count">—</strong>
+            <small>registered donors</small>
+          </div>
+          <div class="trust-divider"></div>
+          <div>
+            <strong>24/7</strong>
+            <small>request access</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="orb orb-one"></div>
+        <div class="orb orb-two"></div>
+
+        <div class="hero-card main-card">
+          <div class="card-topline">
+            <span class="status-pill"><span></span> Network online</span>
+            <span class="mini-label">LIVE</span>
+          </div>
+          <div class="blood-symbol">✚</div>
+          <div class="hero-card-title">Every drop matters.</div>
+          <p>Make your availability visible when someone nearby needs your blood group.</p>
+
+          <div class="mini-request">
+            <div class="mini-avatar">B+</div>
+            <div>
+              <strong>Urgent B+ request</strong>
+              <span>Dhaka · Just now</span>
+            </div>
+            <span class="match-score">98%</span>
+          </div>
+        </div>
+
+        <div class="float-card float-one">
+          <span class="float-icon">✓</span>
+          <div><strong>Verified donor</strong><small>Consent confirmed</small></div>
+        </div>
+
+        <div class="float-card float-two">
+          <span class="float-icon">⌁</span>
+          <div><strong>Smart matching</strong><small>Blood group + area</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="impact-strip">
+      <div><strong id="stat-donors">0</strong><span>registered donors</span></div>
+      <div><strong id="stat-requests">0</strong><span>blood requests</span></div>
+      <div><strong id="stat-available">0</strong><span>available donors</span></div>
+      <div><strong>8</strong><span>blood groups supported</span></div>
+    </section>
+
+    <section id="find" class="section search-section">
+      <div class="section-heading centered">
+        <div class="eyebrow">SMART DONOR SEARCH</div>
+        <h2>Find the right donor, faster.</h2>
+        <p>Filter by blood group and location. Sign in to protect donor contact information.</p>
+      </div>
+
+      <div class="search-panel">
+        <div class="field">
+          <label for="search-blood">Blood group</label>
+          <select id="search-blood">
+            <option value="">Any blood group</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="search-district">District</label>
+          <select id="search-district">
+            <option value="">Any district</option>
+            <option>Dhaka</option><option>Gazipur</option><option>Savar</option><option>Narayanganj</option>
+            <option>Chattogram</option><option>Sylhet</option><option>Rajshahi</option><option>Khulna</option>
+            <option>Barishal</option><option>Rangpur</option><option>Mymensingh</option><option>Comilla</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="search-status">Availability</label>
+          <select id="search-status">
+            <option value="true">Available now</option>
+            <option value="">All donors</option>
+          </select>
+        </div>
+        <button class="btn btn-primary search-btn" id="search-donors">Search donors <span>→</span></button>
+      </div>
+
+      <div id="donor-lock" class="locked-card hidden">
+        <div class="lock-icon">⌕</div>
+        <div>
+          <strong>Donor directory is protected</strong>
+          <p>Sign in to search and contact consenting donors. This keeps personal contact data away from anonymous visitors.</p>
+        </div>
+        <button class="btn btn-primary" id="locked-login">Sign in</button>
+      </div>
+
+      <div id="donor-results" class="donor-grid"></div>
+      <div id="donor-empty" class="empty-state hidden">
+        <div>🩸</div>
+        <h3>No matching donors found</h3>
+        <p>Try another blood group or district, or publish an urgent request so donors can respond.</p>
+        <button class="btn btn-primary" data-scroll="request">Create request</button>
+      </div>
+    </section>
+
+    <section id="request" class="section request-section">
+      <div class="request-card">
+        <div class="request-copy">
+          <div class="eyebrow">NEED BLOOD?</div>
+          <h2>Turn an urgent need into a clear call for help.</h2>
+          <p>
+            Publish the blood group, location, urgency and a safe contact number.
+            Authenticated donors can view active requests and reach out.
+          </p>
+          <div class="feature-list">
+            <div><span>01</span><p><strong>Post once.</strong> Keep the request information organized.</p></div>
+            <div><span>02</span><p><strong>Reach willing donors.</strong> Search and matching tools reduce noise.</p></div>
+            <div><span>03</span><p><strong>Close when fulfilled.</strong> Prevent stale emergency posts.</p></div>
+          </div>
+        </div>
+
+        <form id="request-form" class="glass-form">
+          <div class="form-head">
+            <div><span class="form-icon">♥</span><div><h3>Blood request</h3><p>For urgent or planned needs</p></div></div>
+            <span class="secure-tag">🔒 Protected</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Patient / requester name</label>
+              <input id="request-name" required maxlength="80" placeholder="e.g. Rahim Ahmed" />
+            </div>
+            <div class="field">
+              <label>Blood group</label>
+              <select id="request-blood" required>
+                <option value="">Select</option>
+                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>District</label>
+              <input id="request-district" required maxlength="60" placeholder="e.g. Dhaka" />
+            </div>
+            <div class="field">
+              <label>Hospital / location</label>
+              <input id="request-location" required maxlength="120" placeholder="Hospital or area" />
+            </div>
+            <div class="field">
+              <label>Units needed</label>
+              <input id="request-units" type="number" min="1" max="20" value="1" required />
+            </div>
+            <div class="field">
+              <label>Urgency</label>
+              <select id="request-urgency">
+                <option value="critical">Critical — today</option>
+                <option value="urgent">Urgent — within 24h</option>
+                <option value="planned">Planned</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Contact phone</label>
+              <input id="request-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" />
+            </div>
+            <div class="field full">
+              <label>Additional note <span class="optional">(optional)</span></label>
+              <textarea id="request-note" maxlength="300" placeholder="Add only information a donor needs to know."></textarea>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-large full-width" type="submit">Publish blood request <span>→</span></button>
+          <p class="form-note">For emergencies, contact the hospital/emergency service directly as well.</p>
+        </form>
+      </div>
+    </section>
+
+    <section id="donate" class="section donor-section">
+      <div class="section-heading centered">
+        <div class="eyebrow">JOIN THE LIFELINE</div>
+        <h2>Be the person someone is searching for.</h2>
+        <p>Create a donor profile and control when your availability is visible.</p>
+      </div>
+
+      <div class="donor-form-wrap">
+        <form id="donor-form" class="donor-form">
+          <div class="form-head">
+            <div><span class="form-icon">✚</span><div><h3>Donor registration</h3><p>It takes about 60 seconds.</p></div></div>
+            <span class="secure-tag">🔒 Consent-first</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="field"><label>Full name</label><input id="donor-name" required maxlength="80" placeholder="Your name" /></div>
+            <div class="field"><label>Blood group</label>
+              <select id="donor-blood" required>
+                <option value="">Select</option>
+                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+              </select>
+            </div>
+            <div class="field"><label>District</label><input id="donor-district" required maxlength="60" placeholder="e.g. Dhaka" /></div>
+            <div class="field"><label>Area / upazila</label><input id="donor-area" maxlength="80" placeholder="e.g. Savar" /></div>
+            <div class="field"><label>Phone</label><input id="donor-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" /></div>
+            <div class="field"><label>Last donation date <span class="optional">(optional)</span></label><input id="donor-last" type="date" /></div>
+          </div>
+
+          <label class="check-row">
+            <input id="donor-available" type="checkbox" checked />
+            <span><strong>I'm currently willing to donate</strong><small>Turn this off whenever you're unavailable.</small></span>
+          </label>
+          <label class="check-row">
+            <input id="donor-consent" type="checkbox" required />
+            <span><strong>I consent to Lifeline showing my profile to authenticated users.</strong><small>Your phone is only shown inside the protected donor directory.</small></span>
+          </label>
+
+          <button class="btn btn-primary btn-large full-width" type="submit">Create my donor profile <span>→</span></button>
+        </form>
+
+        <aside class="eligibility-card">
+          <div class="eyebrow">DONOR CHECK</div>
+          <h3>Before you donate</h3>
+          <p>Donation eligibility can depend on age, health, medication, recent procedures and local blood-bank rules.</p>
+          <div class="eligibility-item"><span>✓</span><div><strong>Check with a blood center</strong><small>They make the final eligibility decision.</small></div></div>
+          <div class="eligibility-item"><span>✓</span><div><strong>Keep your profile honest</strong><small>Accurate availability helps patients.</small></div></div>
+          <div class="eligibility-item"><span>✓</span><div><strong>Never share OTPs or passwords</strong><small>Lifeline will never ask for your authentication code.</small></div></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="how" class="section how-section">
+      <div class="section-heading centered">
+        <div class="eyebrow">HOW IT WORKS</div>
+        <h2>Designed around the moments that matter.</h2>
+      </div>
+
+      <div class="steps">
+        <article class="step-card"><span>01</span><div class="step-icon">⌕</div><h3>Search</h3><p>Choose a blood group and area to discover willing donors in the protected network.</p></article>
+        <article class="step-card"><span>02</span><div class="step-icon">♥</div><h3>Request</h3><p>Publish a structured blood request with urgency and hospital/location details.</p></article>
+        <article class="step-card"><span>03</span><div class="step-icon">✓</div><h3>Connect</h3><p>Contact donors directly and coordinate with the hospital or blood center.</p></article>
+      </div>
+    </section>
+
+    <section class="section mission-section">
+      <div class="mission-card">
+        <div><div class="eyebrow">WHY LIFELINE</div><h2>Not another social feed.<br><span>A focused emergency network.</span></h2></div>
+        <div class="mission-points">
+          <div><strong>Consent-first</strong><span>Donors control visibility.</span></div>
+          <div><strong>Structured requests</strong><span>Less noise, clearer action.</span></div>
+          <div><strong>Bangladesh-ready</strong><span>District-aware matching.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <a class="brand footer-brand" href="#home"><span class="brand-mark">✚</span><span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span></a>
+      <p>A competition-ready prototype for connecting blood donors and patients. Always verify donation and medical decisions with qualified professionals.</p>
+      <div class="footer-links"><a href="#find">Find donors</a><a href="#request">Request blood</a><a href="#donate">Donate</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 Lifeline</span><span>Built with Supabase</span><button id="signout-btn" class="text-btn hidden">Sign out</button></div>
+  </footer>
+
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button class="modal-close" data-close-modal>×</button>
+      <div class="modal-icon">✚</div>
+      <div class="eyebrow">PROTECTED NETWORK</div>
+      <h2 id="auth-title">Welcome to Lifeline</h2>
+      <p id="auth-subtitle">Sign in to search donor profiles and manage your availability.</p>
+
+      <form id="auth-form">
+        <div class="field"><label>Email</label><input id="auth-email" type="email" required placeholder="you@example.com" /></div>
+        <div class="field"><label>Password</label><input id="auth-password" type="password" required minlength="6" placeholder="At least 6 characters" /></div>
+        <button class="btn btn-primary full-width btn-large" id="auth-submit" type="submit">Sign in</button>
+      </form>
+      <button class="switch-auth" id="switch-auth">New here? Create an account</button>
+      <p class="form-note">Email confirmation may be required depending on your Supabase Auth settings.</p>
+    </div>
+  </div>
+
+  <div id="profile-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-profile></div>
+    <div class="modal-card profile-modal">
+      <button class="modal-close" data-close-profile>×</button>
+      <div class="profile-hero"><div class="profile-blood" id="profile-blood">O+</div><div><h2 id="profile-name">Donor</h2><p id="profile-location">Location</p></div></div>
+      <div class="profile-details" id="profile-details"></div>
+      <a id="profile-call" class="btn btn-primary full-width btn-large" href="#">Contact donor</a>
+      <p class="form-note">Only contact a donor for a genuine blood need and respect their availability.</p>
+    </div>
+  </div>
+
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
