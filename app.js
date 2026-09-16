@@ -1,6 +1,4 @@
-/* Lifeline — Supabase-powered frontend
-   Publishable keys are safe to expose in browser apps, but RLS must protect every table.
-*/
+
 const SUPABASE_URL = "https://heflnehkwmqsetqkiqgv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
 
