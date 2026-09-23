@@ -42,9 +42,7 @@
   // DOM HELPERS
   // ==============================
 
-  const $ = (id) => document.getElementById(id);
-
-  const $$ = (selector) => [
+  const $ = (id) => document.getElementById(id);    const $$ = (selector) => [
     ...document.querySelectorAll(selector)
   ];
 
@@ -565,6 +563,66 @@
   }
 
   // ==============================
+  // LOAD LIVE BLOOD REQUESTS
+  // ==============================
+
+  async function loadBloodRequests() {
+    const grid = $("requests-results");
+    const empty = $("requests-empty");
+
+    if (!grid) return;
+
+    const { data, error } = await supabase
+      .from("blood_requests")
+      .select("id, patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note, created_at")
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error("Could not load blood requests:", error);
+      return;
+    }
+
+    grid.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      empty?.classList.remove("hidden");
+      return;
+    }
+
+    empty?.classList.add("hidden");
+
+    data.forEach((req) => {
+      const card = document.createElement("article");
+      card.className = "donor-card";
+
+      card.innerHTML = `
+        <div class="donor-top">
+          <div class="donor-avatar">${escapeHtml(req.blood_group)}</div>
+          <div>
+            <h3>${escapeHtml(req.patient_name)}</h3>
+            <div class="meta">${escapeHtml(req.hospital_location || req.district)}</div>
+          </div>
+          <span class="status-pill" style="margin-left:auto;">${escapeHtml(req.urgency)}</span>
+        </div>
+
+        <span class="blood-badge">Units Needed: ${escapeHtml(req.units_needed)}</span>
+
+        <div class="details" style="display:block; font-size:11px; margin-top:8px;">
+          <p style="margin:4px 0;"><strong>Note:</strong> ${escapeHtml(req.note || "None specified")}</p>
+        </div>
+
+        <a href="tel:${escapeHtml(req.contact_phone)}" class="btn btn-primary contact" style="margin-top:14px; text-align:center; display:block;">
+          Call ${escapeHtml(req.contact_phone)}
+        </a>
+      `;
+
+      grid.appendChild(card);
+    });
+  }
+
+  // ==============================
   // DONOR PROFILE
   // ==============================
 
@@ -866,8 +924,9 @@
       );
 
       await refreshStats();
+      await loadBloodRequests();
 
-      scrollToId("find");
+      scrollToId("requests-feed");
     });
   }
 
@@ -956,7 +1015,6 @@
       return;
     }
 
-    // Signup with email confirmation enabled
     if (
       authMode === "signup" &&
       !result.data.session
@@ -1032,22 +1090,8 @@
   function wireUI() {
 
     // Navigation buttons
-    $$("[data-scroll]")
-      .forEach((button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-            scrollToId(
-              button.dataset.scroll
-            );
-          }
-        );
-
-      });
-
-    // Announcement links
-    $$(".announcement-link")
+    $$("[data-scroll]")       .forEach((button) => {          button.addEventListener(           "click",           () => {             scrollToId(               button.dataset.scroll             );           }         );        });      // Announcement links     $$
+(".announcement-link")
       .forEach((button) => {
 
         button.addEventListener(
@@ -1136,18 +1180,8 @@
       );
 
     // Close auth modal
-    $$("[data-close-modal]")
-      .forEach((element) => {
-
-        element.addEventListener(
-          "click",
-          closeAuth
-        );
-
-      });
-
-    // Close profile modal
-    $$("[data-close-profile]")
+    $$("[data-close-modal]")       .forEach((element) => {          element.addEventListener(           "click",           closeAuth         );        });      // Close profile modal     $$
+("[data-close-profile]")
       .forEach((element) => {
 
         element.addEventListener(
@@ -1222,6 +1256,8 @@
     await loadSession();
 
     await refreshStats();
+
+    await loadBloodRequests();
   }
 
   // ==============================
