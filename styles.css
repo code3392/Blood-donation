@@ -28,3 +28,37 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}a{text-decoratio
 #toast-root{position:fixed;right:20px;bottom:20px;z-index:200;display:flex;flex-direction:column;gap:9px}.toast{background:#181818;color:#fff;padding:13px 16px;border-radius:13px;box-shadow:0 15px 40px rgba(0,0,0,.2);font-size:11px;max-width:340px;animation:toast-in .2s ease}.toast.success{border-left:3px solid #22c55e}.toast.error{border-left:3px solid #ef4444}.toast.info{border-left:3px solid #f87171}@keyframes toast-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(max-width:980px){.main-nav{display:none}.mobile-menu{display:block}.hero{grid-template-columns:1fr;padding-top:60px}.hero-visual{min-height:420px}.search-panel{grid-template-columns:1fr 1fr}.search-btn{width:100%}.donor-grid{grid-template-columns:1fr 1fr}.request-card,.donor-form-wrap{grid-template-columns:1fr}.eligibility-card{position:static}.mission-card{grid-template-columns:1fr}.footer-main{grid-template-columns:1fr}.footer-links{justify-content:flex-start}}
 @media(max-width:650px){.site-header{padding:0 4vw}.header-actions .btn-ghost{display:none}.header-actions .btn-primary{display:none}.section{padding:70px 5vw}.hero h1{font-size:43px}.hero-text{font-size:14px}.hero-actions{flex-direction:column}.hero-actions .btn{width:100%}.hero-visual{min-height:390px}.hero-card{width:95%}.float-one{right:-1%;top:15%}.float-two{left:-1%;bottom:10%}.impact-strip{grid-template-columns:1fr 1fr;gap:25px}.impact-strip div{border:0}.search-panel{grid-template-columns:1fr}.donor-grid,.steps{grid-template-columns:1fr}.locked-card{align-items:flex-start;flex-wrap:wrap}.locked-card .btn{margin-left:0}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.request-copy h2{font-size:37px}.mission-card{padding:28px}.mission-points{grid-template-columns:1fr}.footer-links{flex-direction:column;gap:9px}.profile-details{grid-template-columns:1fr}}
+/* Skeleton Loader Styles */
+.skeleton-card {
+  border: 1px solid #eee;
+  border-radius: 19px;
+  background: #fff;
+  padding: 19px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-line {
+  background: #e5e7eb;
+  border-radius: 8px;
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.skeleton-line.short {
+  width: 40%;
+}
+
+.skeleton-line.medium {
+  width: 70%;
+}
+
+.skeleton-line.long {
+  width: 100%;
+  height: 40px;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
