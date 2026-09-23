@@ -342,11 +342,21 @@
 
       if (!results) return;
 
-      results.innerHTML = `
-        <div class="empty-state">
-          <div>⌁</div>
-          <h3>Searching the network…</h3>
-          <p>Checking consented donor profiles.</p>
+     results.innerHTML = `
+        <div class="skeleton-card">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line long" style="margin-top: 20px;"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line long" style="margin-top: 20px;"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line long" style="margin-top: 20px;"></div>
         </div>
       `;
 
