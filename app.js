@@ -42,9 +42,7 @@
   // DOM HELPERS
   // ==============================
 
-  const $ = (id) => document.getElementById(id);
-
-  const $$ = (selector) => [
+  const $ = (id) => document.getElementById(id);    const $$ = (selector) => [
     ...document.querySelectorAll(selector)
   ];
 
@@ -752,8 +750,56 @@
   }
 
   // ==============================
-  // SUBMIT BLOOD REQUEST
+  // SUBMIT & LOAD BLOOD REQUESTS
   // ==============================
+
+  async function loadBloodRequests() {
+    const grid = document.getElementById("requests-results");
+    if (!grid) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("blood_requests")
+        .select("patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note")
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      if (error) {
+        console.error("Error loading blood requests:", error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 30px;">
+            <p>No active blood requests at the moment.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = "";
+      data.forEach((req) => {
+        const card = document.createElement("article");
+        card.className = "donor-card";
+        card.innerHTML = `
+          <div class="donor-top">
+            <div class="donor-avatar">${escapeHtml(req.blood_group)}</div>
+            <div>
+              <h3>${escapeHtml(req.patient_name)}</h3>
+              <div class="meta">${escapeHtml(req.hospital_location || req.district || "")}</div>
+            </div>
+            <span class="status-pill">${escapeHtml(req.urgency || "urgent")}</span>
+          </div>
+          <p style="margin: 8px 0; font-size: 13px;"><strong>Units:</strong> ${req.units_needed || 1} | <strong>Note:</strong> ${escapeHtml(req.note || "None")}</p>
+          <a href="tel:${escapeHtml(req.contact_phone)}" class="btn btn-primary contact" style="margin-top:10px; display:block; text-align:center;">Call ${escapeHtml(req.contact_phone)}</a>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (err) {
+      console.error("Unexpected error loading requests:", err);
+    }
+  }
 
   async function submitRequest(e) {
     e.preventDefault();
@@ -855,9 +901,11 @@
         "success"
       );
 
+      // Immediately refresh stats counters and reload the requests grid
       await refreshStats();
+      await loadBloodRequests();
 
-      scrollToId("find");
+      scrollToId("live-requests-preview");
     });
   }
 
@@ -975,6 +1023,7 @@
     );
 
     await refreshStats();
+    await loadBloodRequests();
   }
 
   // ==============================
@@ -1022,22 +1071,8 @@
   function wireUI() {
 
     // Navigation buttons
-    $$("[data-scroll]")
-      .forEach((button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-            scrollToId(
-              button.dataset.scroll
-            );
-          }
-        );
-
-      });
-
-    // Announcement links
-    $$(".announcement-link")
+    $$("[data-scroll]")       .forEach((button) => {          button.addEventListener(           "click",           () => {             scrollToId(               button.dataset.scroll             );           }         );        });      // Announcement links     $$
+(".announcement-link")
       .forEach((button) => {
 
         button.addEventListener(
@@ -1126,18 +1161,8 @@
       );
 
     // Close auth modal
-    $$("[data-close-modal]")
-      .forEach((element) => {
-
-        element.addEventListener(
-          "click",
-          closeAuth
-        );
-
-      });
-
-    // Close profile modal
-    $$("[data-close-profile]")
+    $$("[data-close-modal]")       .forEach((element) => {          element.addEventListener(           "click",           closeAuth         );        });      // Close profile modal     $$
+("[data-close-profile]")
       .forEach((element) => {
 
         element.addEventListener(
@@ -1210,8 +1235,8 @@
     wireUI();
 
     await loadSession();
-
     await refreshStats();
+    await loadBloodRequests();
   }
 
   // ==============================
