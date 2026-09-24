@@ -35,6 +35,7 @@
     <nav id="main-nav" class="main-nav">
       <a href="#home">Home</a>
       <a href="#find">Find Donors</a>
+      <a href="#live-requests-preview">Requested Blood</a>
       <a href="#request">Request Blood</a>
       <a href="#donate">Become a Donor</a>
       <a href="#how">How it works</a>
@@ -171,6 +172,14 @@
         <p>Try another blood group or district, or publish an urgent request so donors can respond.</p>
         <button class="btn btn-primary" data-scroll="request">Create request</button>
       </div>
+    </section> 
+    
+    <section id="live-requests-preview" class="section search-section">
+      <div class="section-heading centered">
+        <div class="eyebrow">ACTIVE EMERGENCIES</div>
+        <h2>Recent Blood Requests</h2>
+      </div>
+      <div id="requests-results" class="donor-grid"></div>
     </section>
 
     <section id="request" class="section request-section">
@@ -360,7 +369,7 @@
     </div>
   </div>
 
-   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabaseclient-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabaseclient-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
