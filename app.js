@@ -42,7 +42,9 @@
   // DOM HELPERS
   // ==============================
 
-  const $ = (id) => document.getElementById(id);    const $$ = (selector) => [
+  const $ = (id) => document.getElementById(id);
+
+  const $$ = (selector) => [
     ...document.querySelectorAll(selector)
   ];
 
@@ -201,8 +203,7 @@
   // ==============================
 
   async function refreshStats() {
-    try 
-    {
+    try {
       const [
         donors,
         requests,
@@ -754,39 +755,6 @@
   // SUBMIT BLOOD REQUEST
   // ==============================
 
-  async function loadBloodRequests() {
-    const grid = document.getElementById("requests-results");
-    if (!grid) return;
-
-    const { data, error } = await supabase
-      .from("blood_requests")
-      .select("patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note")
-      .eq("status", "open")
-      .order("created_at", { ascending: false })
-      .limit(4);
-
-    if (error || !data || data.length === 0) return;
-
-    grid.innerHTML = "";
-    data.forEach((req) => {
-      const card = document.createElement("article");
-      card.className = "donor-card";
-      card.innerHTML = `
-        <div class="donor-top">
-          <div class="donor-avatar">${req.blood_group}</div>
-          <div>
-            <h3>${req.patient_name}</h3>
-            <div class="meta">${req.hospital_location || req.district}</div>
-          </div>
-          <span class="status-pill">${req.urgency}</span>
-        </div>
-        <p style="margin: 8px 0; font-size: 13px;"><strong>Units:</strong> ${req.units_needed} | <strong>Note:</strong> ${req.note || "None"}</p>
-        <a href="tel:${req.contact_phone}" class="btn btn-primary contact" style="margin-top:10px; display:block; text-align:center;">Call ${req.contact_phone}</a>
-      `;
-      grid.appendChild(card);
-    });
-  }
-
   async function submitRequest(e) {
     e.preventDefault();
 
@@ -1054,8 +1022,22 @@
   function wireUI() {
 
     // Navigation buttons
-    $$("[data-scroll]")       .forEach((button) => {          button.addEventListener(           "click",           () => {             scrollToId(               button.dataset.scroll             );           }         );        });      // Announcement links     $$
-(".announcement-link")
+    $$("[data-scroll]")
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+            scrollToId(
+              button.dataset.scroll
+            );
+          }
+        );
+
+      });
+
+    // Announcement links
+    $$(".announcement-link")
       .forEach((button) => {
 
         button.addEventListener(
@@ -1144,8 +1126,18 @@
       );
 
     // Close auth modal
-    $$("[data-close-modal]")       .forEach((element) => {          element.addEventListener(           "click",           closeAuth         );        });      // Close profile modal     $$
-("[data-close-profile]")
+    $$("[data-close-modal]")
+      .forEach((element) => {
+
+        element.addEventListener(
+          "click",
+          closeAuth
+        );
+
+      });
+
+    // Close profile modal
+    $$("[data-close-profile]")
       .forEach((element) => {
 
         element.addEventListener(
@@ -1218,8 +1210,8 @@
     wireUI();
 
     await loadSession();
+
     await refreshStats();
-    await loadBloodRequests();
   }
 
   // ==============================
