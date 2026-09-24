@@ -11,7 +11,8 @@
   // SUPABASE CONFIGURATION
   // ==============================
 
-  const supabase_URL = "https://heflnehkwmqsetqkiqgv.supabase.co";
+  const supabase_URL =
+    "https://heflnehkwmqsetqkiqgv.supabase.co";
 
   const supabase_PUBLISHABLE_KEY =
     "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
@@ -100,6 +101,8 @@
       "Please sign in to use the protected donor network.",
       "info"
     );
+
+    return null;
   }
 
   // ==============================
@@ -107,7 +110,10 @@
   // ==============================
 
   function openAuth(mode = "signin") {
-    authMode = mode;
+    authMode =
+      mode === "signup"
+        ? "signup"
+        : "signin";
 
     const modal = $("auth-modal");
 
@@ -115,20 +121,33 @@
 
     modal.classList.remove("hidden");
 
-    $("auth-title").textContent =
-      mode === "signin"
-        ? "Welcome to Lifeline"
-        : "Create your Lifeline account";
+    if ($("auth-title")) {
+      $("auth-title").textContent =
+        authMode === "signin"
+          ? "Welcome to Lifeline"
+          : "Create your Lifeline account";
+    }
 
-    $("auth-subtitle").textContent =
-      mode === "signin"
-        ? "Sign in to search donor profiles and manage your availability."
-        : "Create an account to safely access the donor network.";
+    if ($("auth-subtitle")) {
+      $("auth-subtitle").textContent =
+        authMode === "signin"
+          ? "Sign in to search donor profiles and manage your availability."
+          : "Create an account to safely access the donor network.";
+    }
 
-    $("auth-submit").textContent =
-      mode === "signin"
-        ? "Sign in"
-        : "Create account";
+    if ($("auth-submit")) {
+      $("auth-submit").textContent =
+        authMode === "signin"
+          ? "Sign in"
+          : "Create account";
+    }
+
+    if ($("switch-auth")) {
+      $("switch-auth").textContent =
+        authMode === "signin"
+          ? "Create an account"
+          : "Already have an account? Sign in";
+    }
   }
 
   function closeAuth() {
@@ -144,7 +163,7 @@
   // ==============================
 
   function initials(name = "Donor") {
-    return name
+    return String(name)
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
@@ -158,7 +177,33 @@
       return "Not provided";
     }
 
-    return new Date(date + "T00:00:00").toLocaleDateString(
+    const value = String(date);
+
+    // PostgreSQL date column
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const parsed = new Date(`${value}T00:00:00`);
+
+      if (Number.isNaN(parsed.getTime())) {
+        return "Not provided";
+      }
+
+      return parsed.toLocaleDateString(
+        "en-BD",
+        {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }
+      );
+    }
+
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return "Not provided";
+    }
+
+    return parsed.toLocaleDateString(
       "en-BD",
       {
         day: "numeric",
@@ -172,16 +217,26 @@
     if (!button) return;
 
     if (loading) {
-      button.dataset.original = button.innerHTML;
+      if (!button.dataset.original) {
+        button.dataset.original =
+          button.innerHTML;
+      }
+
       button.disabled = true;
 
       button.innerHTML =
-        `<span class="spinner">⟳</span> ${text || "Working..."}`;
+        `<span class="spinner">⟳</span> ${
+          text || "Working..."
+        }`;
     } else {
       button.disabled = false;
 
-      button.innerHTML =
-        button.dataset.original || button.innerHTML;
+      if (button.dataset.original) {
+        button.innerHTML =
+          button.dataset.original;
+
+        delete button.dataset.original;
+      }
     }
   }
 
@@ -196,6 +251,12 @@
         "'": "&#039;"
       }[c])
     );
+  }
+
+  function safePhone(value = "") {
+    return String(value)
+      .trim()
+      .replace(/[^\d+()\-\s]/g, "");
   }
 
   // ==============================
@@ -237,9 +298,35 @@
       const safeCount = (result) =>
         result?.count ?? 0;
 
-      const donorCount = safeCount(donors);
-      const requestCount = safeCount(requests);
-      const availableCount = safeCount(available);
+      if (donors?.error) {
+        console.error(
+          "Donor statistics error:",
+          donors.error
+        );
+      }
+
+      if (requests?.error) {
+        console.error(
+          "Request statistics error:",
+          requests.error
+        );
+      }
+
+      if (available?.error) {
+        console.error(
+          "Available donor statistics error:",
+          available.error
+        );
+      }
+
+      const donorCount =
+        safeCount(donors);
+
+      const requestCount =
+        safeCount(requests);
+
+      const availableCount =
+        safeCount(available);
 
       if ($("stat-donors")) {
         $("stat-donors").textContent =
@@ -275,7 +362,10 @@
 
   async function loadSession() {
     try {
-      const { data, error } =
+      const {
+        data,
+        error
+      } =
         await supabase.auth.getSession();
 
       if (error) {
@@ -323,16 +413,16 @@
   // ==============================
 
   async function searchDonors() {
-    requireAuth(async () => {
+    return requireAuth(async () => {
 
       const blood =
-        $("search-blood")?.value || "";
+        $("search-blood")?.value?.trim() || "";
 
       const district =
-        $("search-district")?.value || "";
+        $("search-district")?.value?.trim() || "";
 
       const status =
-        $("search-status")?.value || "";
+        $("search-status")?.value?.trim() || "";
 
       const results =
         $("donor-results");
@@ -375,11 +465,11 @@
       if (district) {
         query = query.ilike(
           "district",
-          district
+          `%${district}%`
         );
       }
 
-      if (status) {
+      if (status === "available") {
         query = query.eq(
           "available",
           true
@@ -392,7 +482,10 @@
       } = await query;
 
       if (error) {
-        console.error(error);
+        console.error(
+          "Donor search error:",
+          error
+        );
 
         results.innerHTML = "";
 
@@ -450,21 +543,26 @@
       card.className =
         "donor-card";
 
+      const donorName =
+        donor.full_name ||
+        "Anonymous donor";
+
+      const phone =
+        safePhone(donor.phone);
+
       card.innerHTML = `
         <div class="donor-top">
 
           <div class="donor-avatar">
             ${escapeHtml(
-              initials(
-                donor.full_name
-              )
+              initials(donorName)
             )}
           </div>
 
           <div>
             <h3>
               ${escapeHtml(
-                donor.full_name
+                donorName
               )}
             </h3>
 
@@ -492,7 +590,8 @@
 
         <span class="blood-badge">
           ${escapeHtml(
-            donor.blood_group
+            donor.blood_group ||
+            "Unknown"
           )}
         </span>
 
@@ -521,8 +620,10 @@
 
           <div>
             <strong>
-              ${formatDate(
-                donor.last_donation_date
+              ${escapeHtml(
+                formatDate(
+                  donor.last_donation_date
+                )
               )}
             </strong>
             Last donation
@@ -531,10 +632,8 @@
         </div>
 
         <button
+          type="button"
           class="btn btn-primary contact donor-contact"
-          data-id="${escapeHtml(
-            donor.id
-          )}"
         >
           View & contact
         </button>
@@ -560,14 +659,18 @@
 
   function openDonor(donor) {
 
+    if (!donor) return;
+
     if ($("profile-blood")) {
       $("profile-blood").textContent =
-        donor.blood_group;
+        donor.blood_group ||
+        "Unknown";
     }
 
     if ($("profile-name")) {
       $("profile-name").textContent =
-        donor.full_name;
+        donor.full_name ||
+        "Anonymous donor";
     }
 
     if ($("profile-location")) {
@@ -619,8 +722,10 @@
         <div>
           <small>Last donation</small>
           <strong>
-            ${formatDate(
-              donor.last_donation_date
+            ${escapeHtml(
+              formatDate(
+                donor.last_donation_date
+              )
             )}
           </strong>
         </div>
@@ -630,13 +735,33 @@
     const call =
       $("profile-call");
 
+    const phone =
+      safePhone(donor.phone);
+
     if (call) {
 
-      call.href =
-        `tel:${donor.phone}`;
+      if (phone) {
+        call.href =
+          `tel:${phone}`;
 
-      call.textContent =
-        `Call ${donor.phone}`;
+        call.textContent =
+          `Call ${phone}`;
+
+        call.classList.remove(
+          "hidden"
+        );
+      } else {
+        call.removeAttribute(
+          "href"
+        );
+
+        call.textContent =
+          "Phone unavailable";
+
+        call.classList.add(
+          "hidden"
+        );
+      }
     }
 
     $("profile-modal")
@@ -652,7 +777,15 @@
   async function submitDonor(e) {
     e.preventDefault();
 
-    requireAuth(async () => {
+    return requireAuth(async () => {
+
+      if (!$("donor-consent")?.checked) {
+        toast(
+          "Please provide consent before joining the donor network.",
+          "error"
+        );
+        return;
+      }
 
       const btn =
         e.submitter;
@@ -663,49 +796,94 @@
         "Saving profile…"
       );
 
+      const fullName =
+        $("donor-name")
+          ?.value
+          ?.trim() || "";
+
+      const bloodGroup =
+        $("donor-blood")
+          ?.value
+          ?.trim() || "";
+
+      const district =
+        $("donor-district")
+          ?.value
+          ?.trim() || "";
+
+      const area =
+        $("donor-area")
+          ?.value
+          ?.trim() || null;
+
+      const phone =
+        safePhone(
+          $("donor-phone")
+            ?.value || ""
+        );
+
+      const lastDonation =
+        $("donor-last")
+          ?.value || null;
+
+      const available =
+        $("donor-available")
+          ?.checked || false;
+
+      const consent =
+        $("donor-consent")
+          ?.checked || false;
+
+      if (
+        !fullName ||
+        !bloodGroup ||
+        !district ||
+        !phone
+      ) {
+        setLoading(
+          btn,
+          false
+        );
+
+        toast(
+          "Please complete all required donor information.",
+          "error"
+        );
+
+        return;
+      }
+
       const payload = {
 
         user_id:
           currentUser.id,
 
         full_name:
-          $("donor-name")
-            .value
-            .trim(),
+          fullName,
 
         blood_group:
-          $("donor-blood")
-            .value,
+          bloodGroup,
 
         district:
-          $("donor-district")
-            .value
-            .trim(),
+          district,
 
         area:
-          $("donor-area")
-            .value
-            .trim() ||
-          null,
+          area,
 
         phone:
-          $("donor-phone")
-            .value
-            .trim(),
+          phone,
 
         last_donation_date:
-          $("donor-last")
-            .value ||
-          null,
+          lastDonation,
 
         available:
-          $("donor-available")
-            .checked,
+          available,
 
         consent:
-          $("donor-consent")
-            .checked,
+          consent,
 
+        // New profiles are never verified
+        // from the client.
         verified:
           false
       };
@@ -729,7 +907,10 @@
 
       if (error) {
 
-        console.error(error);
+        console.error(
+          "Donor profile error:",
+          error
+        );
 
         toast(
           error.message ||
@@ -752,13 +933,164 @@
   }
 
   // ==============================
+  // LOAD BLOOD REQUESTS
+  // ==============================
+
+  async function loadBloodRequests() {
+    const grid =
+      $("requests-results");
+
+    if (!grid) return;
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("blood_requests")
+      .select(
+        "id, patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note, created_at"
+      )
+      .eq(
+        "status",
+        "open"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(4);
+
+    if (error) {
+      console.error(
+        "Blood request loading error:",
+        error
+      );
+
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      return;
+    }
+
+    grid.innerHTML = "";
+
+    data.forEach((req) => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      card.className =
+        "donor-card";
+
+      const phone =
+        safePhone(
+          req.contact_phone
+        );
+
+      const patientName =
+        req.patient_name ||
+        "Blood request";
+
+      const location =
+        req.hospital_location ||
+        req.district ||
+        "Location not provided";
+
+      const urgency =
+        req.urgency ||
+        "Normal";
+
+      const bloodGroup =
+        req.blood_group ||
+        "Unknown";
+
+      const units =
+        Number(req.units_needed) || 0;
+
+      const note =
+        req.note ||
+        "None";
+
+      card.innerHTML = `
+        <div class="donor-top">
+
+          <div class="donor-avatar">
+            ${escapeHtml(
+              bloodGroup
+            )}
+          </div>
+
+          <div>
+            <h3>
+              ${escapeHtml(
+                patientName
+              )}
+            </h3>
+
+            <div class="meta">
+              ${escapeHtml(
+                location
+              )}
+            </div>
+          </div>
+
+          <span class="status-pill">
+            ${escapeHtml(
+              urgency
+            )}
+          </span>
+
+        </div>
+
+        <p style="margin: 8px 0; font-size: 13px;">
+          <strong>Units:</strong>
+          ${escapeHtml(units)}
+
+          |
+
+          <strong>Note:</strong>
+          ${escapeHtml(note)}
+        </p>
+
+        ${
+          phone
+            ? `
+              <a
+                href="tel:${escapeHtml(phone)}"
+                class="btn btn-primary contact"
+                style="margin-top:10px; display:block; text-align:center;"
+              >
+                Call ${escapeHtml(phone)}
+              </a>
+            `
+            : `
+              <span
+                class="btn btn-primary contact"
+                style="margin-top:10px; display:block; text-align:center; opacity:.6;"
+              >
+                Phone unavailable
+              </span>
+            `
+        }
+      `;
+
+      grid.appendChild(card);
+    });
+  }
+
+  // ==============================
   // SUBMIT BLOOD REQUEST
   // ==============================
 
   async function submitRequest(e) {
     e.preventDefault();
 
-    requireAuth(async () => {
+    return requireAuth(async () => {
 
       const btn =
         e.submitter;
@@ -769,50 +1101,99 @@
         "Publishing…"
       );
 
+      const patientName =
+        $("request-name")
+          ?.value
+          ?.trim() || "";
+
+      const bloodGroup =
+        $("request-blood")
+          ?.value
+          ?.trim() || "";
+
+      const district =
+        $("request-district")
+          ?.value
+          ?.trim() || "";
+
+      const hospitalLocation =
+        $("request-location")
+          ?.value
+          ?.trim() || "";
+
+      const units =
+        Number(
+          $("request-units")
+            ?.value
+        );
+
+      const urgency =
+        $("request-urgency")
+          ?.value
+          ?.trim() || "";
+
+      const phone =
+        safePhone(
+          $("request-phone")
+            ?.value || ""
+        );
+
+      const note =
+        $("request-note")
+          ?.value
+          ?.trim() || null;
+
+      if (
+        !patientName ||
+        !bloodGroup ||
+        !district ||
+        !hospitalLocation ||
+        !Number.isFinite(units) ||
+        units < 1 ||
+        !urgency ||
+        !phone
+      ) {
+        setLoading(
+          btn,
+          false
+        );
+
+        toast(
+          "Please complete all required blood request information.",
+          "error"
+        );
+
+        return;
+      }
+
       const payload = {
 
         requester_id:
           currentUser.id,
 
         patient_name:
-          $("request-name")
-            .value
-            .trim(),
+          patientName,
 
         blood_group:
-          $("request-blood")
-            .value,
+          bloodGroup,
 
         district:
-          $("request-district")
-            .value
-            .trim(),
+          district,
 
         hospital_location:
-          $("request-location")
-            .value
-            .trim(),
+          hospitalLocation,
 
         units_needed:
-          Number(
-            $("request-units")
-              .value
-          ),
+          units,
 
         urgency:
-          $("request-urgency")
-            .value,
+          urgency,
 
         contact_phone:
-          $("request-phone")
-            .value
-            .trim(),
+          phone,
 
         note:
-          $("request-note")
-            .value
-            .trim() ||
-          null,
+          note,
 
         status:
           "open"
@@ -833,7 +1214,10 @@
 
       if (error) {
 
-        console.error(error);
+        console.error(
+          "Blood request error:",
+          error
+        );
 
         toast(
           error.message ||
@@ -856,6 +1240,7 @@
       );
 
       await refreshStats();
+      await loadBloodRequests();
 
       scrollToId("find");
     });
@@ -870,15 +1255,24 @@
 
     const email =
       $("auth-email")
-        .value
-        .trim();
+        ?.value
+        ?.trim() || "";
 
     const password =
       $("auth-password")
-        .value;
+        ?.value || "";
 
     const btn =
       $("auth-submit");
+
+    if (!email || !password) {
+      toast(
+        "Please enter your email and password.",
+        "error"
+      );
+
+      return;
+    }
 
     setLoading(
       btn,
@@ -920,7 +1314,10 @@
         false
       );
 
-      console.error(error);
+      console.error(
+        "Authentication exception:",
+        error
+      );
 
       toast(
         error.message ||
@@ -938,8 +1335,14 @@
 
     if (result.error) {
 
+      console.error(
+        "Authentication error:",
+        result.error
+      );
+
       toast(
-        result.error.message,
+        result.error.message ||
+        "Authentication failed.",
         "error"
       );
 
@@ -963,14 +1366,16 @@
     }
 
     currentUser =
-      result.data.user;
+      result.data.user ?? null;
 
     updateAuthUI();
 
     closeAuth();
 
     toast(
-      "Signed in successfully.",
+      authMode === "signin"
+        ? "Signed in successfully."
+        : "Account created successfully.",
       "success"
     );
 
@@ -985,11 +1390,15 @@
 
     const {
       error
-    } = await supabase.auth.signOut();
+    } =
+      await supabase.auth.signOut();
 
     if (error) {
 
-      console.error(error);
+      console.error(
+        "Sign out error:",
+        error
+      );
 
       toast(
         error.message ||
@@ -1002,12 +1411,26 @@
 
     currentUser = null;
 
+    lastDonorResults = [];
+
     updateAuthUI();
 
     if ($("donor-results")) {
       $("donor-results")
         .innerHTML = "";
     }
+
+    if ($("donor-empty")) {
+      $("donor-empty")
+        .classList.add(
+          "hidden"
+        );
+    }
+
+    $("profile-modal")
+      ?.classList.add(
+        "hidden"
+      );
 
     toast(
       "You have been signed out.",
@@ -1210,8 +1633,8 @@
     wireUI();
 
     await loadSession();
-
     await refreshStats();
+    await loadBloodRequests();
   }
 
   // ==============================
