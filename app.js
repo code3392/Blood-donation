@@ -8,27 +8,31 @@
   window.__lifelineAppLoaded = true;
 
   // ==============================
-  // SUPABASE CONFIGURATION
+  // SUPABASE CONFIGURATION & SAFETY
   // ==============================
 
   const supabase_URL = "https://heflnehkwmqsetqkiqgv.supabase.co";
+  const supabase_PUBLISHABLE_KEY = "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
 
-  const supabase_PUBLISHABLE_KEY =
-    "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
+  if (!window.supabase) {
+    console.error("CRITICAL: Supabase CDN script is missing or loaded after app.js in index.html!");
+  }
 
-  const { createClient } = window.supabase;
+  const { createClient } = window.supabase || {};
 
-  const supabase = createClient(
-    supabase_URL,
-    supabase_PUBLISHABLE_KEY,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    }
-  );
+  const supabase = createClient 
+    ? createClient(supabase_URL, supabase_PUBLISHABLE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      })
+    : null;
+
+  if (!supabase) {
+    console.error("Failed to initialize Supabase client. Check Supabase CDN script in index.html.");
+  }
 
   // ==============================
   // APP STATE
@@ -42,9 +46,7 @@
   // DOM HELPERS
   // ==============================
 
-  const $ = (id) => document.getElementById(id);
-
-  const $$ = (selector) => [
+  const $ = (id) => document.getElementById(id);    const $$ = (selector) => [
     ...document.querySelectorAll(selector)
   ];
 
@@ -203,6 +205,7 @@
   // ==============================
 
   async function refreshStats() {
+    if (!supabase) return;
     try {
       const [
         donors,
@@ -222,7 +225,8 @@
           .select("id", {
             count: "exact",
             head: true
-          }),
+          })
+          .eq("status", "open"),
 
         supabase
           .from("donor_profiles")
@@ -274,6 +278,7 @@
   // ==============================
 
   async function loadSession() {
+    if (!supabase) return;
     try {
       const { data, error } =
         await supabase.auth.getSession();
@@ -323,6 +328,7 @@
   // ==============================
 
   async function searchDonors() {
+    if (!supabase) return;
     requireAuth(async () => {
 
       const blood =
@@ -651,6 +657,7 @@
 
   async function submitDonor(e) {
     e.preventDefault();
+    if (!supabase) return;
 
     requireAuth(async () => {
 
@@ -752,11 +759,76 @@
   }
 
   // ==============================
-  // SUBMIT BLOOD REQUEST
+  // BLOOD REQUESTS (LOAD & SUBMIT)
   // ==============================
+
+  async function loadBloodRequests() {
+    const grid = document.getElementById("requests-results");
+    if (!grid) return;
+
+    if (!supabase) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #e53e3e;"><p>Supabase client not initialized.</p></div>`;
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("blood_requests")
+        .select("patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note, created_at")
+        .eq("status", "open")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading blood requests:", error);
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #e53e3e;">
+            <p>Could not load blood requests: ${escapeHtml(error.message)}</p>
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">Check Supabase RLS policies for blood_requests table.</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 30px;">
+            <p>No active blood requests at the moment.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = "";
+      data.forEach((req) => {
+        const card = document.createElement("article");
+        card.className = "donor-card";
+        card.innerHTML = `
+          <div class="donor-top">
+            <div class="donor-avatar">${escapeHtml(req.blood_group)}</div>
+            <div>
+              <h3>${escapeHtml(req.patient_name)}</h3>
+              <div class="meta">${escapeHtml(req.hospital_location || req.district || "")}</div>
+            </div>
+            <span class="status-pill">${escapeHtml(req.urgency || "urgent")}</span>
+          </div>
+          <p style="margin: 8px 0; font-size: 13px;"><strong>Units:</strong> ${escapeHtml(String(req.units_needed || 1))} | <strong>Note:</strong> ${escapeHtml(req.note || "None")}</p>
+          <a href="tel:${escapeHtml(req.contact_phone)}" class="btn btn-primary contact" style="margin-top:10px; display:block; text-align:center;">Call ${escapeHtml(req.contact_phone)}</a>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (err) {
+      console.error("Exception loading blood requests:", err);
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #e53e3e;">
+          <p>Error loading blood requests: ${escapeHtml(err.message)}</p>
+        </div>
+      `;
+    }
+  }
 
   async function submitRequest(e) {
     e.preventDefault();
+    if (!supabase) return;
 
     requireAuth(async () => {
 
@@ -856,8 +928,9 @@
       );
 
       await refreshStats();
+      await loadBloodRequests();
 
-      scrollToId("find");
+      scrollToId("requests-results");
     });
   }
 
@@ -867,6 +940,7 @@
 
   async function submitAuth(e) {
     e.preventDefault();
+    if (!supabase) return;
 
     const email =
       $("auth-email")
@@ -975,6 +1049,7 @@
     );
 
     await refreshStats();
+    await loadBloodRequests();
   }
 
   // ==============================
@@ -982,6 +1057,7 @@
   // ==============================
 
   async function signOut() {
+    if (!supabase) return;
 
     const {
       error
@@ -1022,22 +1098,8 @@
   function wireUI() {
 
     // Navigation buttons
-    $$("[data-scroll]")
-      .forEach((button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-            scrollToId(
-              button.dataset.scroll
-            );
-          }
-        );
-
-      });
-
-    // Announcement links
-    $$(".announcement-link")
+    $$("[data-scroll]")       .forEach((button) => {          button.addEventListener(           "click",           () => {             scrollToId(               button.dataset.scroll             );           }         );        });      // Announcement links     $$
+(".announcement-link")
       .forEach((button) => {
 
         button.addEventListener(
@@ -1126,18 +1188,8 @@
       );
 
     // Close auth modal
-    $$("[data-close-modal]")
-      .forEach((element) => {
-
-        element.addEventListener(
-          "click",
-          closeAuth
-        );
-
-      });
-
-    // Close profile modal
-    $$("[data-close-profile]")
+    $$("[data-close-modal]")       .forEach((element) => {          element.addEventListener(           "click",           closeAuth         );        });      // Close profile modal     $$
+("[data-close-profile]")
       .forEach((element) => {
 
         element.addEventListener(
@@ -1190,15 +1242,17 @@
       );
 
     // Supabase authentication state
-    supabase.auth.onAuthStateChange(
-      (_event, session) => {
+    if (supabase) {
+      supabase.auth.onAuthStateChange(
+        (_event, session) => {
 
-        currentUser =
-          session?.user ?? null;
+          currentUser =
+            session?.user ?? null;
 
-        updateAuthUI();
-      }
-    );
+          updateAuthUI();
+        }
+      );
+    }
   }
 
   // ==============================
@@ -1206,12 +1260,23 @@
   // ==============================
 
   async function initializeApp() {
-
+    // 1. Wire UI event listeners immediately so buttons always work
     wireUI();
 
-    await loadSession();
-
-    await refreshStats();
+    // 2. Load session and fetch stats/requests safely
+    if (supabase) {
+      await loadSession();
+      try {
+        await refreshStats();
+      } catch (err) {
+        console.error("Initial refreshStats error:", err);
+      }
+      try {
+        await loadBloodRequests();
+      } catch (err) {
+        console.error("Initial loadBloodRequests error:", err);
+      }
+    }
   }
 
   // ==============================
