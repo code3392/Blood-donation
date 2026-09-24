@@ -14,10 +14,6 @@
   const supabase_URL = "https://heflnehkwmqsetqkiqgv.supabase.co";
   const supabase_PUBLISHABLE_KEY = "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
 
-  if (!window.supabase) {
-    console.error("CRITICAL: Supabase CDN script is missing or loaded after app.js in index.html!");
-  }
-
   const { createClient } = window.supabase || {};
 
   const supabase = createClient 
@@ -46,9 +42,13 @@
   // DOM HELPERS
   // ==============================
 
-  const $ = (id) => document.getElementById(id);    const $$ = (selector) => [
-    ...document.querySelectorAll(selector)
-  ];
+  const $ = (id) => document.getElementById(id);    const $$ = (selector) => {
+    try {
+      return Array.from(document.querySelectorAll(selector) || []);
+    } catch (e) {
+      return [];
+    }
+  };
 
   // ==============================
   // TOAST
@@ -117,20 +117,26 @@
 
     modal.classList.remove("hidden");
 
-    $("auth-title").textContent =
-      mode === "signin"
-        ? "Welcome to Lifeline"
-        : "Create your Lifeline account";
+    if ($("auth-title")) {
+      $("auth-title").textContent =
+        mode === "signin"
+          ? "Welcome to Lifeline"
+          : "Create your Lifeline account";
+    }
 
-    $("auth-subtitle").textContent =
-      mode === "signin"
-        ? "Sign in to search donor profiles and manage your availability."
-        : "Create an account to safely access the donor network.";
+    if ($("auth-subtitle")) {
+      $("auth-subtitle").textContent =
+        mode === "signin"
+          ? "Sign in to search donor profiles and manage your availability."
+          : "Create an account to safely access the donor network.";
+    }
 
-    $("auth-submit").textContent =
-      mode === "signin"
-        ? "Sign in"
-        : "Create account";
+    if ($("auth-submit")) {
+      $("auth-submit").textContent =
+        mode === "signin"
+          ? "Sign in"
+          : "Create account";
+    }
   }
 
   function closeAuth() {
@@ -1260,10 +1266,8 @@
   // ==============================
 
   async function initializeApp() {
-    // 1. Wire UI event listeners immediately so buttons always work
     wireUI();
 
-    // 2. Load session and fetch stats/requests safely
     if (supabase) {
       await loadSession();
       try {
