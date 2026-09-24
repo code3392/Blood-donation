@@ -201,7 +201,8 @@
   // ==============================
 
   async function refreshStats() {
-    try {
+    try 
+    {
       const [
         donors,
         requests,
@@ -750,55 +751,40 @@
   }
 
   // ==============================
-  // SUBMIT & LOAD BLOOD REQUESTS
+  // SUBMIT BLOOD REQUEST
   // ==============================
 
   async function loadBloodRequests() {
     const grid = document.getElementById("requests-results");
     if (!grid) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("blood_requests")
-        .select("patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note")
-        .eq("status", "open")
-        .order("created_at", { ascending: false })
-        .limit(6);
+    const { data, error } = await supabase
+      .from("blood_requests")
+      .select("patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note")
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(4);
 
-      if (error) {
-        console.error("Error loading blood requests:", error);
-        return;
-      }
+    if (error || !data || data.length === 0) return;
 
-      if (!data || data.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 30px;">
-            <p>No active blood requests at the moment.</p>
-          </div>`;
-        return;
-      }
-
-      grid.innerHTML = "";
-      data.forEach((req) => {
-        const card = document.createElement("article");
-        card.className = "donor-card";
-        card.innerHTML = `
-          <div class="donor-top">
-            <div class="donor-avatar">${escapeHtml(req.blood_group)}</div>
-            <div>
-              <h3>${escapeHtml(req.patient_name)}</h3>
-              <div class="meta">${escapeHtml(req.hospital_location || req.district || "")}</div>
-            </div>
-            <span class="status-pill">${escapeHtml(req.urgency || "urgent")}</span>
+    grid.innerHTML = "";
+    data.forEach((req) => {
+      const card = document.createElement("article");
+      card.className = "donor-card";
+      card.innerHTML = `
+        <div class="donor-top">
+          <div class="donor-avatar">${req.blood_group}</div>
+          <div>
+            <h3>${req.patient_name}</h3>
+            <div class="meta">${req.hospital_location || req.district}</div>
           </div>
-          <p style="margin: 8px 0; font-size: 13px;"><strong>Units:</strong> ${req.units_needed || 1} | <strong>Note:</strong> ${escapeHtml(req.note || "None")}</p>
-          <a href="tel:${escapeHtml(req.contact_phone)}" class="btn btn-primary contact" style="margin-top:10px; display:block; text-align:center;">Call ${escapeHtml(req.contact_phone)}</a>
-        `;
-        grid.appendChild(card);
-      });
-    } catch (err) {
-      console.error("Unexpected error loading requests:", err);
-    }
+          <span class="status-pill">${req.urgency}</span>
+        </div>
+        <p style="margin: 8px 0; font-size: 13px;"><strong>Units:</strong> ${req.units_needed} | <strong>Note:</strong> ${req.note || "None"}</p>
+        <a href="tel:${req.contact_phone}" class="btn btn-primary contact" style="margin-top:10px; display:block; text-align:center;">Call ${req.contact_phone}</a>
+      `;
+      grid.appendChild(card);
+    });
   }
 
   async function submitRequest(e) {
@@ -901,11 +887,9 @@
         "success"
       );
 
-      // Immediately refresh stats counters and reload the requests grid
       await refreshStats();
-      await loadBloodRequests();
 
-      scrollToId("live-requests-preview");
+      scrollToId("find");
     });
   }
 
@@ -1023,7 +1007,6 @@
     );
 
     await refreshStats();
-    await loadBloodRequests();
   }
 
   // ==============================
