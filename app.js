@@ -1443,6 +1443,20 @@
   // ==============================
 
   function wireUI() {
+    // Toggle password visibility
+    const togglePasswordBtn = $("toggle-password-btn");
+    const authPasswordInput = $("auth-password");
+    if (togglePasswordBtn && authPasswordInput) {
+      togglePasswordBtn.addEventListener("click", () => {
+        if (authPasswordInput.type === "password") {
+          authPasswordInput.type = "text";
+          togglePasswordBtn.textContent = "🙈";
+        } else {
+          authPasswordInput.type = "password";
+          togglePasswordBtn.textContent = "👁️";
+        }
+      });
+    }
 
     // Navigation buttons
     $$("[data-scroll]")
