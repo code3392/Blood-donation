@@ -42,9 +42,9 @@
   <main class="dashboard-page">
     <div class="dashboard-top">
       <div>
-        <div class="eyebrow">YOUR PROFILE</div>
+        <div class="eyebrow">YOUR ACCOUNT</div>
         <h1>Donor Dashboard</h1>
-        <p>Edit your donor details, profile photo, and control your availability in the network.</p>
+        <p>Edit your donor profile, manage availability, and update or cancel your posted blood requests.</p>
       </div>
 
       <div style="display: flex; gap: 10px; align-items: center;">
@@ -55,175 +55,309 @@
       </div>
     </div>
 
-    <div class="dashboard-grid">
-      <!-- Left: Edit Form -->
-      <section class="dashboard-card">
-        <div class="dashboard-card-title">
-          <span>Edit Profile Information</span>
-          <span class="secure-tag">🔒 Saved securely</span>
-        </div>
-        <p class="dashboard-card-subtitle">Keep your blood donation records and contact numbers updated.</p>
+    <!-- Navigation Tabs -->
+    <div class="dashboard-tabs">
+      <button type="button" class="tab-btn active" id="tab-profile-btn">
+        👤 Donor Profile & Photo
+      </button>
+      <button type="button" class="tab-btn" id="tab-requests-btn">
+        🩸 My Blood Requests <span class="tab-badge" id="requests-count-badge">0</span>
+      </button>
+    </div>
 
-        <!-- Avatar Uploader -->
-        <div class="avatar-uploader-section">
-          <div class="avatar-preview-box" id="avatar-preview-display">
-            <span id="avatar-initials-fallback">✚</span>
+    <!-- TAB 1: Profile & Photo -->
+    <div id="profile-tab-content">
+      <div class="dashboard-grid">
+        <!-- Left: Edit Form -->
+        <section class="dashboard-card">
+          <div class="dashboard-card-title">
+            <span>Edit Profile Information</span>
+            <span class="secure-tag">🔒 Saved securely</span>
           </div>
+          <p class="dashboard-card-subtitle">Keep your blood donation records and contact numbers updated.</p>
 
-          <div class="avatar-upload-info">
-            <h4>Profile Picture</h4>
-            <p>Upload a clear photo so hospitals and seekers can recognize you (JPG, PNG, or WebP).</p>
-            
-            <input type="file" id="avatar-file-input" accept="image/png, image/jpeg, image/webp" style="display: none;" />
-            <div class="avatar-btn-row">
-              <button type="button" class="btn btn-light" id="choose-avatar-btn">
-                📷 Choose photo
-              </button>
-              <button type="button" class="btn btn-ghost" id="remove-avatar-btn" style="color: #ef4444; display: none;">
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <form id="profile-edit-form">
-          <div class="form-grid">
-            <div class="field">
-              <label for="edit-name">Full name</label>
-              <input id="edit-name" required maxlength="80" placeholder="e.g. Tanvir Hasan" />
+          <!-- Avatar Uploader -->
+          <div class="avatar-uploader-section">
+            <div class="avatar-preview-box" id="avatar-preview-display">
+              <span id="avatar-initials-fallback">✚</span>
             </div>
 
-            <div class="field">
-              <label for="edit-blood">Blood group</label>
-              <select id="edit-blood" required>
-                <option value="">Select blood group</option>
-                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="edit-district">District</label>
-              <select id="edit-district" required>
-                <option value="">Select district</option>
-                <option>Dhaka</option><option>Gazipur</option><option>Savar</option><option>Narayanganj</option>
-                <option>Chattogram</option><option>Sylhet</option><option>Rajshahi</option><option>Khulna</option>
-                <option>Barishal</option><option>Rangpur</option><option>Mymensingh</option><option>Comilla</option>
-                <option>Bogra</option><option>Cox's Bazar</option><option>Jessore</option><option>Dinajpur</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="edit-area">Area / Upazila <span class="optional">(optional)</span></label>
-              <input id="edit-area" maxlength="80" placeholder="e.g. Dhanmondi, Mirpur, Uttara" />
-            </div>
-
-            <div class="field">
-              <label for="edit-phone">Contact phone</label>
-              <input id="edit-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" />
-            </div>
-
-            <div class="field">
-              <label for="edit-last">Last donation date <span class="optional">(optional)</span></label>
-              <input id="edit-last" type="date" />
+            <div class="avatar-upload-info">
+              <h4>Profile Picture</h4>
+              <p>Upload a clear photo so hospitals and seekers can recognize you (JPG, PNG, or WebP).</p>
+              
+              <input type="file" id="avatar-file-input" accept="image/png, image/jpeg, image/webp" style="display: none;" />
+              <div class="avatar-btn-row">
+                <button type="button" class="btn btn-light" id="choose-avatar-btn">
+                  📷 Choose photo
+                </button>
+                <button type="button" class="btn btn-ghost" id="remove-avatar-btn" style="color: #ef4444; display: none;">
+                  Remove
+                </button>
+              </div>
             </div>
           </div>
 
-          <div style="margin: 20px 0 10px;">
-            <label class="check-row">
-              <input id="edit-available" type="checkbox" checked />
-              <span>
-                <strong>I am currently willing and available to donate blood</strong>
-                <small>Uncheck this if you recently donated, are sick, or currently unavailable.</small>
-              </span>
-            </label>
-
-            <label class="check-row">
-              <input id="edit-consent" type="checkbox" checked required />
-              <span>
-                <strong>Consent to display my profile in the protected Lifeline directory</strong>
-                <small>Your phone is only visible to logged-in users needing blood.</small>
-              </span>
-            </label>
-          </div>
-
-          <button class="btn btn-primary btn-large full-width" id="save-profile-btn" type="submit" style="margin-top: 14px;">
-            Save profile changes <span>→</span>
-          </button>
-        </form>
-      </section>
-
-      <!-- Right: Live Preview & Account Info -->
-      <aside class="preview-sidebar">
-        <div class="dashboard-card">
-          <div class="preview-box-label">
-            <span class="eyebrow" style="margin: 0;">LIVE CARD PREVIEW</span>
-            <span class="mini-label">What others see</span>
-          </div>
-
-          <!-- Dynamic donor card mirroring index.html -->
-          <article class="donor-card" id="preview-donor-card" style="box-shadow: none; border-color: #e5e7eb; pointer-events: none;">
-            <div class="donor-top">
-              <div class="donor-avatar" id="preview-card-avatar">
-                ✚
+          <form id="profile-edit-form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="edit-name">Full name</label>
+                <input id="edit-name" required maxlength="80" placeholder="e.g. Tanvir Hasan" />
               </div>
 
-              <div>
-                <h3 id="preview-card-name">Your Name</h3>
-                <div class="meta" id="preview-card-location">District, Bangladesh</div>
+              <div class="field">
+                <label for="edit-blood">Blood group</label>
+                <select id="edit-blood" required>
+                  <option value="">Select blood group</option>
+                  <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                  <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                </select>
               </div>
 
-              <span class="available-dot" id="preview-card-dot" title="Available"></span>
-            </div>
-
-            <span class="blood-badge" id="preview-card-blood">O+</span>
-
-            <div class="details">
-              <div>
-                <strong id="preview-card-district">Dhaka</strong>
-                District
+              <div class="field">
+                <label for="edit-district">District</label>
+                <select id="edit-district" required>
+                  <option value="">Select district</option>
+                  <option>Dhaka</option><option>Gazipur</option><option>Savar</option><option>Narayanganj</option>
+                  <option>Chattogram</option><option>Sylhet</option><option>Rajshahi</option><option>Khulna</option>
+                  <option>Barishal</option><option>Rangpur</option><option>Mymensingh</option><option>Comilla</option>
+                  <option>Bogra</option><option>Cox's Bazar</option><option>Jessore</option><option>Dinajpur</option>
+                </select>
               </div>
-              <div>
-                <strong id="preview-card-status">Registered</strong>
-                Status
+
+              <div class="field">
+                <label for="edit-area">Area / Upazila <span class="optional">(optional)</span></label>
+                <input id="edit-area" maxlength="80" placeholder="e.g. Dhanmondi, Mirpur, Uttara" />
               </div>
-              <div>
-                <strong id="preview-card-last">None</strong>
-                Last donation
+
+              <div class="field">
+                <label for="edit-phone">Contact phone</label>
+                <input id="edit-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" />
+              </div>
+
+              <div class="field">
+                <label for="edit-last">Last donation date <span class="optional">(optional)</span></label>
+                <input id="edit-last" type="date" />
               </div>
             </div>
 
-            <button type="button" class="btn btn-primary contact" style="margin-top: 14px; width: 100%; opacity: 0.85;">
-              View & contact (Demo)
+            <div style="margin: 20px 0 10px;">
+              <label class="check-row">
+                <input id="edit-available" type="checkbox" checked />
+                <span>
+                  <strong>I am currently willing and available to donate blood</strong>
+                  <small>Uncheck this if you recently donated, are sick, or currently unavailable.</small>
+                </span>
+              </label>
+
+              <label class="check-row">
+                <input id="edit-consent" type="checkbox" checked required />
+                <span>
+                  <strong>Consent to display my profile in the protected Lifeline directory</strong>
+                  <small>Your phone is only visible to logged-in users needing blood.</small>
+                </span>
+              </label>
+            </div>
+
+            <button class="btn btn-primary btn-large full-width" id="save-profile-btn" type="submit" style="margin-top: 14px;">
+              Save profile changes <span>→</span>
             </button>
-          </article>
-        </div>
+          </form>
+        </section>
 
-        <div class="dashboard-card">
-          <h3 class="dashboard-card-title" style="font-size: 16px;">Account Overview</h3>
-          <div class="quick-stats-list">
-            <div class="quick-stat-item">
-              <span>Account Email</span>
-              <strong id="info-account-email">—</strong>
+        <!-- Right: Live Preview & Account Info -->
+        <aside class="preview-sidebar">
+          <div class="dashboard-card">
+            <div class="preview-box-label">
+              <span class="eyebrow" style="margin: 0;">LIVE CARD PREVIEW</span>
+              <span class="mini-label">What others see</span>
             </div>
-            <div class="quick-stat-item">
-              <span>Verification Status</span>
-              <strong id="info-profile-status" style="color: var(--green);">Registered</strong>
-            </div>
-            <div class="quick-stat-item">
-              <span>Current Status</span>
-              <strong id="info-availability-text">Available</strong>
-            </div>
+
+            <!-- Dynamic donor card mirroring index.html -->
+            <article class="donor-card" id="preview-donor-card" style="box-shadow: none; border-color: #e5e7eb; pointer-events: none;">
+              <div class="donor-top">
+                <div class="donor-avatar" id="preview-card-avatar">
+                  ✚
+                </div>
+
+                <div>
+                  <h3 id="preview-card-name">Your Name</h3>
+                  <div class="meta" id="preview-card-location">District, Bangladesh</div>
+                </div>
+
+                <span class="available-dot" id="preview-card-dot" title="Available"></span>
+              </div>
+
+              <span class="blood-badge" id="preview-card-blood">O+</span>
+
+              <div class="details">
+                <div>
+                  <strong id="preview-card-district">Dhaka</strong>
+                  District
+                </div>
+                <div>
+                  <strong id="preview-card-status">Registered</strong>
+                  Status
+                </div>
+                <div>
+                  <strong id="preview-card-last">None</strong>
+                  Last donation
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-primary contact" style="margin-top: 14px; width: 100%; opacity: 0.85;">
+                View & contact (Demo)
+              </button>
+            </article>
           </div>
 
-          <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
-            <a href="index.html#find" class="btn btn-light full-width" style="text-align: center;">Search Other Donors</a>
-            <a href="index.html#request" class="btn btn-ghost full-width" style="text-align: center;">Publish Blood Request</a>
+          <div class="dashboard-card">
+            <h3 class="dashboard-card-title" style="font-size: 16px;">Account Overview</h3>
+            <div class="quick-stats-list">
+              <div class="quick-stat-item">
+                <span>Account Email</span>
+                <strong id="info-account-email">—</strong>
+              </div>
+              <div class="quick-stat-item">
+                <span>Verification Status</span>
+                <strong id="info-profile-status" style="color: var(--green);">Registered</strong>
+              </div>
+              <div class="quick-stat-item">
+                <span>Current Status</span>
+                <strong id="info-availability-text">Available</strong>
+              </div>
+              <div class="quick-stat-item">
+                <span>Your Requests</span>
+                <strong id="info-requests-count">0 posted</strong>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" class="btn btn-light full-width" id="switch-to-requests-btn" style="text-align: center;">
+                Manage My Blood Requests
+              </button>
+              <a href="index.html#request" class="btn btn-ghost full-width" style="text-align: center;">
+                Publish New Blood Request
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- TAB 2: My Blood Requests -->
+    <div id="requests-tab-content" class="hidden">
+      <div class="dashboard-card">
+        <div class="dashboard-card-title" style="margin-bottom: 6px;">
+          <span>My Blood Requests</span>
+          <a href="index.html#request" class="btn btn-primary" style="font-size: 12px; padding: 8px 14px;">
+            ＋ Post New Request
+          </a>
+        </div>
+        <p class="dashboard-card-subtitle">
+          Manage blood requests you have published. You can edit the hospital details, update urgency, or cancel requests when no longer needed.
+        </p>
+
+        <!-- Requests list container -->
+        <div id="user-requests-list" class="requests-container">
+          <div style="text-align: center; padding: 40px 20px; color: var(--muted);">
+            Loading your blood requests...
           </div>
         </div>
-      </aside>
+
+        <!-- Empty state when no requests exist -->
+        <div class="empty-state" id="requests-empty-state" style="display: none;">
+          <div>🩸</div>
+          <h3>No blood requests posted yet</h3>
+          <p>When you publish an emergency blood request, you can edit its details or cancel it here anytime.</p>
+          <a href="index.html#request" class="btn btn-primary" style="margin-top: 14px;">Publish an Emergency Request</a>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Edit Blood Request Modal -->
+  <div id="edit-request-modal" class="modal hidden">
+    <div class="modal-backdrop" id="close-edit-modal-backdrop"></div>
+    <div class="modal-card" style="width: min(560px, calc(100% - 30px)); max-height: 90vh; overflow-y: auto;">
+      <button class="modal-close" id="close-edit-request-btn">×</button>
+      <div class="modal-icon" style="background: var(--red-soft); color: var(--red); font-size: 20px;">✏️</div>
+      <div class="eyebrow">MANAGE REQUEST</div>
+      <h2>Edit Blood Request</h2>
+      <p>Update hospital details, units needed, contact phone, or change the request status.</p>
+
+      <form id="edit-request-form">
+        <input type="hidden" id="edit-req-id" />
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="edit-req-name">Patient / requester name</label>
+            <input id="edit-req-name" required maxlength="80" />
+          </div>
+
+          <div class="field">
+            <label for="edit-req-blood">Blood group</label>
+            <select id="edit-req-blood" required>
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="edit-req-district">District</label>
+            <input id="edit-req-district" required maxlength="60" />
+          </div>
+
+          <div class="field">
+            <label for="edit-req-location">Hospital / location</label>
+            <input id="edit-req-location" required maxlength="120" />
+          </div>
+
+          <div class="field">
+            <label for="edit-req-units">Units needed</label>
+            <input id="edit-req-units" type="number" min="1" max="20" required />
+          </div>
+
+          <div class="field">
+            <label for="edit-req-urgency">Urgency</label>
+            <select id="edit-req-urgency" required>
+              <option value="critical">Critical — today</option>
+              <option value="urgent">Urgent — within 24h</option>
+              <option value="planned">Planned</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="edit-req-phone">Contact phone</label>
+            <input id="edit-req-phone" required inputmode="tel" maxlength="20" />
+          </div>
+
+          <div class="field full">
+            <label for="edit-req-status">Request status</label>
+            <select id="edit-req-status" required>
+              <option value="open">🟢 Active / Open (Visible to network donors)</option>
+              <option value="fulfilled">🔵 Fulfilled (Blood received, close request)</option>
+              <option value="cancelled">⚪ Cancelled (No longer needed)</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="edit-req-note">Additional note <span class="optional">(optional)</span></label>
+            <textarea id="edit-req-note" maxlength="300"></textarea>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 18px;">
+          <button type="submit" class="btn btn-primary full-width" id="save-request-btn">
+            Save Changes <span>✓</span>
+          </button>
+          <button type="button" class="btn btn-light" id="cancel-edit-modal-btn">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <div class="footer-bottom" style="margin-top: 0; border: none;">
