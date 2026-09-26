@@ -35,6 +35,7 @@
   let currentProfile = null;
   let currentAvatarUrl = null;
   let isAvatarRemoved = false;
+  let userRequests = [];
 
   // ==============================
   // DOM HELPERS
@@ -75,6 +76,19 @@
       .map((x) => x[0])
       .join("")
       .toUpperCase() || "✚";
+  }
+
+  function escapeHtml(value = "") {
+    return String(value).replace(
+      /[&<>"']/g,
+      (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[c])
+    );
   }
 
   function formatDate(date) {
@@ -119,7 +133,6 @@
   // IMAGE RESIZING & COMPRESSION
   // ==============================
 
-  // Compresses and downscales image to a clean web-ready data URL
   function processImageFile(file) {
     return new Promise((resolve, reject) => {
       if (!file.type.startsWith("image/")) {
@@ -157,7 +170,6 @@
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Convert to compressed JPEG data URL
           const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
           resolve(compressedDataUrl);
         };
@@ -250,8 +262,307 @@
       }
     }
 
-    // Update avatar display with current state
     updateAvatarDisplay(currentAvatarUrl, name);
+  }
+
+  // ==============================
+  // TAB NAVIGATION
+  // ==============================
+
+  function switchTab(tabName) {
+    const tabProfileBtn = $("tab-profile-btn");
+    const tabRequestsBtn = $("tab-requests-btn");
+    const profileContent = $("profile-tab-content");
+    const requestsContent = $("requests-tab-content");
+
+    if (tabName === "requests") {
+      tabProfileBtn?.classList.remove("active");
+      tabRequestsBtn?.classList.add("active");
+      profileContent?.classList.add("hidden");
+      requestsContent?.classList.remove("hidden");
+      loadUserRequests();
+    } else {
+      tabRequestsBtn?.classList.remove("active");
+      tabProfileBtn?.classList.add("active");
+      requestsContent?.classList.add("hidden");
+      profileContent?.classList.remove("hidden");
+    }
+  }
+
+  // ==============================
+  // BLOOD REQUESTS MANAGEMENT
+  // ==============================
+
+  async function loadUserRequests() {
+    if (!currentUser) return;
+
+    const listContainer = $("user-requests-list");
+    const emptyState = $("requests-empty-state");
+    const badge = $("requests-count-badge");
+    const infoCount = $("info-requests-count");
+
+    try {
+      const { data, error } = await supabase
+        .from("blood_requests")
+        .select("*")
+        .eq("requester_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading user blood requests:", error);
+        if (listContainer) {
+          listContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">Could not load requests: ${escapeHtml(error.message)}</div>`;
+        }
+        return;
+      }
+
+      userRequests = data || [];
+
+      // Update counters
+      const count = userRequests.length;
+      if (badge) badge.textContent = count;
+      if (infoCount) infoCount.textContent = `${count} posted`;
+
+      if (count === 0) {
+        if (listContainer) listContainer.innerHTML = "";
+        if (emptyState) emptyState.style.display = "block";
+        return;
+      }
+
+      if (emptyState) emptyState.style.display = "none";
+      renderUserRequests(userRequests);
+    } catch (err) {
+      console.error("Load requests exception:", err);
+    }
+  }
+
+  function renderUserRequests(requests) {
+    const listContainer = $("user-requests-list");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = "";
+
+    requests.forEach((req) => {
+      const card = document.createElement("article");
+      card.className = "request-item-card";
+
+      const status = req.status || "open";
+      let statusBadge = "";
+      if (status === "open") {
+        statusBadge = `<span class="status-badge-open">● Active / Open</span>`;
+      } else if (status === "fulfilled") {
+        statusBadge = `<span class="status-badge-fulfilled">✓ Fulfilled</span>`;
+      } else {
+        statusBadge = `<span class="status-badge-cancelled">✕ Cancelled</span>`;
+      }
+
+      const urgencyLabel = {
+        critical: "Critical — today",
+        urgent: "Urgent — within 24h",
+        planned: "Planned"
+      }[req.urgency] || req.urgency || "Urgent";
+
+      card.innerHTML = `
+        <div class="request-card-header">
+          <div class="request-card-title-group">
+            <span class="blood-badge" style="margin:0; font-size:14px; padding:6px 12px;">${escapeHtml(req.blood_group || "Unknown")}</span>
+            <div>
+              <h3 style="margin:0; font-size:16px;">${escapeHtml(req.patient_name || "Patient")}</h3>
+              <small style="color:var(--muted); font-size:11px;">Posted on ${formatDate(req.created_at)}</small>
+            </div>
+          </div>
+          <div>${statusBadge}</div>
+        </div>
+
+        <div class="request-card-body">
+          <div>
+            <small>Hospital / Location</small>
+            <strong>${escapeHtml(req.hospital_location || "—")}</strong>
+          </div>
+          <div>
+            <small>District</small>
+            <strong>${escapeHtml(req.district || "—")}</strong>
+          </div>
+          <div>
+            <small>Units Needed</small>
+            <strong>${escapeHtml(req.units_needed || 1)} unit(s)</strong>
+          </div>
+          <div>
+            <small>Urgency</small>
+            <strong style="color:var(--red);">${escapeHtml(urgencyLabel)}</strong>
+          </div>
+          <div>
+            <small>Contact Phone</small>
+            <strong>${escapeHtml(req.contact_phone || "—")}</strong>
+          </div>
+        </div>
+
+        ${
+          req.note
+            ? `<div class="request-card-note"><strong>Note:</strong> ${escapeHtml(req.note)}</div>`
+            : ""
+        }
+
+        <div class="request-card-actions">
+          <button type="button" class="btn btn-light edit-req-btn" style="font-size:12px; padding:8px 14px;">
+            ✏️ Edit Request
+          </button>
+
+          ${
+            status === "open"
+              ? `
+                <button type="button" class="btn btn-ghost fulfill-req-btn" style="font-size:12px; padding:8px 14px; color:var(--green);">
+                  ✓ Mark Fulfilled
+                </button>
+                <button type="button" class="btn btn-ghost cancel-req-btn" style="font-size:12px; padding:8px 14px; color:#ef4444;">
+                  ✕ Cancel Request
+                </button>
+              `
+              : `
+                <button type="button" class="btn btn-ghost reopen-req-btn" style="font-size:12px; padding:8px 14px; color:var(--red);">
+                  🔄 Re-open Request
+                </button>
+              `
+          }
+        </div>
+      `;
+
+      // Event listeners for actions
+      card.querySelector(".edit-req-btn")?.addEventListener("click", () => {
+        openEditRequestModal(req);
+      });
+
+      card.querySelector(".fulfill-req-btn")?.addEventListener("click", () => {
+        updateRequestStatus(req.id, "fulfilled", "Mark this request as fulfilled? (This means you have found blood and donors will no longer be contacted.)");
+      });
+
+      card.querySelector(".cancel-req-btn")?.addEventListener("click", () => {
+        updateRequestStatus(req.id, "cancelled", "Are you sure you want to cancel this blood request? It will be marked as cancelled.");
+      });
+
+      card.querySelector(".reopen-req-btn")?.addEventListener("click", () => {
+        updateRequestStatus(req.id, "open", "Re-open this blood request so it appears active in emergency searches again?");
+      });
+
+      listContainer.appendChild(card);
+    });
+  }
+
+  // Update status (cancel, fulfill, reopen)
+  async function updateRequestStatus(requestId, newStatus, confirmMessage) {
+    if (confirmMessage && !confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("blood_requests")
+        .update({ status: newStatus })
+        .eq("id", requestId)
+        .eq("requester_id", currentUser.id);
+
+      if (error) {
+        console.error("Status update error:", error);
+        toast(error.message || "Failed to update request status.", "error");
+        return;
+      }
+
+      const statusLabels = {
+        open: "Request re-opened and active.",
+        fulfilled: "Request marked as fulfilled! Thank you for updating.",
+        cancelled: "Blood request has been cancelled."
+      };
+
+      toast(statusLabels[newStatus] || "Status updated.", "success");
+      await loadUserRequests();
+    } catch (err) {
+      console.error("Status update exception:", err);
+      toast("Error updating status.", "error");
+    }
+  }
+
+  // ==============================
+  // EDIT REQUEST MODAL
+  // ==============================
+
+  function openEditRequestModal(request) {
+    if (!request) return;
+
+    if ($("edit-req-id")) $("edit-req-id").value = request.id;
+    if ($("edit-req-name")) $("edit-req-name").value = request.patient_name || "";
+    if ($("edit-req-blood")) $("edit-req-blood").value = request.blood_group || "A+";
+    if ($("edit-req-district")) $("edit-req-district").value = request.district || "";
+    if ($("edit-req-location")) $("edit-req-location").value = request.hospital_location || "";
+    if ($("edit-req-units")) $("edit-req-units").value = request.units_needed || 1;
+    if ($("edit-req-urgency")) $("edit-req-urgency").value = request.urgency || "urgent";
+    if ($("edit-req-phone")) $("edit-req-phone").value = request.contact_phone || "";
+    if ($("edit-req-status")) $("edit-req-status").value = request.status || "open";
+    if ($("edit-req-note")) $("edit-req-note").value = request.note || "";
+
+    $("edit-request-modal")?.classList.remove("hidden");
+  }
+
+  function closeEditRequestModal() {
+    $("edit-request-modal")?.classList.add("hidden");
+  }
+
+  async function handleSaveEditedRequest(e) {
+    e.preventDefault();
+
+    const id = $("edit-req-id")?.value;
+    if (!id || !currentUser) return;
+
+    const patientName = $("edit-req-name")?.value?.trim() || "";
+    const bloodGroup = $("edit-req-blood")?.value || "";
+    const district = $("edit-req-district")?.value?.trim() || "";
+    const location = $("edit-req-location")?.value?.trim() || "";
+    const units = Number($("edit-req-units")?.value) || 1;
+    const urgency = $("edit-req-urgency")?.value || "urgent";
+    const phone = $("edit-req-phone")?.value?.trim() || "";
+    const status = $("edit-req-status")?.value || "open";
+    const note = $("edit-req-note")?.value?.trim() || null;
+
+    if (!patientName || !bloodGroup || !district || !location || !phone) {
+      toast("Please fill in all required request fields.", "error");
+      return;
+    }
+
+    const saveBtn = $("save-request-btn");
+    setLoading(saveBtn, true, "Saving...");
+
+    try {
+      const { error } = await supabase
+        .from("blood_requests")
+        .update({
+          patient_name: patientName,
+          blood_group: bloodGroup,
+          district: district,
+          hospital_location: location,
+          units_needed: units,
+          urgency: urgency,
+          contact_phone: phone,
+          status: status,
+          note: note
+        })
+        .eq("id", id)
+        .eq("requester_id", currentUser.id);
+
+      setLoading(saveBtn, false);
+
+      if (error) {
+        console.error("Save request error:", error);
+        toast(error.message || "Failed to update blood request.", "error");
+        return;
+      }
+
+      toast("Blood request updated successfully!", "success");
+      closeEditRequestModal();
+      await loadUserRequests();
+    } catch (err) {
+      setLoading(saveBtn, false);
+      console.error("Save request exception:", err);
+      toast("Error updating blood request.", "error");
+    }
   }
 
   // ==============================
@@ -320,13 +631,15 @@
           $("preview-card-status").textContent = profile.verified ? "Verified" : "Registered";
         }
       } else {
-        // Pre-fill email or metadata if fresh profile
         if (currentUser.user_metadata?.full_name && $("edit-name")) {
           $("edit-name").value = currentUser.user_metadata.full_name;
         }
       }
 
       updateLivePreview();
+
+      // Load user requests in background
+      await loadUserRequests();
     } catch (err) {
       console.error("Dashboard initialization error:", err);
       toast("Error loading dashboard data.", "error");
@@ -372,7 +685,7 @@
     try {
       const targetAvatar = isAvatarRemoved ? null : currentAvatarUrl;
 
-      // 1. Update user metadata in Supabase Auth (always succeeds and keeps avatar saved)
+      // 1. Update user metadata in Supabase Auth
       try {
         await supabase.auth.updateUser({
           data: {
@@ -398,14 +711,12 @@
         avatar_url: targetAvatar
       };
 
-      // Upsert into donor_profiles
       let { error } = await supabase
         .from("donor_profiles")
         .upsert(payload, {
           onConflict: "user_id"
         });
 
-      // Fallback: If table does not have avatar_url column yet, remove it from payload and retry
       if (error && (error.message?.includes("avatar_url") || error.details?.includes("avatar_url"))) {
         console.warn("avatar_url column not found in database table, updating without it.");
         delete payload.avatar_url;
@@ -453,7 +764,12 @@
   // ==============================
 
   function wireDashboard() {
-    // Form submission
+    // Tab buttons
+    $("tab-profile-btn")?.addEventListener("click", () => switchTab("profile"));
+    $("tab-requests-btn")?.addEventListener("click", () => switchTab("requests"));
+    $("switch-to-requests-btn")?.addEventListener("click", () => switchTab("requests"));
+
+    // Profile form submission
     $("profile-edit-form")?.addEventListener("submit", submitProfile);
 
     // Live preview inputs
@@ -498,6 +814,12 @@
       updateAvatarDisplay(null, $("edit-name")?.value);
       toast("Photo removed. Remember to click 'Save profile changes'.", "info");
     });
+
+    // Edit request modal events
+    $("edit-request-form")?.addEventListener("submit", handleSaveEditedRequest);
+    $("close-edit-request-btn")?.addEventListener("click", closeEditRequestModal);
+    $("close-edit-modal-backdrop")?.addEventListener("click", closeEditRequestModal);
+    $("cancel-edit-modal-btn")?.addEventListener("click", closeEditRequestModal);
 
     // Sign out button
     $("dash-signout-btn")?.addEventListener("click", handleSignOut);
