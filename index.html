@@ -351,14 +351,25 @@
       <form id="auth-form">
         <div class="field"><label>Email</label><input id="auth-email" type="email" required placeholder="you@example.com" /></div>
         <div class="field">
-  <label>Password</label>
-  <div style="position: relative;">
-    <input id="auth-password" type="password" required minlength="6" placeholder="At least 6 characters" style="padding-right: 42px;" />
-    <button type="button" id="toggle-password-btn" style="position: absolute; right: 0; top: 0; bottom: 0; background: none; border: none; cursor: pointer; padding: 0 12px; display: flex; align-items: center; color: #6b7280; font-size: 16px;" aria-label="Toggle password visibility">
-      👁️
-    </button>
-  </div>
-</div>
+          <label for="auth-password">Password</label>
+          <div style="position: relative;">
+            <input id="auth-password" type="password" required minlength="6" placeholder="At least 6 characters" style="padding-right: 42px;" />
+            <button type="button" id="toggle-password-btn" style="position: absolute; right: 0; top: 0; bottom: 0; background: none; border: none; cursor: pointer; padding: 0 12px; display: flex; align-items: center; color: #6b7280; font-size: 16px;" aria-label="Toggle password visibility">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div class="field hidden" id="confirm-password-group">
+          <label for="auth-confirm-password">Confirm Password</label>
+          <div style="position: relative;">
+            <input id="auth-confirm-password" type="password" placeholder="Confirm password" autocomplete="new-password" style="padding-right: 42px;" />
+            <button type="button" id="toggle-confirm-password-btn" style="position: absolute; right: 0; top: 0; bottom: 0; background: none; border: none; cursor: pointer; padding: 0 12px; display: flex; align-items: center; color: #6b7280; font-size: 16px;" aria-label="Toggle confirm password visibility">
+              👁️
+            </button>
+          </div>
+        </div>
+        
         <button class="btn btn-primary full-width btn-large" id="auth-submit" type="submit">Sign in</button>
       </form>
       <button class="switch-auth" id="switch-auth">New here? Create an account</button>
