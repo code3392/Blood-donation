@@ -472,9 +472,7 @@
 
       let query = supabase
         .from("donor_profiles")
-        .select(
-          "id, full_name, blood_group, district, area, phone, available, last_donation_date, verified, created_at"
-        )
+        .select("*")
         .order("available", {
           ascending: false
         })
@@ -582,9 +580,11 @@
         <div class="donor-top">
 
           <div class="donor-avatar">
-            ${escapeHtml(
-              initials(donorName)
-            )}
+            ${
+              donor.avatar_url
+                ? `<img src="${escapeHtml(donor.avatar_url)}" alt="${escapeHtml(donorName)}" />`
+                : escapeHtml(initials(donorName))
+            }
           </div>
 
           <div>
@@ -689,10 +689,13 @@
 
     if (!donor) return;
 
-    if ($("profile-blood")) {
-      $("profile-blood").textContent =
-        donor.blood_group ||
-        "Unknown";
+    const bloodBadge = $("profile-blood");
+    if (bloodBadge) {
+      if (donor.avatar_url) {
+        bloodBadge.innerHTML = `<img src="${escapeHtml(donor.avatar_url)}" alt="${escapeHtml(donor.full_name || 'Donor')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`;
+      } else {
+        bloodBadge.textContent = donor.blood_group || "Unknown";
+      }
     }
 
     if ($("profile-name")) {
@@ -1555,14 +1558,14 @@ if (authMode === "signup") {
 
       });
 
-    // Login button
+    // Login button / Dashboard button
     $("login-btn")
       ?.addEventListener(
         "click",
         () => {
 
           if (currentUser) {
-            scrollToId("find");
+            window.location.href = "dashboard.html";
           } else {
             openAuth("signin");
           }
