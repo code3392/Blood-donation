@@ -148,10 +148,38 @@
           ? "Create an account"
           : "Already have an account? Sign in";
     }
+    const confirmGroup = $("confirm-password-group");
+    const confirmPassword = $("auth-confirm-password");
+
+    if (confirmGroup) {
+      if (authMode === "signup") {
+        confirmGroup.classList.remove("hidden");
+      } else {
+        confirmGroup.classList.add("hidden");
+        if (confirmPassword) {
+          confirmPassword.value = "";
+        }
+      }
+    }
   }
 
   function closeAuth() {
     $("auth-modal")?.classList.add("hidden");
+
+    // Reset password visibility toggles on modal close
+    const authPasswordInput = $("auth-password");
+    const togglePasswordBtn = $("toggle-password-btn");
+    if (authPasswordInput && authPasswordInput.type === "text") {
+      authPasswordInput.type = "password";
+      if (togglePasswordBtn) togglePasswordBtn.textContent = "👁️";
+    }
+
+    const authConfirmPasswordInput = $("auth-confirm-password");
+    const toggleConfirmPasswordBtn = $("toggle-confirm-password-btn");
+    if (authConfirmPasswordInput && authConfirmPasswordInput.type === "text") {
+      authConfirmPasswordInput.type = "password";
+      if (toggleConfirmPasswordBtn) toggleConfirmPasswordBtn.textContent = "👁️";
+    }
   }
 
   function closeProfile() {
@@ -1258,6 +1286,10 @@
         ?.value
         ?.trim() || "";
 
+        const confirmPassword =
+  $("auth-confirm-password")
+    ?.value || "";
+
     const password =
       $("auth-password")
         ?.value || "";
@@ -1266,13 +1298,33 @@
       $("auth-submit");
 
     if (!email || !password) {
-      toast(
-        "Please enter your email and password.",
-        "error"
-      );
+  toast(
+    "Please enter your email and password.",
+    "error"
+  );
 
-      return;
-    }
+  return;
+}
+
+if (authMode === "signup") {
+  if (!confirmPassword) {
+    toast(
+      "Please confirm your password.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    toast(
+      "Passwords do not match.",
+      "error"
+    );
+
+    return;
+  }
+}
 
     setLoading(
       btn,
@@ -1454,6 +1506,21 @@
         } else {
           authPasswordInput.type = "password";
           togglePasswordBtn.textContent = "👁️";
+        }
+      });
+    }
+
+    // Toggle confirm password visibility
+    const toggleConfirmPasswordBtn = $("toggle-confirm-password-btn");
+    const authConfirmPasswordInput = $("auth-confirm-password");
+    if (toggleConfirmPasswordBtn && authConfirmPasswordInput) {
+      toggleConfirmPasswordBtn.addEventListener("click", () => {
+        if (authConfirmPasswordInput.type === "password") {
+          authConfirmPasswordInput.type = "text";
+          toggleConfirmPasswordBtn.textContent = "🙈";
+        } else {
+          authConfirmPasswordInput.type = "password";
+          toggleConfirmPasswordBtn.textContent = "👁️";
         }
       });
     }
