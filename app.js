@@ -1439,6 +1439,12 @@ if (authMode === "signup") {
     );
 
     await refreshStats();
+
+    // Take the user to the home page
+    scrollToId("home");
+    if (window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }
 
   // ==============================
