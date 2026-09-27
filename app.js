@@ -49,6 +49,9 @@
     ...document.querySelectorAll(selector)
   ];
 
+  const ICON_EYE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 7 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+  const ICON_EYE_OFF = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
+
   // ==============================
   // TOAST
   // ==============================
@@ -171,14 +174,14 @@
     const togglePasswordBtn = $("toggle-password-btn");
     if (authPasswordInput && authPasswordInput.type === "text") {
       authPasswordInput.type = "password";
-      if (togglePasswordBtn) togglePasswordBtn.textContent = "👁️";
+      if (togglePasswordBtn) togglePasswordBtn.innerHTML = ICON_EYE;
     }
 
     const authConfirmPasswordInput = $("auth-confirm-password");
     const toggleConfirmPasswordBtn = $("toggle-confirm-password-btn");
     if (authConfirmPasswordInput && authConfirmPasswordInput.type === "text") {
       authConfirmPasswordInput.type = "password";
-      if (toggleConfirmPasswordBtn) toggleConfirmPasswordBtn.textContent = "👁️";
+      if (toggleConfirmPasswordBtn) toggleConfirmPasswordBtn.innerHTML = ICON_EYE;
     }
   }
 
@@ -311,7 +314,8 @@
           .select("id", {
             count: "exact",
             head: true
-          }),
+          })
+          .eq("status", "open"),
 
         supabase
           .from("donor_profiles")
@@ -1505,10 +1509,10 @@ if (authMode === "signup") {
       togglePasswordBtn.addEventListener("click", () => {
         if (authPasswordInput.type === "password") {
           authPasswordInput.type = "text";
-          togglePasswordBtn.textContent = "🙈";
+          togglePasswordBtn.innerHTML = ICON_EYE_OFF;
         } else {
           authPasswordInput.type = "password";
-          togglePasswordBtn.textContent = "👁️";
+          togglePasswordBtn.innerHTML = ICON_EYE;
         }
       });
     }
@@ -1520,10 +1524,10 @@ if (authMode === "signup") {
       toggleConfirmPasswordBtn.addEventListener("click", () => {
         if (authConfirmPasswordInput.type === "password") {
           authConfirmPasswordInput.type = "text";
-          toggleConfirmPasswordBtn.textContent = "🙈";
+          toggleConfirmPasswordBtn.innerHTML = ICON_EYE_OFF;
         } else {
           authConfirmPasswordInput.type = "password";
-          toggleConfirmPasswordBtn.textContent = "👁️";
+          toggleConfirmPasswordBtn.innerHTML = ICON_EYE;
         }
       });
     }
