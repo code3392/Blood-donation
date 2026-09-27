@@ -318,12 +318,12 @@
 
       userRequests = data || [];
 
-      // Update counters
-      const count = userRequests.length;
-      if (badge) badge.textContent = count;
-      if (infoCount) infoCount.textContent = `${count} posted`;
+      // Update counters - active requests decrease when cancelled or fulfilled
+      const activeCount = userRequests.filter((r) => r.status === "open").length;
+      if (badge) badge.textContent = activeCount;
+      if (infoCount) infoCount.textContent = `${activeCount} active (${userRequests.length} total)`;
 
-      if (count === 0) {
+      if (userRequests.length === 0) {
         if (listContainer) listContainer.innerHTML = "";
         if (emptyState) emptyState.style.display = "block";
         return;
@@ -424,6 +424,10 @@
                 </button>
               `
           }
+
+          <button type="button" class="btn btn-ghost delete-req-btn" style="font-size:12px; padding:8px 14px; color:#9ca3af;" title="Permanently delete request">
+            🗑️ Delete
+          </button>
         </div>
       `;
 
@@ -444,8 +448,39 @@
         updateRequestStatus(req.id, "open", "Re-open this blood request so it appears active in emergency searches again?");
       });
 
+      card.querySelector(".delete-req-btn")?.addEventListener("click", () => {
+        deleteRequest(req.id);
+      });
+
       listContainer.appendChild(card);
     });
+  }
+
+  // Delete request permanently
+  async function deleteRequest(requestId) {
+    if (!confirm("Are you sure you want to permanently delete this blood request? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("blood_requests")
+        .delete()
+        .eq("id", requestId)
+        .eq("requester_id", currentUser.id);
+
+      if (error) {
+        console.error("Delete request error:", error);
+        toast(error.message || "Failed to delete blood request.", "error");
+        return;
+      }
+
+      toast("Blood request deleted permanently.", "info");
+      await loadUserRequests();
+    } catch (err) {
+      console.error("Delete request exception:", err);
+      toast("Error deleting request.", "error");
+    }
   }
 
   // Update status (cancel, fulfill, reopen)
