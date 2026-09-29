@@ -20,7 +20,7 @@
   <div class="announcement">
     <span class="pulse-dot"></span>
     <span><strong>Emergency network:</strong> connect with nearby willing donors faster.</span>
-    <button class="announcement-link" data-scroll="request">Request blood</button>
+     <button class="announcement-link" data-scroll="request" data-i18n="requestBlood">Request blood</button>
   </div>
 
   <header class="site-header">
@@ -33,15 +33,16 @@
     </a>
 
     <nav id="main-nav" class="main-nav">
-      <a href="#home">Home</a>
-      <a href="#find">Find Donors</a>
-      <a href="#live-requests-preview">Requested Blood</a>
-      <a href="#request">Request Blood</a>
-      <a href="#donate">Become a Donor</a>
-      <a href="#how">How it works</a>
+      <a href="#home" data-i18n="home">Home</a>
+      <a href="#find" data-i18n="findDonors">Find Donors</a>
+      <a href="#live-requests-preview" data-i18n="requestedBlood">Requested Blood</a>
+      <a href="#request" data-i18n="requestBlood">Request Blood</a>
+      <a href="#donate" data-i18n="becomeDonor">Become a Donor</a>
+      <a href="#how" data-i18n="howItWorks">How it works</a>
     </nav>
 
     <div class="header-actions">
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Change language">বাংলা</button>
       <button class="icon-btn mobile-menu" id="mobile-menu" aria-label="Open menu">☰</button>
       <button class="btn btn-ghost" id="login-btn">Sign in</button>
       <button class="btn btn-primary" data-scroll="donate">Become a donor</button>
@@ -53,14 +54,14 @@
       <div class="hero-copy">
         <div class="eyebrow"><span>●</span> Built for fast, human connection</div>
         <h1>One donation can become someone's <span>second chance.</span></h1>
-        <p class="hero-text">
+        <p class="hero-text" data-i18n="heroText">
           Lifeline helps people find willing blood donors, publish urgent requests,
           and coordinate lifesaving support across Bangladesh — without the chaos.
         </p>
 
         <div class="hero-actions">
-          <button class="btn btn-primary btn-large" data-scroll="find">Find a donor <span>→</span></button>
-          <button class="btn btn-light btn-large" data-scroll="donate">I want to donate</button>
+          <button class="btn btn-primary btn-large" data-scroll="find" data-i18n="findDonor">Find a donor <span>→</span></button>
+          <button class="btn btn-light btn-large" data-scroll="donate" data-i18n="wantDonate">I want to donate</button>
         </div>
 
         <div class="trust-row">
@@ -124,7 +125,7 @@
     <section id="find" class="section search-section">
       <div class="section-heading centered">
         <div class="eyebrow">SMART DONOR SEARCH</div>
-        <h2>Find the right donor, faster.</h2>
+        <h2 data-i18n="findTitle">Find the right donor, faster.</h2>
         <p>Filter by blood group and location. Sign in to protect donor contact information.</p>
       </div>
 
@@ -177,7 +178,7 @@
     <section id="live-requests-preview" class="section search-section">
       <div class="section-heading centered">
         <div class="eyebrow">ACTIVE EMERGENCIES</div>
-        <h2>Recent Blood Requests</h2>
+        <h2 data-i18n="recentRequests">Recent Blood Requests</h2>
       </div>
       <div id="requests-results" class="donor-grid"></div>
     </section>
@@ -186,7 +187,7 @@
       <div class="request-card">
         <div class="request-copy">
           <div class="eyebrow">NEED BLOOD?</div>
-          <h2>Turn an urgent need into a clear call for help.</h2>
+          <h2 data-i18n="requestTitle">Turn an urgent need into a clear call for help.</h2>
           <p>
             Publish the blood group, location, urgency and a safe contact number.
             Authenticated donors can view active requests and reach out.
@@ -217,8 +218,8 @@
               </select>
             </div>
             <div class="field">
-              <label>District</label>
-              <input id="request-district" required maxlength="60" placeholder="e.g. Dhaka" />
+          <label>District</label>
+          <input id="request-district" required maxlength="60" placeholder="e.g. Dhaka" />
             </div>
             <div class="field">
               <label>Hospital / location</label>
@@ -235,6 +236,19 @@
                 <option value="urgent">Urgent — within 24h</option>
                 <option value="planned">Planned</option>
               </select>
+            </div>
+            <div class="field full">
+              <label for="request-condition">Blood-related condition <span class="optional">(optional)</span></label>
+              <select id="request-condition">
+                <option value="">No condition selected</option>
+                <option value="anemia">Anemia</option>
+                <option value="thalassemia">Thalassemia</option>
+                <option value="leukemia">Leukemia / cancer treatment</option>
+                <option value="hemophilia">Hemophilia or bleeding disorder</option>
+                <option value="sickle_cell">Sickle cell disease</option>
+                <option value="other">Another condition</option>
+              </select>
+              <div id="condition-guidance" class="medical-guidance hidden" role="status"></div>
             </div>
             <div class="field full">
               <label>Contact phone</label>
@@ -255,7 +269,7 @@
     <section id="donate" class="section donor-section">
       <div class="section-heading centered">
         <div class="eyebrow">JOIN THE LIFELINE</div>
-        <h2>Be the person someone is searching for.</h2>
+        <h2 data-i18n="donorTitle">Be the person someone is searching for.</h2>
         <p>Create a donor profile and control when your availability is visible.</p>
       </div>
 
@@ -274,8 +288,15 @@
                 <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
               </select>
             </div>
-            <div class="field"><label>District</label><input id="donor-district" required maxlength="60" placeholder="e.g. Dhaka" /></div>
+            <div class="field">
+              <label>District</label>
+              <input id="donor-district" required maxlength="60" placeholder="e.g. Dhaka" />
+            </div>
             <div class="field"><label>Area / upazila</label><input id="donor-area" maxlength="80" placeholder="e.g. Savar" /></div>
+            <div class="field full location-field">
+              <button class="btn btn-light location-btn" type="button" id="detect-donor-location">⌖ Detect my location</button>
+              <small id="donor-location-status" class="location-status">Location is only used to improve nearby matching and is never shown as exact coordinates.</small>
+            </div>
             <div class="field"><label>Phone</label><input id="donor-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" /></div>
             <div class="field"><label>Last donation date <span class="optional">(optional)</span></label><input id="donor-last" type="date" /></div>
           </div>
@@ -375,15 +396,51 @@
     </div>
   </div>
 
-  <div id="profile-modal" class="modal hidden">A
+  <div id="profile-modal" class="modal hidden">
     <div class="modal-backdrop" data-close-profile></div>
     <div class="modal-card profile-modal">
       <button class="modal-close" data-close-profile>×</button>
       <div class="profile-hero"><div class="profile-blood" id="profile-blood">O+</div><div><h2 id="profile-name">Donor</h2><p id="profile-location">Location</p></div></div>
       <div class="profile-details" id="profile-details"></div>
-      <a id="profile-call" class="btn btn-primary full-width btn-large" href="#">Contact donor</a>
+      <div class="profile-actions">
+        <button id="profile-message" class="btn btn-primary full-width btn-large" type="button">Message donor</button>
+        <a id="profile-call" class="btn btn-light full-width btn-large" href="#">Call donor</a>
+      </div>
       <p class="form-note">Only contact a donor for a genuine blood need and respect their availability.</p>
     </div>
+  </div>
+
+  <div id="message-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-message></div>
+    <div class="modal-card message-modal-card">
+      <button class="modal-close" data-close-message>×</button>
+      <div class="modal-icon">✉</div>
+      <div class="eyebrow">SAFE CONTACT</div>
+      <h2 id="message-title">Message</h2>
+      <p id="message-subtitle">Keep messages focused on this blood need. Never share passwords, OTPs, or payment details.</p>
+      <form id="message-form">
+        <div class="field">
+          <label for="message-body">Your message</label>
+          <textarea id="message-body" required maxlength="1000" placeholder="Hello, I may be able to help with this blood request…"></textarea>
+        </div>
+        <button class="btn btn-primary full-width btn-large" type="submit" id="send-message-btn">Send message <span>→</span></button>
+      </form>
+    </div>
+  </div>
+
+  <button class="assistant-fab" id="assistant-open" type="button" aria-label="Open Lifeline assistant">✦ <span>Lifeline AI</span></button>
+  <div id="assistant-panel" class="assistant-panel hidden" aria-live="polite">
+    <div class="assistant-header">
+      <div><strong>Lifeline Assistant</strong><small>Blood support guidance</small></div>
+      <button type="button" class="icon-btn" id="assistant-close" aria-label="Close assistant">×</button>
+    </div>
+    <div id="assistant-messages" class="assistant-messages">
+      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor matching, requests, or how Lifeline works. I can’t diagnose or replace a doctor.</div>
+    </div>
+    <form id="assistant-form" class="assistant-form">
+      <input id="assistant-input" required maxlength="400" placeholder="Ask a question…" autocomplete="off" />
+      <button class="btn btn-primary" type="submit">Ask</button>
+    </form>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabaseclient-js@2"></script>
