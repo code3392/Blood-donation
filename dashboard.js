@@ -38,6 +38,7 @@
   let userRequests = [];
   let detectedLocation = null;
   let currentLanguage = localStorage.getItem("lifeline-language") || "en";
+  let replyTarget = null;
 
   // ==============================
   // DOM HELPERS
@@ -410,7 +411,7 @@
       .limit(50);
 
     if (error) {
-      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>Messaging setup needed</h3><p>Run the included Supabase schema migration to enable protected messages.</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>Messaging setup needed</h3><p>Run the included Supabase schema migration to enable messages.</p></div>`;
       if (badge) badge.textContent = "0";
       return;
     }
@@ -432,9 +433,67 @@
           <small>${formatDate(message.created_at)}</small>
         </div>
         <p>${escapeHtml(message.body || "")}</p>
+        <div class="request-card-actions">
+          <button type="button" class="btn btn-light reply-message-btn" style="font-size:12px;padding:8px 14px;">Reply</button>
+        </div>
       `;
+      thread.querySelector(".reply-message-btn")?.addEventListener("click", () => {
+        openReplyModal(message);
+      });
       list.appendChild(thread);
     });
+  }
+
+  function openReplyModal(message) {
+    if (!message || !currentUser) return;
+    const recipientId = message.sender_id === currentUser.id
+      ? message.recipient_id
+      : message.sender_id;
+    if (!recipientId || recipientId === currentUser.id) {
+      toast("This message does not have another account to reply to.", "info");
+      return;
+    }
+    replyTarget = {
+      recipientId,
+      requestId: message.request_id || null
+    };
+    if ($("reply-title")) {
+      $("reply-title").textContent = message.sender_id === currentUser.id
+        ? "Continue the conversation"
+        : "Reply to message";
+    }
+    $("reply-modal")?.classList.remove("hidden");
+    $("reply-body")?.focus();
+  }
+
+  function closeReplyModal() {
+    $("reply-modal")?.classList.add("hidden");
+    replyTarget = null;
+    $("reply-form")?.reset();
+  }
+
+  async function sendReply(event) {
+    event.preventDefault();
+    if (!currentUser || !replyTarget) return;
+    const body = $("reply-body")?.value?.trim() || "";
+    if (!body) return;
+    const button = $("send-reply-btn");
+    setLoading(button, true, "Sending…");
+    const { error } = await supabase.from("messages").insert({
+      sender_id: currentUser.id,
+      recipient_id: replyTarget.recipientId,
+      request_id: replyTarget.requestId,
+      body
+    });
+    setLoading(button, false);
+    if (error) {
+      console.error("Reply send error:", error);
+      toast(error.message || "Could not send reply.", "error");
+      return;
+    }
+    closeReplyModal();
+    toast("Reply sent.", "success");
+    await loadMessages();
   }
 
   // ==============================
@@ -974,6 +1033,9 @@
     $("language-toggle")?.addEventListener("click", () => {
       applyLanguage(currentLanguage === "en" ? "bn" : "en");
     });
+    $("reply-form")?.addEventListener("submit", sendReply);
+    $("close-reply-modal-btn")?.addEventListener("click", closeReplyModal);
+    $("close-reply-modal-backdrop")?.addEventListener("click", closeReplyModal);
     wireAssistant();
     applyLanguage();
 
