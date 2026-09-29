@@ -38,6 +38,10 @@
   let currentUser = null;
   let authMode = "signin";
   let lastDonorResults = [];
+  let currentDonor = null;
+  let messageTarget = null;
+  let detectedLocation = null;
+  let currentLanguage = localStorage.getItem("lifeline-language") || "en";
 
   // ==============================
   // DOM HELPERS
@@ -288,6 +292,281 @@
     return String(value)
       .trim()
       .replace(/[^\d+()\-\s]/g, "");
+  }
+
+  // ==============================
+  // BLOOD COMPATIBILITY & GUIDANCE
+  // ==============================
+
+  // Red-cell donation compatibility: donor group -> recipient groups.
+  const compatibleRecipients = {
+    "O-": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+    "O+": ["A+", "B+", "AB+", "O+"],
+    "A-": ["A+", "A-", "AB+", "AB-"],
+    "A+": ["A+", "AB+"],
+    "B-": ["B+", "B-", "AB+", "AB-"],
+    "B+": ["B+", "AB+"],
+    "AB-": ["AB+", "AB-"],
+    "AB+": ["AB+"]
+  };
+
+  function canDonateTo(donorBlood, recipientBlood) {
+    return Boolean(
+      compatibleRecipients[String(donorBlood || "").toUpperCase()]?.includes(
+        String(recipientBlood || "").toUpperCase()
+      )
+    );
+  }
+
+  const conditionGuidance = {
+    anemia: "Anemia has many causes. A doctor should confirm the cause and whether transfusion is needed; do not self-treat with blood.",
+    thalassemia: "People with thalassemia may need planned transfusions and iron-overload monitoring. Follow the hematologist’s transfusion plan.",
+    leukemia: "During leukemia treatment, the hospital team decides the type, timing, and safety checks for blood products. Contact the treating hospital urgently.",
+    hemophilia: "Hemophilia is usually managed with clotting-factor treatment, not routine whole-blood donation. Ask the hematology team what product is needed.",
+    sickle_cell: "Sickle-cell transfusions require specialist matching and monitoring. Use the patient’s hospital or hematology team as the source of truth.",
+    other: "For any blood-related disease, ask the treating doctor which blood product and amount are needed before posting a request."
+  };
+
+  function showConditionGuidance() {
+    const condition = $("request-condition")?.value || "";
+    const panel = $("condition-guidance");
+    if (!panel) return;
+    if (!condition) {
+      panel.classList.add("hidden");
+      panel.textContent = "";
+      return;
+    }
+    panel.textContent = `Doctor guidance: ${conditionGuidance[condition] || conditionGuidance.other}`;
+    panel.classList.remove("hidden");
+  }
+
+  function getMatchScore(donor, district, requestedBlood) {
+    let score = canDonateTo(donor.blood_group, requestedBlood) ? 70 : 0;
+    if (String(donor.blood_group) === String(requestedBlood)) score += 20;
+    if (district && String(donor.district || "").toLowerCase() === String(district).toLowerCase()) score += 10;
+    return score;
+  }
+
+  async function findCompatibleDonors(requestedBlood, district) {
+    const { data, error } = await supabase
+      .from("donor_profiles")
+      .select("*")
+      .eq("available", true)
+      .eq("consent", true)
+      .limit(100);
+
+    if (error) {
+      console.warn("Compatible donor search unavailable:", error);
+      return [];
+    }
+
+    return (data || [])
+      .filter((donor) => canDonateTo(donor.blood_group, requestedBlood))
+      .map((donor) => ({ ...donor, match_score: getMatchScore(donor, district, requestedBlood) }))
+      .sort((a, b) => b.match_score - a.match_score)
+      .slice(0, 6);
+  }
+
+  function renderMatchPanel(donors, requestedBlood) {
+    let panel = $("request-match-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "request-match-panel";
+      panel.className = "match-panel";
+      $("request-form")?.parentElement?.appendChild(panel);
+    }
+
+    if (!donors.length) {
+      panel.innerHTML = `<h3>No compatible donor is available right now</h3><p>We checked available, consented profiles. O− is the universal red-cell donor, and other compatible groups may also help. Keep the request open and contact the hospital blood bank.</p>`;
+      return;
+    }
+
+    panel.innerHTML = `
+      <h3>${donors.length} compatible donor${donors.length === 1 ? "" : "s"} found</h3>
+      <p>Showing available donors who can donate red cells to ${escapeHtml(requestedBlood)}. Compatibility must still be confirmed by the hospital blood bank.</p>
+      <div class="match-list"></div>
+    `;
+    const list = panel.querySelector(".match-list");
+    donors.forEach((donor) => {
+      const item = document.createElement("article");
+      item.className = "match-item";
+      const name = donor.full_name || "Anonymous donor";
+      item.innerHTML = `
+        <div class="donor-avatar">${donor.avatar_url ? `<img src="${escapeHtml(donor.avatar_url)}" alt="${escapeHtml(name)}">` : escapeHtml(initials(name))}</div>
+        <div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(donor.blood_group || "Unknown")} · ${escapeHtml(donor.area || donor.district || "Bangladesh")}</small></div>
+        <span class="match-score">${donor.match_score}%</span>
+        <button type="button" class="btn btn-light match-contact" style="padding:7px 9px;font-size:10px;">Message</button>
+      `;
+      item.querySelector(".match-contact")?.addEventListener("click", () => {
+        openMessageComposer({ id: donor.user_id, name }, null);
+      });
+      list?.appendChild(item);
+    });
+  }
+
+  // ==============================
+  // LANGUAGE
+  // ==============================
+
+  const translations = {
+    en: { heroText: "Lifeline helps people find willing blood donors, publish urgent requests, and coordinate lifesaving support across Bangladesh — without the chaos.", findDonor: "Find a donor →", wantDonate: "I want to donate", requestBlood: "Request blood", home: "Home", findDonors: "Find Donors", requestedBlood: "Requested Blood", becomeDonor: "Become a Donor", howItWorks: "How it works", findTitle: "Find the right donor, faster.", recentRequests: "Recent Blood Requests", requestTitle: "Turn an urgent need into a clear call for help.", donorTitle: "Be the person someone is searching for." },
+    bn: { heroText: "লাইফলাইন মানুষকে স্বেচ্ছায় রক্তদাতা খুঁজে পেতে, জরুরি অনুরোধ প্রকাশ করতে এবং বাংলাদেশজুড়ে জীবনরক্ষাকারী সহায়তা সমন্বয় করতে সাহায্য করে।", findDonor: "রক্তদাতা খুঁজুন →", wantDonate: "আমি রক্ত দিতে চাই", requestBlood: "রক্তের অনুরোধ", home: "হোম", findDonors: "রক্তদাতা খুঁজুন", requestedBlood: "রক্তের অনুরোধ", becomeDonor: "রক্তদাতা হন", howItWorks: "যেভাবে কাজ করে", findTitle: "দ্রুত সঠিক রক্তদাতা খুঁজুন।", recentRequests: "সাম্প্রতিক রক্তের অনুরোধ", requestTitle: "জরুরি প্রয়োজনকে সাহায্যের পরিষ্কার আহ্বানে বদলে দিন।", donorTitle: "কারও খোঁজা রক্তদাতা আপনিই হতে পারেন।" }
+  };
+
+  function applyLanguage(language = currentLanguage) {
+    currentLanguage = language === "bn" ? "bn" : "en";
+    localStorage.setItem("lifeline-language", currentLanguage);
+    document.documentElement.lang = currentLanguage === "bn" ? "bn" : "en";
+    const toggle = $("language-toggle");
+    if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
+    Object.entries(translations[currentLanguage]).forEach(([key, value]) => {
+      document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
+        el.textContent = value;
+      });
+    });
+  }
+
+  // ==============================
+  // LIFELINE ASSISTANT
+  // ==============================
+
+  function assistantReply(question) {
+    const q = String(question || "").toLowerCase();
+    const bn = currentLanguage === "bn";
+    if (/o-.*(donate|give)|universal|blood group|compatible|b-.*ab-/.test(q)) {
+      return bn
+        ? "O− লোহিত রক্তকণিকার universal donor। B−, AB−-কে দিতে পারে। তবে হাসপাতালকে cross-match ও চূড়ান্ত নিরাপত্তা যাচাই করতেই হবে।"
+        : "O− is the universal red-cell donor, and B− can donate red cells to AB−. The hospital must still cross-match and approve the transfusion.";
+    }
+    if (/thalassemia|anemia|leukemia|hemophilia|sickle|disease|রোগ|থ্যালাসেমিয়া/.test(q)) {
+      return bn
+        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা রোগীর hematologist/ডাক্তার ঠিক করবেন। Lifeline diagnosis বা transfusion prescription দেয় না—চিকিৎসা করা হাসপাতালে যোগাযোগ করুন।"
+        : "For blood-related disease, the treating hematologist must decide which blood product is needed. Lifeline cannot diagnose or prescribe a transfusion—contact the treating hospital.";
+    }
+    if (/request|need blood|রক্ত.*(চাই|প্রয়োজন)|অনুরোধ/.test(q)) {
+      return bn
+        ? "প্রথমে রক্তের গ্রুপ, জেলা, হাসপাতাল, জরুরি অবস্থা ও ফোন নম্বর দিয়ে request প্রকাশ করুন। তারপর Lifeline compatible, available donor খুঁজে দেখাবে।"
+        : "Publish a request with blood group, district, hospital, urgency, and a safe phone number. Lifeline will then look for available, compatible donors.";
+    }
+    if (/donate|eligib|রক্ত.*(দিতে|দান)/.test(q)) {
+      return bn
+        ? "রক্তদানের যোগ্যতা বয়স, স্বাস্থ্য, ওষুধ ও সাম্প্রতিক donation-এর উপর নির্ভর করে। চূড়ান্ত সিদ্ধান্ত সবসময় blood center বা ডাক্তার নেবেন।"
+        : "Donation eligibility depends on age, health, medication, and recent donations. A blood center or doctor must make the final decision.";
+    }
+    if (/message|contact|যোগাযোগ|মেসেজ/.test(q)) {
+      return bn
+        ? "Donor card-এ Message চাপুন। যোগাযোগের জন্য password, OTP বা টাকা কখনও শেয়ার করবেন না।"
+        : "Open a donor card and choose Message. Never share a password, OTP, or payment details while coordinating.";
+    }
+    return bn
+      ? "আমি blood groups, compatibility, donor request, location এবং Lifeline ব্যবহারের বিষয়ে সাহায্য করতে পারি। জরুরি বা চিকিৎসা সিদ্ধান্তে হাসপাতালের ডাক্তারকে অনুসরণ করুন।"
+      : "I can help with blood groups, compatibility, donor requests, location, and using Lifeline. For emergencies or medical decisions, follow the hospital team.";
+  }
+
+  function addAssistantMessage(text, type) {
+    const messages = $("assistant-messages");
+    if (!messages) return;
+    const bubble = document.createElement("div");
+    bubble.className = `assistant-bubble ${type}`;
+    bubble.textContent = text;
+    messages.appendChild(bubble);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function wireAssistant() {
+    $("assistant-open")?.addEventListener("click", () => $("assistant-panel")?.classList.remove("hidden"));
+    $("assistant-close")?.addEventListener("click", () => $("assistant-panel")?.classList.add("hidden"));
+    $("assistant-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = $("assistant-input");
+      const question = input?.value?.trim();
+      if (!question) return;
+      addAssistantMessage(question, "user");
+      addAssistantMessage(assistantReply(question), "assistant");
+      if (input) input.value = "";
+    });
+  }
+
+  // ==============================
+  // LOCATION
+  // ==============================
+
+  async function detectLocation() {
+    const status = $("donor-location-status");
+    if (!navigator.geolocation) {
+      if (status) status.textContent = "Location detection is not supported by this browser.";
+      return;
+    }
+    if (status) status.textContent = "Requesting approximate location…";
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      detectedLocation = {
+        lat: Number(position.coords.latitude.toFixed(6)),
+        lng: Number(position.coords.longitude.toFixed(6)),
+        accuracy: Math.round(position.coords.accuracy || 0)
+      };
+      try {
+        const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${detectedLocation.lat}&longitude=${detectedLocation.lng}&localityLanguage=en`);
+        const place = await response.json();
+        const district = place.city || place.locality || place.principalSubdivision || "";
+        const area = place.locality || place.city || "";
+        if (district && $("donor-district")) $("donor-district").value = district;
+        if (area && $("donor-area")) $("donor-area").value = area;
+        if (status) status.textContent = `Location detected: ${district || "nearby area"} (approx. ${detectedLocation.accuracy}m).`;
+      } catch (error) {
+        if (status) status.textContent = `Coordinates detected (approx. ${detectedLocation.accuracy}m). Add your district if needed.`;
+      }
+    }, () => {
+      if (status) status.textContent = "Location permission was not granted. You can enter your district manually.";
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+  }
+
+  // ==============================
+  // MESSAGING
+  // ==============================
+
+  function closeMessageComposer() {
+    $("message-modal")?.classList.add("hidden");
+    messageTarget = null;
+  }
+
+  function openMessageComposer(target, requestId = null) {
+    if (!currentUser) {
+      openAuth("signin");
+      toast("Please sign in before sending a protected message.", "info");
+      return;
+    }
+    if (!target?.id || target.id === currentUser.id) {
+      toast("You cannot message your own profile.", "info");
+      return;
+    }
+    messageTarget = { ...target, requestId };
+    if ($("message-title")) $("message-title").textContent = `Message ${target.name || "contact"}`;
+    $("message-modal")?.classList.remove("hidden");
+    $("message-body")?.focus();
+  }
+
+  async function sendMessage(event) {
+    event.preventDefault();
+    if (!currentUser || !messageTarget) return;
+    const body = $("message-body")?.value?.trim() || "";
+    if (!body) return;
+    const button = $("send-message-btn");
+    setLoading(button, true, "Sending…");
+    const { error } = await supabase.from("messages").insert({
+      sender_id: currentUser.id,
+      recipient_id: messageTarget.id,
+      request_id: messageTarget.requestId || null,
+      body
+    });
+    setLoading(button, false);
+    if (error) {
+      console.error("Message send error:", error);
+      toast("Messaging is not ready in the database yet. Run the included Supabase schema migration, then try again.", "error");
+      return;
+    }
+    $("message-form")?.reset();
+    closeMessageComposer();
+    toast("Message sent securely.", "success");
   }
 
   // ==============================
@@ -692,6 +971,7 @@
   function openDonor(donor) {
 
     if (!donor) return;
+    currentDonor = donor;
 
     const bloodBadge = $("profile-blood");
     if (bloodBadge) {
@@ -797,6 +1077,14 @@
           "hidden"
         );
       }
+    }
+
+    const messageButton = $("profile-message");
+    if (messageButton) {
+      messageButton.onclick = () => openMessageComposer({
+        id: donor.user_id,
+        name: donor.full_name || "donor"
+      });
     }
 
     $("profile-modal")
@@ -917,13 +1205,21 @@
         consent:
           consent,
 
+        ...(detectedLocation
+          ? {
+              location_lat: detectedLocation.lat,
+              location_lng: detectedLocation.lng,
+              location_accuracy: detectedLocation.accuracy
+            }
+          : {}),
+
         // New profiles are never verified
         // from the client.
         verified:
           false
       };
 
-      const {
+      let {
         error
       } = await supabase
         .from("donor_profiles")
@@ -934,6 +1230,16 @@
               "user_id"
           }
         );
+
+      if (error && /location_(lat|lng|accuracy)|column/i.test(error.message || "")) {
+        delete payload.location_lat;
+        delete payload.location_lng;
+        delete payload.location_accuracy;
+        const retry = await supabase
+          .from("donor_profiles")
+          .upsert(payload, { onConflict: "user_id" });
+        error = retry.error;
+      }
 
       setLoading(
         btn,
@@ -961,6 +1267,8 @@
         "success"
       );
 
+      detectedLocation = null;
+
       await refreshStats();
 
       await searchDonors();
@@ -983,7 +1291,7 @@
     } = await supabase
       .from("blood_requests")
       .select(
-        "id, patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note, created_at"
+        "id, requester_id, patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note, created_at"
       )
       .eq(
         "status",
@@ -1112,8 +1420,17 @@
               </span>
             `
         }
+
+          ${
+            currentUser && req.requester_id && req.requester_id !== currentUser.id
+              ? `<button type="button" class="btn btn-light request-message" style="margin-top:8px;display:block;width:100%;font-size:12px;">Message requester</button>`
+              : ""
+          }
       `;
 
+      card.querySelector(".request-message")?.addEventListener("click", () => {
+        openMessageComposer({ id: req.requester_id, name: patientName }, req.id);
+      });
       grid.appendChild(card);
     });
   }
@@ -1178,6 +1495,11 @@
           ?.value
           ?.trim() || null;
 
+      const condition =
+        $("request-condition")
+          ?.value
+          ?.trim() || null;
+
       if (
         !patientName ||
         !bloodGroup ||
@@ -1230,17 +1552,28 @@
         note:
           note,
 
+        condition:
+          condition,
+
         status:
           "open"
       };
 
-      const {
+      let {
         error
       } = await supabase
         .from("blood_requests")
         .insert(
           payload
         );
+
+      if (error && /condition|column/i.test(error.message || "")) {
+        delete payload.condition;
+        const retry = await supabase
+          .from("blood_requests")
+          .insert(payload);
+        error = retry.error;
+      }
 
       setLoading(
         btn,
@@ -1273,6 +1606,9 @@
         "Blood request published successfully.",
         "success"
       );
+
+      const compatibleDonors = await findCompatibleDonors(bloodGroup, district);
+      renderMatchPanel(compatibleDonors, bloodGroup);
 
       await refreshStats();
       await loadBloodRequests();
@@ -1439,6 +1775,7 @@ if (authMode === "signup") {
     );
 
     await refreshStats();
+    await loadBloodRequests();
 
     // Take the user to the home page
     scrollToId("home");
@@ -1627,6 +1964,18 @@ if (authMode === "signup") {
         "submit",
         submitRequest
       );
+
+    $("request-condition")?.addEventListener("change", showConditionGuidance);
+    $("detect-donor-location")?.addEventListener("click", detectLocation);
+    $("message-form")?.addEventListener("submit", sendMessage);
+    $$("[data-close-message]").forEach((element) => {
+      element.addEventListener("click", closeMessageComposer);
+    });
+    $("language-toggle")?.addEventListener("click", () => {
+      applyLanguage(currentLanguage === "en" ? "bn" : "en");
+    });
+    wireAssistant();
+    applyLanguage();
 
     // Search donors
     $("search-donors")
