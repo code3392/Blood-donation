@@ -1,11 +1,7 @@
 (() => {
-  // Prevent the script from being initialized twice
-  if (window.__lifelineAppLoaded) {
-    console.warn("Lifeline app.js is already loaded.");
-    return;
-  }
-
-  window.__lifelineAppLoaded = true;
+  // Prevent duplicate script execution
+  if (window.__lifelineDashboardLoaded) return;
+  window.__lifelineDashboardLoaded = true;
 
   // ==============================
   // SUPABASE CONFIGURATION
@@ -32,16 +28,17 @@
   );
 
   // ==============================
-  // APP STATE
+  // STATE
   // ==============================
 
   let currentUser = null;
-  let authMode = "signin";
-  let lastDonorResults = [];
-  let currentDonor = null;
-  let messageTarget = null;
+  let currentProfile = null;
+  let currentAvatarUrl = null;
+  let isAvatarRemoved = false;
+  let userRequests = [];
   let detectedLocation = null;
   let currentLanguage = localStorage.getItem("lifeline-language") || "en";
+  let replyTarget = null;
 
   // ==============================
   // DOM HELPERS
@@ -49,148 +46,25 @@
 
   const $ = (id) => document.getElementById(id);
 
-  const $$ = (selector) => [
-    ...document.querySelectorAll(selector)
-  ];
-
-  const ICON_EYE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 7 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-  const ICON_EYE_OFF = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>`;
-
   // ==============================
-  // TOAST
+  // TOAST NOTIFICATIONS
   // ==============================
 
   function toast(message, type = "info") {
     const root = $("toast-root");
-
     if (!root) {
       console.log(message);
       return;
     }
 
     const el = document.createElement("div");
-
     el.className = `toast ${type}`;
     el.textContent = message;
-
     root.appendChild(el);
 
     setTimeout(() => {
       el.remove();
     }, 4200);
-  }
-
-  // ==============================
-  // SCROLL
-  // ==============================
-
-  function scrollToId(id) {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-  }
-
-  // ==============================
-  // AUTH REQUIREMENT
-  // ==============================
-
-  function requireAuth(callback) {
-    if (currentUser) {
-      return callback();
-    }
-
-    openAuth("signin");
-
-    toast(
-      "Please sign in to use the protected donor network.",
-      "info"
-    );
-
-    return null;
-  }
-
-  // ==============================
-  // AUTH MODAL
-  // ==============================
-
-  function openAuth(mode = "signin") {
-    authMode =
-      mode === "signup"
-        ? "signup"
-        : "signin";
-
-    const modal = $("auth-modal");
-
-    if (!modal) return;
-
-    modal.classList.remove("hidden");
-
-    if ($("auth-title")) {
-      $("auth-title").textContent =
-        authMode === "signin"
-          ? "Welcome to Lifeline"
-          : "Create your Lifeline account";
-    }
-
-    if ($("auth-subtitle")) {
-      $("auth-subtitle").textContent =
-        authMode === "signin"
-          ? "Sign in to search donor profiles and manage your availability."
-          : "Create an account to safely access the donor network.";
-    }
-
-    if ($("auth-submit")) {
-      $("auth-submit").textContent =
-        authMode === "signin"
-          ? "Sign in"
-          : "Create account";
-    }
-
-    if ($("switch-auth")) {
-      $("switch-auth").textContent =
-        authMode === "signin"
-          ? "Create an account"
-          : "Already have an account? Sign in";
-    }
-    const confirmGroup = $("confirm-password-group");
-    const confirmPassword = $("auth-confirm-password");
-
-    if (confirmGroup) {
-      if (authMode === "signup") {
-        confirmGroup.classList.remove("hidden");
-      } else {
-        confirmGroup.classList.add("hidden");
-        if (confirmPassword) {
-          confirmPassword.value = "";
-        }
-      }
-    }
-  }
-
-  function closeAuth() {
-    $("auth-modal")?.classList.add("hidden");
-
-    // Reset password visibility toggles on modal close
-    const authPasswordInput = $("auth-password");
-    const togglePasswordBtn = $("toggle-password-btn");
-    if (authPasswordInput && authPasswordInput.type === "text") {
-      authPasswordInput.type = "password";
-      if (togglePasswordBtn) togglePasswordBtn.innerHTML = ICON_EYE;
-    }
-
-    const authConfirmPasswordInput = $("auth-confirm-password");
-    const toggleConfirmPasswordBtn = $("toggle-confirm-password-btn");
-    if (authConfirmPasswordInput && authConfirmPasswordInput.type === "text") {
-      authConfirmPasswordInput.type = "password";
-      if (toggleConfirmPasswordBtn) toggleConfirmPasswordBtn.innerHTML = ICON_EYE;
-    }
-  }
-
-  function closeProfile() {
-    $("profile-modal")?.classList.add("hidden");
   }
 
   // ==============================
@@ -204,75 +78,7 @@
       .slice(0, 2)
       .map((x) => x[0])
       .join("")
-      .toUpperCase();
-  }
-
-  function formatDate(date) {
-    if (!date) {
-      return "Not provided";
-    }
-
-    const value = String(date);
-
-    // PostgreSQL date column
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const parsed = new Date(`${value}T00:00:00`);
-
-      if (Number.isNaN(parsed.getTime())) {
-        return "Not provided";
-      }
-
-      return parsed.toLocaleDateString(
-        "en-BD",
-        {
-          day: "numeric",
-          month: "short",
-          year: "numeric"
-        }
-      );
-    }
-
-    const parsed = new Date(value);
-
-    if (Number.isNaN(parsed.getTime())) {
-      return "Not provided";
-    }
-
-    return parsed.toLocaleDateString(
-      "en-BD",
-      {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      }
-    );
-  }
-
-  function setLoading(button, loading, text) {
-    if (!button) return;
-
-    if (loading) {
-      if (!button.dataset.original) {
-        button.dataset.original =
-          button.innerHTML;
-      }
-
-      button.disabled = true;
-
-      button.innerHTML =
-        `<span class="spinner">⟳</span> ${
-          text || "Working..."
-        }`;
-    } else {
-      button.disabled = false;
-
-      if (button.dataset.original) {
-        button.innerHTML =
-          button.dataset.original;
-
-        delete button.dataset.original;
-      }
-    }
+      .toUpperCase() || "✚";
   }
 
   function escapeHtml(value = "") {
@@ -288,130 +94,47 @@
     );
   }
 
-  function safePhone(value = "") {
-    return String(value)
-      .trim()
-      .replace(/[^\d+()\-\s]/g, "");
-  }
-
-  // ==============================
-  // BLOOD COMPATIBILITY & GUIDANCE
-  // ==============================
-
-  // Red-cell donation compatibility: donor group -> recipient groups.
-  const compatibleRecipients = {
-    "O-": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
-    "O+": ["A+", "B+", "AB+", "O+"],
-    "A-": ["A+", "A-", "AB+", "AB-"],
-    "A+": ["A+", "AB+"],
-    "B-": ["B+", "B-", "AB+", "AB-"],
-    "B+": ["B+", "AB+"],
-    "AB-": ["AB+", "AB-"],
-    "AB+": ["AB+"]
-  };
-
-  function canDonateTo(donorBlood, recipientBlood) {
-    return Boolean(
-      compatibleRecipients[String(donorBlood || "").toUpperCase()]?.includes(
-        String(recipientBlood || "").toUpperCase()
-      )
-    );
-  }
-
-  const conditionGuidance = {
-    anemia: "Anemia has many causes. A doctor should confirm the cause and whether transfusion is needed; do not self-treat with blood.",
-    thalassemia: "People with thalassemia may need planned transfusions and iron-overload monitoring. Follow the hematologist’s transfusion plan.",
-    leukemia: "During leukemia treatment, the hospital team decides the type, timing, and safety checks for blood products. Contact the treating hospital urgently.",
-    hemophilia: "Hemophilia is usually managed with clotting-factor treatment, not routine whole-blood donation. Ask the hematology team what product is needed.",
-    sickle_cell: "Sickle-cell transfusions require specialist matching and monitoring. Use the patient’s hospital or hematology team as the source of truth.",
-    other: "For any blood-related disease, ask the treating doctor which blood product and amount are needed before posting a request."
-  };
-
-  function showConditionGuidance() {
-    const condition = $("request-condition")?.value || "";
-    const panel = $("condition-guidance");
-    if (!panel) return;
-    if (!condition) {
-      panel.classList.add("hidden");
-      panel.textContent = "";
-      return;
-    }
-    panel.textContent = `Doctor guidance: ${conditionGuidance[condition] || conditionGuidance.other}`;
-    panel.classList.remove("hidden");
-  }
-
-  function getMatchScore(donor, district, requestedBlood) {
-    let score = canDonateTo(donor.blood_group, requestedBlood) ? 70 : 0;
-    if (String(donor.blood_group) === String(requestedBlood)) score += 20;
-    if (district && String(donor.district || "").toLowerCase() === String(district).toLowerCase()) score += 10;
-    return score;
-  }
-
-  async function findCompatibleDonors(requestedBlood, district) {
-    const { data, error } = await supabase
-      .from("donor_profiles")
-      .select("*")
-      .eq("available", true)
-      .eq("consent", true)
-      .limit(100);
-
-    if (error) {
-      console.warn("Compatible donor search unavailable:", error);
-      return [];
-    }
-
-    return (data || [])
-      .filter((donor) => canDonateTo(donor.blood_group, requestedBlood))
-      .map((donor) => ({ ...donor, match_score: getMatchScore(donor, district, requestedBlood) }))
-      .sort((a, b) => b.match_score - a.match_score)
-      .slice(0, 6);
-  }
-
-  function renderMatchPanel(donors, requestedBlood) {
-    let panel = $("request-match-panel");
-    if (!panel) {
-      panel = document.createElement("div");
-      panel.id = "request-match-panel";
-      panel.className = "match-panel";
-      $("request-form")?.parentElement?.appendChild(panel);
-    }
-
-    if (!donors.length) {
-      panel.innerHTML = `<h3>No compatible donor is available right now</h3><p>We checked available, consented profiles. O− is the universal red-cell donor, and other compatible groups may also help. Keep the request open and contact the hospital blood bank.</p>`;
-      return;
-    }
-
-    panel.innerHTML = `
-      <h3>${donors.length} compatible donor${donors.length === 1 ? "" : "s"} found</h3>
-      <p>Showing available donors who can donate red cells to ${escapeHtml(requestedBlood)}. Compatibility must still be confirmed by the hospital blood bank.</p>
-      <div class="match-list"></div>
-    `;
-    const list = panel.querySelector(".match-list");
-    donors.forEach((donor) => {
-      const item = document.createElement("article");
-      item.className = "match-item";
-      const name = donor.full_name || "Anonymous donor";
-      item.innerHTML = `
-        <div class="donor-avatar">${donor.avatar_url ? `<img src="${escapeHtml(donor.avatar_url)}" alt="${escapeHtml(name)}">` : escapeHtml(initials(name))}</div>
-        <div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(donor.blood_group || "Unknown")} · ${escapeHtml(donor.area || donor.district || "Bangladesh")}</small></div>
-        <span class="match-score">${donor.match_score}%</span>
-        <button type="button" class="btn btn-light match-contact" style="padding:7px 9px;font-size:10px;">Message</button>
-      `;
-      item.querySelector(".match-contact")?.addEventListener("click", () => {
-        openMessageComposer({ id: donor.user_id, name }, null);
+  function formatDate(date) {
+    if (!date) return "None";
+    const value = String(date);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const parsed = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) return "None";
+      return parsed.toLocaleDateString("en-BD", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
       });
-      list?.appendChild(item);
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "None";
+    return parsed.toLocaleDateString("en-BD", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
     });
   }
 
-  // ==============================
-  // LANGUAGE
-  // ==============================
+  function setLoading(button, loading, text) {
+    if (!button) return;
+    if (loading) {
+      if (!button.dataset.original) {
+        button.dataset.original = button.innerHTML;
+      }
+      button.disabled = true;
+      button.innerHTML = `<span class="spinner">⟳</span> ${text || "Saving..."}`;
+    } else {
+      button.disabled = false;
+      if (button.dataset.original) {
+        button.innerHTML = button.dataset.original;
+        delete button.dataset.original;
+      }
+    }
+  }
 
-  const translations = {
-    en: { heroText: "Lifeline helps people find willing blood donors, publish urgent requests, and coordinate lifesaving support across Bangladesh — without the chaos.", findDonor: "Find a donor →", wantDonate: "I want to donate", requestBlood: "Request blood", home: "Home", findDonors: "Find Donors", requestedBlood: "Requested Blood", becomeDonor: "Become a Donor", howItWorks: "How it works", findTitle: "Find the right donor, faster.", recentRequests: "Recent Blood Requests", requestTitle: "Turn an urgent need into a clear call for help.", donorTitle: "Be the person someone is searching for." },
-    bn: { heroText: "লাইফলাইন মানুষকে স্বেচ্ছায় রক্তদাতা খুঁজে পেতে, জরুরি অনুরোধ প্রকাশ করতে এবং বাংলাদেশজুড়ে জীবনরক্ষাকারী সহায়তা সমন্বয় করতে সাহায্য করে।", findDonor: "রক্তদাতা খুঁজুন →", wantDonate: "আমি রক্ত দিতে চাই", requestBlood: "রক্তের অনুরোধ", home: "হোম", findDonors: "রক্তদাতা খুঁজুন", requestedBlood: "রক্তের অনুরোধ", becomeDonor: "রক্তদাতা হন", howItWorks: "যেভাবে কাজ করে", findTitle: "দ্রুত সঠিক রক্তদাতা খুঁজুন।", recentRequests: "সাম্প্রতিক রক্তের অনুরোধ", requestTitle: "জরুরি প্রয়োজনকে সাহায্যের পরিষ্কার আহ্বানে বদলে দিন।", donorTitle: "কারও খোঁজা রক্তদাতা আপনিই হতে পারেন।" }
-  };
+  // ==============================
+  // LANGUAGE & ASSISTANT
+  // ==============================
 
   function applyLanguage(language = currentLanguage) {
     currentLanguage = language === "bn" ? "bn" : "en";
@@ -419,58 +142,32 @@
     document.documentElement.lang = currentLanguage === "bn" ? "bn" : "en";
     const toggle = $("language-toggle");
     if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
-    Object.entries(translations[currentLanguage]).forEach(([key, value]) => {
+    const copy = currentLanguage === "bn"
+      ? { dashboardTitle: "ডোনার ড্যাশবোর্ড", profileTab: "👤 ডোনার প্রোফাইল ও ছবি", requestsTab: "🩸 আমার রক্তের অনুরোধ", messagesTab: "✉ মেসেজ" }
+      : { dashboardTitle: "Donor Dashboard", profileTab: "👤 Donor Profile & Photo", requestsTab: "🩸 My Blood Requests", messagesTab: "✉ Messages" };
+    Object.entries(copy).forEach(([key, value]) => {
       document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
         el.textContent = value;
       });
     });
   }
 
-  // ==============================
-  // LIFELINE ASSISTANT
-  // ==============================
-
   function assistantReply(question) {
     const q = String(question || "").toLowerCase();
     const bn = currentLanguage === "bn";
-    if (/o-.*(donate|give)|universal|blood group|compatible|b-.*ab-/.test(q)) {
+    if (/o-.*(donate|give)|universal|b-.*ab-/.test(q)) {
       return bn
-        ? "O− লোহিত রক্তকণিকার universal donor। B−, AB−-কে দিতে পারে। তবে হাসপাতালকে cross-match ও চূড়ান্ত নিরাপত্তা যাচাই করতেই হবে।"
-        : "O− is the universal red-cell donor, and B− can donate red cells to AB−. The hospital must still cross-match and approve the transfusion.";
+        ? "O− লোহিত রক্তকণিকার universal donor এবং B−, AB−-কে দিতে পারে। হাসপাতালকে cross-match করতেই হবে।"
+        : "O− is the universal red-cell donor, and B− can donate red cells to AB−. The hospital must still cross-match.";
     }
     if (/thalassemia|anemia|leukemia|hemophilia|sickle|disease|রোগ|থ্যালাসেমিয়া/.test(q)) {
       return bn
-        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা রোগীর hematologist/ডাক্তার ঠিক করবেন। Lifeline diagnosis বা transfusion prescription দেয় না—চিকিৎসা করা হাসপাতালে যোগাযোগ করুন।"
-        : "For blood-related disease, the treating hematologist must decide which blood product is needed. Lifeline cannot diagnose or prescribe a transfusion—contact the treating hospital.";
-    }
-    if (/request|need blood|রক্ত.*(চাই|প্রয়োজন)|অনুরোধ/.test(q)) {
-      return bn
-        ? "প্রথমে রক্তের গ্রুপ, জেলা, হাসপাতাল, জরুরি অবস্থা ও ফোন নম্বর দিয়ে request প্রকাশ করুন। তারপর Lifeline compatible, available donor খুঁজে দেখাবে।"
-        : "Publish a request with blood group, district, hospital, urgency, and a safe phone number. Lifeline will then look for available, compatible donors.";
-    }
-    if (/donate|eligib|রক্ত.*(দিতে|দান)/.test(q)) {
-      return bn
-        ? "রক্তদানের যোগ্যতা বয়স, স্বাস্থ্য, ওষুধ ও সাম্প্রতিক donation-এর উপর নির্ভর করে। চূড়ান্ত সিদ্ধান্ত সবসময় blood center বা ডাক্তার নেবেন।"
-        : "Donation eligibility depends on age, health, medication, and recent donations. A blood center or doctor must make the final decision.";
-    }
-    if (/message|contact|যোগাযোগ|মেসেজ/.test(q)) {
-      return bn
-        ? "Donor card-এ Message চাপুন। যোগাযোগের জন্য password, OTP বা টাকা কখনও শেয়ার করবেন না।"
-        : "Open a donor card and choose Message. Never share a password, OTP, or payment details while coordinating.";
+        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা treating hematologist ঠিক করবেন। Lifeline diagnosis বা prescription দেয় না।"
+        : "For blood-related disease, the treating hematologist decides which blood product is needed. Lifeline does not diagnose or prescribe.";
     }
     return bn
-      ? "আমি blood groups, compatibility, donor request, location এবং Lifeline ব্যবহারের বিষয়ে সাহায্য করতে পারি। জরুরি বা চিকিৎসা সিদ্ধান্তে হাসপাতালের ডাক্তারকে অনুসরণ করুন।"
-      : "I can help with blood groups, compatibility, donor requests, location, and using Lifeline. For emergencies or medical decisions, follow the hospital team.";
-  }
-
-  function addAssistantMessage(text, type) {
-    const messages = $("assistant-messages");
-    if (!messages) return;
-    const bubble = document.createElement("div");
-    bubble.className = `assistant-bubble ${type}`;
-    bubble.textContent = text;
-    messages.appendChild(bubble);
-    messages.scrollTop = messages.scrollHeight;
+      ? "আমি blood group, compatibility, request এবং Lifeline ব্যবহারে সাহায্য করতে পারি। জরুরি চিকিৎসায় হাসপাতালের নির্দেশ অনুসরণ করুন।"
+      : "I can help with blood groups, compatibility, requests, and using Lifeline. Follow the hospital team for urgent medical decisions.";
   }
 
   function wireAssistant() {
@@ -480,19 +177,26 @@
       event.preventDefault();
       const input = $("assistant-input");
       const question = input?.value?.trim();
-      if (!question) return;
-      addAssistantMessage(question, "user");
-      addAssistantMessage(assistantReply(question), "assistant");
+      const messages = $("assistant-messages");
+      if (!question || !messages) return;
+      const user = document.createElement("div");
+      user.className = "assistant-bubble user";
+      user.textContent = question;
+      const reply = document.createElement("div");
+      reply.className = "assistant-bubble assistant";
+      reply.textContent = assistantReply(question);
+      messages.append(user, reply);
+      messages.scrollTop = messages.scrollHeight;
       if (input) input.value = "";
     });
   }
 
   // ==============================
-  // LOCATION
+  // APPROXIMATE PROFILE LOCATION
   // ==============================
 
-  async function detectLocation() {
-    const status = $("donor-location-status");
+  function detectProfileLocation() {
+    const status = $("profile-location-status");
     if (!navigator.geolocation) {
       if (status) status.textContent = "Location detection is not supported by this browser.";
       return;
@@ -509,9 +213,10 @@
         const place = await response.json();
         const district = place.city || place.locality || place.principalSubdivision || "";
         const area = place.locality || place.city || "";
-        if (district && $("donor-district")) $("donor-district").value = district;
-        if (area && $("donor-area")) $("donor-area").value = area;
+        if (district && $("edit-district")) $("edit-district").value = district;
+        if (area && $("edit-area")) $("edit-area").value = area;
         if (status) status.textContent = `Location detected: ${district || "nearby area"} (approx. ${detectedLocation.accuracy}m).`;
+        updateLivePreview();
       } catch (error) {
         if (status) status.textContent = `Coordinates detected (approx. ${detectedLocation.accuracy}m). Add your district if needed.`;
       }
@@ -521,1270 +226,782 @@
   }
 
   // ==============================
-  // MESSAGING
+  // IMAGE RESIZING & COMPRESSION
   // ==============================
 
-  function closeMessageComposer() {
-    $("message-modal")?.classList.add("hidden");
-    messageTarget = null;
+  function processImageFile(file) {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith("image/")) {
+        return reject(new Error("Please choose a valid image file (JPG, PNG, WebP)."));
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        return reject(new Error("Image size should be less than 5MB."));
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 400; // Optimal square dimension for profile avatar
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => reject(new Error("Failed to load image."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Failed to read image file."));
+      reader.readAsDataURL(file);
+    });
   }
 
-  function openMessageComposer(target, requestId = null) {
-    if (!currentUser) {
-      openAuth("signin");
-      toast("Please sign in before sending a protected message.", "info");
-      return;
+  // ==============================
+  // AVATAR DISPLAY
+  // ==============================
+
+  function updateAvatarDisplay(avatarUrl, donorName) {
+    const previewBox = $("avatar-preview-display");
+    const removeBtn = $("remove-avatar-btn");
+    const cardAvatar = $("preview-card-avatar");
+
+    if (avatarUrl) {
+      if (previewBox) {
+        previewBox.innerHTML = `<img src="${avatarUrl}" alt="Avatar preview" />`;
+      }
+      if (cardAvatar) {
+        cardAvatar.innerHTML = `<img src="${avatarUrl}" alt="Card avatar" />`;
+      }
+      if (removeBtn) {
+        removeBtn.style.display = "inline-flex";
+      }
+    } else {
+      const userInitials = initials(donorName);
+      if (previewBox) {
+        previewBox.innerHTML = `<span id="avatar-initials-fallback">${userInitials}</span>`;
+      }
+      if (cardAvatar) {
+        cardAvatar.innerHTML = userInitials;
+      }
+      if (removeBtn) {
+        removeBtn.style.display = "none";
+      }
     }
-    if (!target?.id || target.id === currentUser.id) {
-      toast("You cannot message your own profile.", "info");
-      return;
-    }
-    messageTarget = { ...target, requestId };
-    if ($("message-title")) $("message-title").textContent = `Message ${target.name || "contact"}`;
-    $("message-modal")?.classList.remove("hidden");
-    $("message-body")?.focus();
   }
 
-  async function sendMessage(event) {
+  // ==============================
+  // LIVE CARD PREVIEW
+  // ==============================
+
+  function updateLivePreview() {
+    const name = $("edit-name")?.value?.trim() || "Your Name";
+    const blood = $("edit-blood")?.value || "O+";
+    const district = $("edit-district")?.value || "Dhaka";
+    const area = $("edit-area")?.value?.trim() || "";
+    const lastDate = $("edit-last")?.value || "";
+    const available = $("edit-available")?.checked ?? true;
+
+    // Card texts
+    if ($("preview-card-name")) $("preview-card-name").textContent = name;
+    if ($("preview-card-location")) {
+      $("preview-card-location").textContent = [area, district, "Bangladesh"].filter(Boolean).join(" · ");
+    }
+    if ($("preview-card-blood")) $("preview-card-blood").textContent = blood;
+    if ($("preview-card-district")) $("preview-card-district").textContent = district;
+    if ($("preview-card-last")) $("preview-card-last").textContent = formatDate(lastDate);
+
+    // Availability indicator
+    const dot = $("preview-card-dot");
+    const statusText = $("info-availability-text");
+    const dashStatus = $("dashboard-status-indicator");
+
+    if (available) {
+      if (dot) dot.style.display = "block";
+      if (statusText) {
+        statusText.textContent = "Available now";
+        statusText.style.color = "var(--green)";
+      }
+      if (dashStatus) {
+        dashStatus.innerHTML = `<span></span> Available for emergency`;
+        dashStatus.className = "status-pill";
+      }
+    } else {
+      if (dot) dot.style.display = "none";
+      if (statusText) {
+        statusText.textContent = "Currently unavailable";
+        statusText.style.color = "var(--muted)";
+      }
+      if (dashStatus) {
+        dashStatus.innerHTML = `<span style="background:#9ca3af;"></span> Unavailable`;
+        dashStatus.className = "status-pill";
+      }
+    }
+
+    updateAvatarDisplay(currentAvatarUrl, name);
+  }
+
+  // ==============================
+  // TAB NAVIGATION
+  // ==============================
+
+  function switchTab(tabName) {
+    const tabProfileBtn = $("tab-profile-btn");
+    const tabRequestsBtn = $("tab-requests-btn");
+    const tabMessagesBtn = $("tab-messages-btn");
+    const profileContent = $("profile-tab-content");
+    const requestsContent = $("requests-tab-content");
+    const messagesContent = $("messages-tab-content");
+
+    if (tabName === "requests") {
+      tabProfileBtn?.classList.remove("active");
+      tabRequestsBtn?.classList.add("active");
+      tabMessagesBtn?.classList.remove("active");
+      profileContent?.classList.add("hidden");
+      requestsContent?.classList.remove("hidden");
+      messagesContent?.classList.add("hidden");
+      loadUserRequests();
+    } else if (tabName === "messages") {
+      tabProfileBtn?.classList.remove("active");
+      tabRequestsBtn?.classList.remove("active");
+      tabMessagesBtn?.classList.add("active");
+      profileContent?.classList.add("hidden");
+      requestsContent?.classList.add("hidden");
+      messagesContent?.classList.remove("hidden");
+      loadMessages();
+    } else {
+      tabRequestsBtn?.classList.remove("active");
+      tabMessagesBtn?.classList.remove("active");
+      tabProfileBtn?.classList.add("active");
+      requestsContent?.classList.add("hidden");
+      messagesContent?.classList.add("hidden");
+      profileContent?.classList.remove("hidden");
+    }
+  }
+
+  async function loadMessages() {
+    if (!currentUser || !$("messages-list")) return;
+    const list = $("messages-list");
+    const badge = $("messages-count-badge");
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>Messaging setup needed</h3><p>Run the included Supabase schema migration to enable messages.</p></div>`;
+      if (badge) badge.textContent = "0";
+      return;
+    }
+
+    const messages = data || [];
+    if (badge) badge.textContent = messages.filter((message) => message.recipient_id === currentUser.id && !message.read_at).length;
+    if (!messages.length) {
+      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>No messages yet</h3><p>When someone contacts you about a blood request, the conversation will appear here.</p></div>`;
+      return;
+    }
+
+    list.innerHTML = "";
+    messages.forEach((message) => {
+      const thread = document.createElement("article");
+      thread.className = "message-thread";
+      thread.innerHTML = `
+        <div class="message-thread-head">
+          <strong>${message.sender_id === currentUser.id ? "You sent a message" : "Incoming blood-network message"}</strong>
+          <small>${formatDate(message.created_at)}</small>
+        </div>
+        <p>${escapeHtml(message.body || "")}</p>
+        <div class="request-card-actions">
+          <button type="button" class="btn btn-light reply-message-btn" style="font-size:12px;padding:8px 14px;">Reply</button>
+        </div>
+      `;
+      thread.querySelector(".reply-message-btn")?.addEventListener("click", () => {
+        openReplyModal(message);
+      });
+      list.appendChild(thread);
+    });
+  }
+
+  function openReplyModal(message) {
+    if (!message || !currentUser) return;
+    const recipientId = message.sender_id === currentUser.id
+      ? message.recipient_id
+      : message.sender_id;
+    if (!recipientId || recipientId === currentUser.id) {
+      toast("This message does not have another account to reply to.", "info");
+      return;
+    }
+    replyTarget = {
+      recipientId,
+      requestId: message.request_id || null
+    };
+    if ($("reply-title")) {
+      $("reply-title").textContent = message.sender_id === currentUser.id
+        ? "Continue the conversation"
+        : "Reply to message";
+    }
+    $("reply-modal")?.classList.remove("hidden");
+    $("reply-body")?.focus();
+  }
+
+  function closeReplyModal() {
+    $("reply-modal")?.classList.add("hidden");
+    replyTarget = null;
+    $("reply-form")?.reset();
+  }
+
+  async function sendReply(event) {
     event.preventDefault();
-    if (!currentUser || !messageTarget) return;
-    const body = $("message-body")?.value?.trim() || "";
+    if (!currentUser || !replyTarget) return;
+    const body = $("reply-body")?.value?.trim() || "";
     if (!body) return;
-    const button = $("send-message-btn");
+    const button = $("send-reply-btn");
     setLoading(button, true, "Sending…");
     const { error } = await supabase.from("messages").insert({
       sender_id: currentUser.id,
-      recipient_id: messageTarget.id,
-      request_id: messageTarget.requestId || null,
+      recipient_id: replyTarget.recipientId,
+      request_id: replyTarget.requestId,
       body
     });
     setLoading(button, false);
     if (error) {
-      console.error("Message send error:", error);
-      toast("Messaging is not ready in the database yet. Run the included Supabase schema migration, then try again.", "error");
+      console.error("Reply send error:", error);
+      toast(error.message || "Could not send reply.", "error");
       return;
     }
-    $("message-form")?.reset();
-    closeMessageComposer();
-    toast("Message sent securely.", "success");
+    closeReplyModal();
+    toast("Reply sent.", "success");
+    await loadMessages();
   }
 
   // ==============================
-  // STATISTICS
+  // BLOOD REQUESTS MANAGEMENT
   // ==============================
 
-  async function refreshStats() {
+  async function loadUserRequests() {
+    if (!currentUser) return;
+
+    const listContainer = $("user-requests-list");
+    const emptyState = $("requests-empty-state");
+    const badge = $("requests-count-badge");
+    const infoCount = $("info-requests-count");
+
     try {
-      const [
-        donors,
-        requests,
-        available
-      ] = await Promise.all([
-
-        supabase
-          .from("donor_profiles")
-          .select("id", {
-            count: "exact",
-            head: true
-          }),
-
-        supabase
-          .from("blood_requests")
-          .select("id", {
-            count: "exact",
-            head: true
-          })
-          .eq("status", "open"),
-
-        supabase
-          .from("donor_profiles")
-          .select("id", {
-            count: "exact",
-            head: true
-          })
-          .eq("available", true)
-
-      ]);
-
-      const safeCount = (result) =>
-        result?.count ?? 0;
-
-      if (donors?.error) {
-        console.error(
-          "Donor statistics error:",
-          donors.error
-        );
-      }
-
-      if (requests?.error) {
-        console.error(
-          "Request statistics error:",
-          requests.error
-        );
-      }
-
-      if (available?.error) {
-        console.error(
-          "Available donor statistics error:",
-          available.error
-        );
-      }
-
-      const donorCount =
-        safeCount(donors);
-
-      const requestCount =
-        safeCount(requests);
-
-      const availableCount =
-        safeCount(available);
-
-      if ($("stat-donors")) {
-        $("stat-donors").textContent =
-          donorCount.toLocaleString();
-      }
-
-      if ($("stat-requests")) {
-        $("stat-requests").textContent =
-          requestCount.toLocaleString();
-      }
-
-      if ($("stat-available")) {
-        $("stat-available").textContent =
-          availableCount.toLocaleString();
-      }
-
-      if ($("hero-donor-count")) {
-        $("hero-donor-count").textContent =
-          donorCount.toLocaleString();
-      }
-
-    } catch (error) {
-      console.error(
-        "Error refreshing statistics:",
-        error
-      );
-    }
-  }
-
-  // ==============================
-  // SESSION
-  // ==============================
-
-  async function loadSession() {
-    try {
-      const {
-        data,
-        error
-      } =
-        await supabase.auth.getSession();
-
-      if (error) {
-        console.error(
-          "Session error:",
-          error
-        );
-        return;
-      }
-
-      currentUser =
-        data.session?.user ?? null;
-
-      updateAuthUI();
-
-    } catch (error) {
-      console.error(
-        "Could not load session:",
-        error
-      );
-    }
-  }
-
-  // ==============================
-  // AUTH UI
-  // ==============================
-
-  function updateAuthUI() {
-    const login = $("login-btn");
-    const signout = $("signout-btn");
-
-    if (!login || !signout) return;
-
-    if (currentUser) {
-      login.textContent = "Dashboard";
-      signout.classList.remove("hidden");
-    } else {
-      login.textContent = "Sign in";
-      signout.classList.add("hidden");
-    }
-  }
-
-  // ==============================
-  // SEARCH DONORS
-  // ==============================
-
-  async function searchDonors() {
-    return requireAuth(async () => {
-
-      const blood =
-        $("search-blood")?.value?.trim() || "";
-
-      const district =
-        $("search-district")?.value?.trim() || "";
-
-      const status =
-        $("search-status")?.value?.trim() || "";
-
-      const results =
-        $("donor-results");
-
-      const empty =
-        $("donor-empty");
-
-      if (!results) return;
-
-      results.innerHTML = `
-        <div class="empty-state">
-          <div>⌁</div>
-          <h3>Searching the network…</h3>
-          <p>Checking consented donor profiles.</p>
-        </div>
-      `;
-
-      empty?.classList.add("hidden");
-
-      let query = supabase
-        .from("donor_profiles")
+      const { data, error } = await supabase
+        .from("blood_requests")
         .select("*")
-        .order("available", {
-          ascending: false
-        })
-        .order("created_at", {
-          ascending: false
-        })
-        .limit(30);
-
-      if (blood) {
-        query = query.eq(
-          "blood_group",
-          blood
-        );
-      }
-
-      if (district) {
-        query = query.ilike(
-          "district",
-          `%${district}%`
-        );
-      }
-
-      if (status === "available") {
-        query = query.eq(
-          "available",
-          true
-        );
-      }
-
-      const {
-        data,
-        error
-      } = await query;
+        .eq("requester_id", currentUser.id)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error(
-          "Donor search error:",
-          error
-        );
-
-        results.innerHTML = "";
-
-        toast(
-          error.message ||
-          "Could not load donors. Check your Supabase table and RLS setup.",
-          "error"
-        );
-
+        console.error("Error loading user blood requests:", error);
+        if (listContainer) {
+          listContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">Could not load requests: ${escapeHtml(error.message)}</div>`;
+        }
         return;
       }
 
-      lastDonorResults =
-        data || [];
+      userRequests = data || [];
 
-      renderDonors(
-        lastDonorResults
-      );
-    });
+      // Update counters - active requests decrease when cancelled or fulfilled
+      const activeCount = userRequests.filter((r) => r.status === "open").length;
+      if (badge) badge.textContent = activeCount;
+      if (infoCount) infoCount.textContent = `${activeCount} active (${userRequests.length} total)`;
+
+      if (userRequests.length === 0) {
+        if (listContainer) listContainer.innerHTML = "";
+        if (emptyState) emptyState.style.display = "block";
+        return;
+      }
+
+      if (emptyState) emptyState.style.display = "none";
+      renderUserRequests(userRequests);
+    } catch (err) {
+      console.error("Load requests exception:", err);
+    }
   }
 
-  // ==============================
-  // RENDER DONORS
-  // ==============================
+  function renderUserRequests(requests) {
+    const listContainer = $("user-requests-list");
+    if (!listContainer) return;
 
-  function renderDonors(donors) {
-    const grid =
-      $("donor-results");
+    listContainer.innerHTML = "";
 
-    const empty =
-      $("donor-empty");
+    requests.forEach((req) => {
+      const card = document.createElement("article");
+      card.className = "request-item-card";
 
-    if (!grid) return;
+      const status = req.status || "open";
+      let statusBadge = "";
+      if (status === "open") {
+        statusBadge = `<span class="status-badge-open">● Active / Open</span>`;
+      } else if (status === "fulfilled") {
+        statusBadge = `<span class="status-badge-fulfilled">✓ Fulfilled</span>`;
+      } else {
+        statusBadge = `<span class="status-badge-cancelled">✕ Cancelled</span>`;
+      }
 
-    grid.innerHTML = "";
-
-    if (!donors.length) {
-      empty?.classList.remove(
-        "hidden"
-      );
-      return;
-    }
-
-    empty?.classList.add(
-      "hidden"
-    );
-
-    donors.forEach((donor) => {
-
-      const card =
-        document.createElement(
-          "article"
-        );
-
-      card.className =
-        "donor-card";
-
-      const donorName =
-        donor.full_name ||
-        "Anonymous donor";
-
-      const phone =
-        safePhone(donor.phone);
+      const urgencyLabel = {
+        critical: "Critical — today",
+        urgent: "Urgent — within 24h",
+        planned: "Planned"
+      }[req.urgency] || req.urgency || "Urgent";
 
       card.innerHTML = `
-        <div class="donor-top">
-
-          <div class="donor-avatar">
-            ${
-              donor.avatar_url
-                ? `<img src="${escapeHtml(donor.avatar_url)}" alt="${escapeHtml(donorName)}" />`
-                : escapeHtml(initials(donorName))
-            }
-          </div>
-
-          <div>
-            <h3>
-              ${escapeHtml(
-                donorName
-              )}
-            </h3>
-
-            <div class="meta">
-              ${escapeHtml(
-                donor.area ||
-                donor.district ||
-                "Bangladesh"
-              )}
+        <div class="request-card-header">
+          <div class="request-card-title-group">
+            <span class="blood-badge" style="margin:0; font-size:14px; padding:6px 12px;">${escapeHtml(req.blood_group || "Unknown")}</span>
+            <div>
+              <h3 style="margin:0; font-size:16px;">${escapeHtml(req.patient_name || "Patient")}</h3>
+              <small style="color:var(--muted); font-size:11px;">Posted on ${formatDate(req.created_at)}</small>
             </div>
           </div>
+          <div>${statusBadge}</div>
+        </div>
+
+        <div class="request-card-body">
+          <div>
+            <small>Hospital / Location</small>
+            <strong>${escapeHtml(req.hospital_location || "—")}</strong>
+          </div>
+          <div>
+            <small>District</small>
+            <strong>${escapeHtml(req.district || "—")}</strong>
+          </div>
+          <div>
+            <small>Units Needed</small>
+            <strong>${escapeHtml(req.units_needed || 1)} unit(s)</strong>
+          </div>
+          <div>
+            <small>Urgency</small>
+            <strong style="color:var(--red);">${escapeHtml(urgencyLabel)}</strong>
+          </div>
+          <div>
+            <small>Contact Phone</small>
+            <strong>${escapeHtml(req.contact_phone || "—")}</strong>
+          </div>
+        </div>
+
+        ${
+          req.note
+            ? `<div class="request-card-note"><strong>Note:</strong> ${escapeHtml(req.note)}</div>`
+            : ""
+        }
+
+        <div class="request-card-actions">
+          <button type="button" class="btn btn-light edit-req-btn" style="font-size:12px; padding:8px 14px;">
+            ✏️ Edit Request
+          </button>
 
           ${
-            donor.available
+            status === "open"
               ? `
-                <span
-                  class="available-dot"
-                  title="Available"
-                ></span>
+                <button type="button" class="btn btn-ghost fulfill-req-btn" style="font-size:12px; padding:8px 14px; color:var(--green);">
+                  ✓ Mark Fulfilled
+                </button>
+                <button type="button" class="btn btn-ghost cancel-req-btn" style="font-size:12px; padding:8px 14px; color:#ef4444;">
+                  ✕ Cancel Request
+                </button>
               `
-              : ""
+              : `
+                <button type="button" class="btn btn-ghost reopen-req-btn" style="font-size:12px; padding:8px 14px; color:var(--red);">
+                  🔄 Re-open Request
+                </button>
+              `
           }
 
+          <button type="button" class="btn btn-ghost delete-req-btn" style="font-size:12px; padding:8px 14px; color:#9ca3af;" title="Permanently delete request">
+            🗑️ Delete
+          </button>
         </div>
-
-        <span class="blood-badge">
-          ${escapeHtml(
-            donor.blood_group ||
-            "Unknown"
-          )}
-        </span>
-
-        <div class="details">
-
-          <div>
-            <strong>
-              ${escapeHtml(
-                donor.district ||
-                "—"
-              )}
-            </strong>
-            District
-          </div>
-
-          <div>
-            <strong>
-              ${
-                donor.verified
-                  ? "Verified"
-                  : "Registered"
-              }
-            </strong>
-            Status
-          </div>
-
-          <div>
-            <strong>
-              ${escapeHtml(
-                formatDate(
-                  donor.last_donation_date
-                )
-              )}
-            </strong>
-            Last donation
-          </div>
-
-        </div>
-
-        <button
-          type="button"
-          class="btn btn-primary contact donor-contact"
-        >
-          View & contact
-        </button>
       `;
 
-      const contactButton =
-        card.querySelector(
-          ".donor-contact"
-        );
+      // Event listeners for actions
+      card.querySelector(".edit-req-btn")?.addEventListener("click", () => {
+        openEditRequestModal(req);
+      });
 
-      contactButton?.addEventListener(
-        "click",
-        () => openDonor(donor)
-      );
+      card.querySelector(".fulfill-req-btn")?.addEventListener("click", () => {
+        updateRequestStatus(req.id, "fulfilled", "Mark this request as fulfilled? (This means you have found blood and donors will no longer be contacted.)");
+      });
 
-      grid.appendChild(card);
+      card.querySelector(".cancel-req-btn")?.addEventListener("click", () => {
+        updateRequestStatus(req.id, "cancelled", "Are you sure you want to cancel this blood request? It will be marked as cancelled.");
+      });
+
+      card.querySelector(".reopen-req-btn")?.addEventListener("click", () => {
+        updateRequestStatus(req.id, "open", "Re-open this blood request so it appears active in emergency searches again?");
+      });
+
+      card.querySelector(".delete-req-btn")?.addEventListener("click", () => {
+        deleteRequest(req.id);
+      });
+
+      listContainer.appendChild(card);
     });
   }
 
-  // ==============================
-  // DONOR PROFILE
-  // ==============================
+  // Delete request permanently
+  async function deleteRequest(requestId) {
+    if (!confirm("Are you sure you want to permanently delete this blood request? This action cannot be undone.")) {
+      return;
+    }
 
-  function openDonor(donor) {
+    try {
+      const { error } = await supabase
+        .from("blood_requests")
+        .delete()
+        .eq("id", requestId)
+        .eq("requester_id", currentUser.id);
 
-    if (!donor) return;
-    currentDonor = donor;
-
-    const bloodBadge = $("profile-blood");
-    if (bloodBadge) {
-      if (donor.avatar_url) {
-        bloodBadge.innerHTML = `<img src="${escapeHtml(donor.avatar_url)}" alt="${escapeHtml(donor.full_name || 'Donor')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`;
-      } else {
-        bloodBadge.textContent = donor.blood_group || "Unknown";
+      if (error) {
+        console.error("Delete request error:", error);
+        toast(error.message || "Failed to delete blood request.", "error");
+        return;
       }
+
+      toast("Blood request deleted permanently.", "info");
+      await loadUserRequests();
+    } catch (err) {
+      console.error("Delete request exception:", err);
+      toast("Error deleting request.", "error");
+    }
+  }
+
+  // Update status (cancel, fulfill, reopen)
+  async function updateRequestStatus(requestId, newStatus, confirmMessage) {
+    if (confirmMessage && !confirm(confirmMessage)) {
+      return;
     }
 
-    if ($("profile-name")) {
-      $("profile-name").textContent =
-        donor.full_name ||
-        "Anonymous donor";
-    }
+    try {
+      const { error } = await supabase
+        .from("blood_requests")
+        .update({ status: newStatus })
+        .eq("id", requestId)
+        .eq("requester_id", currentUser.id);
 
-    if ($("profile-location")) {
-      $("profile-location").textContent =
-        [
-          donor.area,
-          donor.district
-        ]
-          .filter(Boolean)
-          .join(" · ") ||
-        "Bangladesh";
-    }
-
-    if ($("profile-details")) {
-
-      $("profile-details").innerHTML = `
-        <div>
-          <small>Availability</small>
-          <strong>
-            ${
-              donor.available
-                ? "Available now"
-                : "Currently unavailable"
-            }
-          </strong>
-        </div>
-
-        <div>
-          <small>Profile status</small>
-          <strong>
-            ${
-              donor.verified
-                ? "Verified"
-                : "Registered"
-            }
-          </strong>
-        </div>
-
-        <div>
-          <small>District</small>
-          <strong>
-            ${escapeHtml(
-              donor.district ||
-              "—"
-            )}
-          </strong>
-        </div>
-
-        <div>
-          <small>Last donation</small>
-          <strong>
-            ${escapeHtml(
-              formatDate(
-                donor.last_donation_date
-              )
-            )}
-          </strong>
-        </div>
-      `;
-    }
-
-    const call =
-      $("profile-call");
-
-    const phone =
-      safePhone(donor.phone);
-
-    if (call) {
-
-      if (phone) {
-        call.href =
-          `tel:${phone}`;
-
-        call.textContent =
-          `Call ${phone}`;
-
-        call.classList.remove(
-          "hidden"
-        );
-      } else {
-        call.removeAttribute(
-          "href"
-        );
-
-        call.textContent =
-          "Phone unavailable";
-
-        call.classList.add(
-          "hidden"
-        );
+      if (error) {
+        console.error("Status update error:", error);
+        toast(error.message || "Failed to update request status.", "error");
+        return;
       }
-    }
 
-    const messageButton = $("profile-message");
-    if (messageButton) {
-      messageButton.onclick = () => openMessageComposer({
-        id: donor.user_id,
-        name: donor.full_name || "donor"
-      });
-    }
+      const statusLabels = {
+        open: "Request re-opened and active.",
+        fulfilled: "Request marked as fulfilled! Thank you for updating.",
+        cancelled: "Blood request has been cancelled."
+      };
 
-    $("profile-modal")
-      ?.classList.remove(
-        "hidden"
-      );
+      toast(statusLabels[newStatus] || "Status updated.", "success");
+      await loadUserRequests();
+    } catch (err) {
+      console.error("Status update exception:", err);
+      toast("Error updating status.", "error");
+    }
   }
 
   // ==============================
-  // SUBMIT DONOR PROFILE
+  // EDIT REQUEST MODAL
   // ==============================
 
-  async function submitDonor(e) {
+  function openEditRequestModal(request) {
+    if (!request) return;
+
+    if ($("edit-req-id")) $("edit-req-id").value = request.id;
+    if ($("edit-req-name")) $("edit-req-name").value = request.patient_name || "";
+    if ($("edit-req-blood")) $("edit-req-blood").value = request.blood_group || "A+";
+    if ($("edit-req-district")) $("edit-req-district").value = request.district || "";
+    if ($("edit-req-location")) $("edit-req-location").value = request.hospital_location || "";
+    if ($("edit-req-units")) $("edit-req-units").value = request.units_needed || 1;
+    if ($("edit-req-urgency")) $("edit-req-urgency").value = request.urgency || "urgent";
+    if ($("edit-req-phone")) $("edit-req-phone").value = request.contact_phone || "";
+    if ($("edit-req-status")) $("edit-req-status").value = request.status || "open";
+    if ($("edit-req-note")) $("edit-req-note").value = request.note || "";
+
+    $("edit-request-modal")?.classList.remove("hidden");
+  }
+
+  function closeEditRequestModal() {
+    $("edit-request-modal")?.classList.add("hidden");
+  }
+
+  async function handleSaveEditedRequest(e) {
     e.preventDefault();
 
-    return requireAuth(async () => {
+    const id = $("edit-req-id")?.value;
+    if (!id || !currentUser) return;
 
-      if (!$("donor-consent")?.checked) {
-        toast(
-          "Please provide consent before joining the donor network.",
-          "error"
-        );
+    const patientName = $("edit-req-name")?.value?.trim() || "";
+    const bloodGroup = $("edit-req-blood")?.value || "";
+    const district = $("edit-req-district")?.value?.trim() || "";
+    const location = $("edit-req-location")?.value?.trim() || "";
+    const units = Number($("edit-req-units")?.value) || 1;
+    const urgency = $("edit-req-urgency")?.value || "urgent";
+    const phone = $("edit-req-phone")?.value?.trim() || "";
+    const status = $("edit-req-status")?.value || "open";
+    const note = $("edit-req-note")?.value?.trim() || null;
+
+    if (!patientName || !bloodGroup || !district || !location || !phone) {
+      toast("Please fill in all required request fields.", "error");
+      return;
+    }
+
+    const saveBtn = $("save-request-btn");
+    setLoading(saveBtn, true, "Saving...");
+
+    try {
+      const { error } = await supabase
+        .from("blood_requests")
+        .update({
+          patient_name: patientName,
+          blood_group: bloodGroup,
+          district: district,
+          hospital_location: location,
+          units_needed: units,
+          urgency: urgency,
+          contact_phone: phone,
+          status: status,
+          note: note
+        })
+        .eq("id", id)
+        .eq("requester_id", currentUser.id);
+
+      setLoading(saveBtn, false);
+
+      if (error) {
+        console.error("Save request error:", error);
+        toast(error.message || "Failed to update blood request.", "error");
         return;
       }
 
-      const btn =
-        e.submitter;
+      toast("Blood request updated successfully!", "success");
+      closeEditRequestModal();
+      await loadUserRequests();
+    } catch (err) {
+      setLoading(saveBtn, false);
+      console.error("Save request exception:", err);
+      toast("Error updating blood request.", "error");
+    }
+  }
 
-      setLoading(
-        btn,
-        true,
-        "Saving profile…"
-      );
+  // ==============================
+  // LOAD SESSION & PROFILE
+  // ==============================
 
-      const fullName =
-        $("donor-name")
-          ?.value
-          ?.trim() || "";
+  async function loadDashboard() {
+    try {
+      const { data, error } = await supabase.auth.getSession();
 
-      const bloodGroup =
-        $("donor-blood")
-          ?.value
-          ?.trim() || "";
-
-      const district =
-        $("donor-district")
-          ?.value
-          ?.trim() || "";
-
-      const area =
-        $("donor-area")
-          ?.value
-          ?.trim() || null;
-
-      const phone =
-        safePhone(
-          $("donor-phone")
-            ?.value || ""
-        );
-
-      const lastDonation =
-        $("donor-last")
-          ?.value || null;
-
-      const available =
-        $("donor-available")
-          ?.checked || false;
-
-      const consent =
-        $("donor-consent")
-          ?.checked || false;
-
-      if (
-        !fullName ||
-        !bloodGroup ||
-        !district ||
-        !phone
-      ) {
-        setLoading(
-          btn,
-          false
-        );
-
-        toast(
-          "Please complete all required donor information.",
-          "error"
-        );
-
+      if (error || !data.session?.user) {
+        toast("Please sign in to access your donor dashboard.", "info");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1200);
         return;
       }
 
+      currentUser = data.session.user;
+
+      // Update header email
+      if ($("header-user-email")) {
+        $("header-user-email").textContent = currentUser.email;
+      }
+      if ($("info-account-email")) {
+        $("info-account-email").textContent = currentUser.email;
+      }
+
+      // Check user metadata for stored avatar
+      if (currentUser.user_metadata?.avatar_url) {
+        currentAvatarUrl = currentUser.user_metadata.avatar_url;
+      }
+
+      // Fetch donor profile from database
+      const { data: profile, error: profileErr } = await supabase
+        .from("donor_profiles")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+      if (profileErr) {
+        console.warn("Could not fetch donor profile:", profileErr);
+      }
+
+      currentProfile = profile;
+
+      if (profile) {
+        if ($("edit-name")) $("edit-name").value = profile.full_name || "";
+        if ($("edit-blood")) $("edit-blood").value = profile.blood_group || "";
+        if ($("edit-district")) $("edit-district").value = profile.district || "Dhaka";
+        if ($("edit-area")) $("edit-area").value = profile.area || "";
+        if ($("edit-phone")) $("edit-phone").value = profile.phone || "";
+        if ($("edit-last")) $("edit-last").value = profile.last_donation_date || "";
+        if ($("edit-available")) $("edit-available").checked = !!profile.available;
+        if ($("edit-consent")) $("edit-consent").checked = profile.consent !== false;
+
+        if (profile.avatar_url) {
+          currentAvatarUrl = profile.avatar_url;
+        }
+
+        if ($("info-profile-status")) {
+          $("info-profile-status").textContent = profile.verified ? "Verified Donor" : "Registered Donor";
+          $("info-profile-status").style.color = profile.verified ? "#15803d" : "#b91c1c";
+        }
+        if ($("preview-card-status")) {
+          $("preview-card-status").textContent = profile.verified ? "Verified" : "Registered";
+        }
+      } else {
+        if (currentUser.user_metadata?.full_name && $("edit-name")) {
+          $("edit-name").value = currentUser.user_metadata.full_name;
+        }
+      }
+
+      updateLivePreview();
+
+      // Load user requests in background
+      await loadUserRequests();
+    } catch (err) {
+      console.error("Dashboard initialization error:", err);
+      toast("Error loading dashboard data.", "error");
+    }
+  }
+
+  // ==============================
+  // SAVE PROFILE
+  // ==============================
+
+  async function submitProfile(e) {
+    e.preventDefault();
+
+    if (!currentUser) {
+      toast("Session expired. Please sign in again.", "error");
+      return;
+    }
+
+    const saveBtn = $("save-profile-btn");
+    setLoading(saveBtn, true, "Saving changes...");
+
+    const fullName = $("edit-name")?.value?.trim() || "";
+    const bloodGroup = $("edit-blood")?.value?.trim() || "";
+    const district = $("edit-district")?.value?.trim() || "";
+    const area = $("edit-area")?.value?.trim() || null;
+    const phone = $("edit-phone")?.value?.trim() || "";
+    const lastDonation = $("edit-last")?.value || null;
+    const available = $("edit-available")?.checked || false;
+    const consent = $("edit-consent")?.checked || false;
+
+    if (!fullName || !bloodGroup || !district || !phone) {
+      setLoading(saveBtn, false);
+      toast("Please fill in all required fields (Name, Blood Group, District, Phone).", "error");
+      return;
+    }
+
+    if (!consent) {
+      setLoading(saveBtn, false);
+      toast("Please provide consent to appear in the protected network.", "error");
+      return;
+    }
+
+    try {
+      const targetAvatar = isAvatarRemoved ? null : currentAvatarUrl;
+
+      // 1. Update user metadata in Supabase Auth
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            avatar_url: targetAvatar,
+            full_name: fullName
+          }
+        });
+      } catch (authErr) {
+        console.warn("Could not update auth metadata:", authErr);
+      }
+
+      // 2. Prepare payload for donor_profiles table
       const payload = {
-
-        user_id:
-          currentUser.id,
-
-        full_name:
-          fullName,
-
-        blood_group:
-          bloodGroup,
-
-        district:
-          district,
-
-        area:
-          area,
-
-        phone:
-          phone,
-
-        last_donation_date:
-          lastDonation,
-
-        available:
-          available,
-
-        consent:
-          consent,
-
+        user_id: currentUser.id,
+        full_name: fullName,
+        blood_group: bloodGroup,
+        district: district,
+        area: area,
+        phone: phone,
+        last_donation_date: lastDonation,
+        available: available,
+        consent: consent,
+        avatar_url: targetAvatar,
         ...(detectedLocation
           ? {
               location_lat: detectedLocation.lat,
               location_lng: detectedLocation.lng,
               location_accuracy: detectedLocation.accuracy
             }
-          : {}),
-
-        // New profiles are never verified
-        // from the client.
-        verified:
-          false
+          : {})
       };
 
-      let {
-        error
-      } = await supabase
+      let { error } = await supabase
         .from("donor_profiles")
-        .upsert(
-          payload,
-          {
-            onConflict:
-              "user_id"
-          }
-        );
+        .upsert(payload, {
+          onConflict: "user_id"
+        });
+
+      if (error && (error.message?.includes("avatar_url") || error.details?.includes("avatar_url"))) {
+        console.warn("avatar_url column not found in database table, updating without it.");
+        delete payload.avatar_url;
+        const retryResult = await supabase
+          .from("donor_profiles")
+          .upsert(payload, {
+            onConflict: "user_id"
+          });
+        error = retryResult.error;
+      }
 
       if (error && /location_(lat|lng|accuracy)|column/i.test(error.message || "")) {
         delete payload.location_lat;
         delete payload.location_lng;
         delete payload.location_accuracy;
-        const retry = await supabase
+        const retryResult = await supabase
           .from("donor_profiles")
           .upsert(payload, { onConflict: "user_id" });
-        error = retry.error;
+        error = retryResult.error;
       }
 
-      setLoading(
-        btn,
-        false
-      );
+      setLoading(saveBtn, false);
 
       if (error) {
-
-        console.error(
-          "Donor profile error:",
-          error
-        );
-
-        toast(
-          error.message ||
-          "Could not save donor profile.",
-          "error"
-        );
-
+        console.error("Profile save error:", error);
+        toast(error.message || "Failed to save profile.", "error");
         return;
       }
 
-      toast(
-        "Donor profile saved. Thank you for joining the Lifeline.",
-        "success"
-      );
-
+      toast("Donor profile & picture saved successfully!", "success");
       detectedLocation = null;
-
-      await refreshStats();
-
-      await searchDonors();
-    });
-  }
-
-  // ==============================
-  // LOAD BLOOD REQUESTS
-  // ==============================
-
-  async function loadBloodRequests() {
-    const grid =
-      $("requests-results");
-
-    if (!grid) return;
-
-    const {
-      data,
-      error
-    } = await supabase
-      .from("blood_requests")
-      .select(
-        "id, requester_id, patient_name, blood_group, district, hospital_location, units_needed, urgency, contact_phone, note, created_at"
-      )
-      .eq(
-        "status",
-        "open"
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      )
-      .limit(4);
-
-    if (error) {
-      console.error(
-        "Blood request loading error:",
-        error
-      );
-
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      return;
-    }
-
-    grid.innerHTML = "";
-
-    data.forEach((req) => {
-
-      const card =
-        document.createElement(
-          "article"
-        );
-
-      card.className =
-        "donor-card";
-
-      const phone =
-        safePhone(
-          req.contact_phone
-        );
-
-      const patientName =
-        req.patient_name ||
-        "Blood request";
-
-      const location =
-        req.hospital_location ||
-        req.district ||
-        "Location not provided";
-
-      const urgency =
-        req.urgency ||
-        "Normal";
-
-      const bloodGroup =
-        req.blood_group ||
-        "Unknown";
-
-      const units =
-        Number(req.units_needed) || 0;
-
-      const note =
-        req.note ||
-        "None";
-
-      card.innerHTML = `
-        <div class="donor-top">
-
-          <div class="donor-avatar">
-            ${escapeHtml(
-              bloodGroup
-            )}
-          </div>
-
-          <div>
-            <h3>
-              ${escapeHtml(
-                patientName
-              )}
-            </h3>
-
-            <div class="meta">
-              ${escapeHtml(
-                location
-              )}
-            </div>
-          </div>
-
-          <span class="status-pill">
-            ${escapeHtml(
-              urgency
-            )}
-          </span>
-
-        </div>
-
-        <p style="margin: 8px 0; font-size: 13px;">
-          <strong>Units:</strong>
-          ${escapeHtml(units)}
-
-          |
-
-          <strong>Note:</strong>
-          ${escapeHtml(note)}
-        </p>
-
-        ${
-          phone
-            ? `
-              <a
-                href="tel:${escapeHtml(phone)}"
-                class="btn btn-primary contact"
-                style="margin-top:10px; display:block; text-align:center;"
-              >
-                Call ${escapeHtml(phone)}
-              </a>
-            `
-            : `
-              <span
-                class="btn btn-primary contact"
-                style="margin-top:10px; display:block; text-align:center; opacity:.6;"
-              >
-                Phone unavailable
-              </span>
-            `
-        }
-
-          <button type="button" class="btn btn-light request-message" style="margin-top:8px;display:block;width:100%;font-size:12px;">Message requester</button>
-      `;
-
-      card.querySelector(".request-message")?.addEventListener("click", () => {
-        if (!req.requester_id) {
-          toast("This older request is not linked to a user account yet. Please use the phone number shown above.", "info");
-          return;
-        }
-        if (currentUser && req.requester_id === currentUser.id) {
-          toast("This is your own blood request. Other donors can message you from this card.", "info");
-          return;
-        }
-        openMessageComposer({ id: req.requester_id, name: patientName }, req.id);
-      });
-      grid.appendChild(card);
-    });
-  }
-
-  // ==============================
-  // SUBMIT BLOOD REQUEST
-  // ==============================
-
-  async function submitRequest(e) {
-    e.preventDefault();
-
-    return requireAuth(async () => {
-
-      const btn =
-        e.submitter;
-
-      setLoading(
-        btn,
-        true,
-        "Publishing…"
-      );
-
-      const patientName =
-        $("request-name")
-          ?.value
-          ?.trim() || "";
-
-      const bloodGroup =
-        $("request-blood")
-          ?.value
-          ?.trim() || "";
-
-      const district =
-        $("request-district")
-          ?.value
-          ?.trim() || "";
-
-      const hospitalLocation =
-        $("request-location")
-          ?.value
-          ?.trim() || "";
-
-      const units =
-        Number(
-          $("request-units")
-            ?.value
-        );
-
-      const urgency =
-        $("request-urgency")
-          ?.value
-          ?.trim() || "";
-
-      const phone =
-        safePhone(
-          $("request-phone")
-            ?.value || ""
-        );
-
-      const note =
-        $("request-note")
-          ?.value
-          ?.trim() || null;
-
-      const condition =
-        $("request-condition")
-          ?.value
-          ?.trim() || null;
-
-      if (
-        !patientName ||
-        !bloodGroup ||
-        !district ||
-        !hospitalLocation ||
-        !Number.isFinite(units) ||
-        units < 1 ||
-        !urgency ||
-        !phone
-      ) {
-        setLoading(
-          btn,
-          false
-        );
-
-        toast(
-          "Please complete all required blood request information.",
-          "error"
-        );
-
-        return;
-      }
-
-      const payload = {
-
-        requester_id:
-          currentUser.id,
-
-        patient_name:
-          patientName,
-
-        blood_group:
-          bloodGroup,
-
-        district:
-          district,
-
-        hospital_location:
-          hospitalLocation,
-
-        units_needed:
-          units,
-
-        urgency:
-          urgency,
-
-        contact_phone:
-          phone,
-
-        note:
-          note,
-
-        condition:
-          condition,
-
-        status:
-          "open"
-      };
-
-      let {
-        error
-      } = await supabase
-        .from("blood_requests")
-        .insert(
-          payload
-        );
-
-      if (error && /condition|column/i.test(error.message || "")) {
-        delete payload.condition;
-        const retry = await supabase
-          .from("blood_requests")
-          .insert(payload);
-        error = retry.error;
-      }
-
-      setLoading(
-        btn,
-        false
-      );
-
-      if (error) {
-
-        console.error(
-          "Blood request error:",
-          error
-        );
-
-        toast(
-          error.message ||
-          "Could not publish request.",
-          "error"
-        );
-
-        return;
-      }
-
-      e.target.reset();
-
-      if ($("request-units")) {
-        $("request-units").value = 1;
-      }
-
-      toast(
-        "Blood request published successfully.",
-        "success"
-      );
-
-      const compatibleDonors = await findCompatibleDonors(bloodGroup, district);
-      renderMatchPanel(compatibleDonors, bloodGroup);
-
-      await refreshStats();
-      await loadBloodRequests();
-
-      scrollToId("find");
-    });
-  }
-
-  // ==============================
-  // AUTHENTICATION
-  // ==============================
-
-  async function submitAuth(e) {
-    e.preventDefault();
-
-    const email =
-      $("auth-email")
-        ?.value
-        ?.trim() || "";
-
-        const confirmPassword =
-  $("auth-confirm-password")
-    ?.value || "";
-
-    const password =
-      $("auth-password")
-        ?.value || "";
-
-    const btn =
-      $("auth-submit");
-
-    if (!email || !password) {
-  toast(
-    "Please enter your email and password.",
-    "error"
-  );
-
-  return;
-}
-
-if (authMode === "signup") {
-  if (!confirmPassword) {
-    toast(
-      "Please confirm your password.",
-      "error"
-    );
-
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    toast(
-      "Passwords do not match.",
-      "error"
-    );
-
-    return;
-  }
-}
-
-    setLoading(
-      btn,
-      true,
-      authMode === "signin"
-        ? "Signing in…"
-        : "Creating account…"
-    );
-
-    let result;
-
-    try {
-
-      if (
-        authMode === "signin"
-      ) {
-
-        result =
-          await supabase.auth
-            .signInWithPassword({
-              email,
-              password
-            });
-
-      } else {
-
-        result =
-          await supabase.auth
-            .signUp({
-              email,
-              password
-            });
-      }
-
-    } catch (error) {
-
-      setLoading(
-        btn,
-        false
-      );
-
-      console.error(
-        "Authentication exception:",
-        error
-      );
-
-      toast(
-        error.message ||
-        "Authentication failed.",
-        "error"
-      );
-
-      return;
-    }
-
-    setLoading(
-      btn,
-      false
-    );
-
-    if (result.error) {
-
-      console.error(
-        "Authentication error:",
-        result.error
-      );
-
-      toast(
-        result.error.message ||
-        "Authentication failed.",
-        "error"
-      );
-
-      return;
-    }
-
-    // Signup with email confirmation enabled
-    if (
-      authMode === "signup" &&
-      !result.data.session
-    ) {
-
-      toast(
-        "Account created. Check your email if confirmation is enabled.",
-        "success"
-      );
-
-      closeAuth();
-
-      return;
-    }
-
-    currentUser =
-      result.data.user ?? null;
-
-    updateAuthUI();
-
-    closeAuth();
-
-    toast(
-      authMode === "signin"
-        ? "Signed in successfully."
-        : "Account created successfully.",
-      "success"
-    );
-
-    await refreshStats();
-    await loadBloodRequests();
-
-    // Take the user to the home page
-    scrollToId("home");
-    if (window.location.hash) {
-      window.history.replaceState(null, "", window.location.pathname);
+      updateLivePreview();
+    } catch (err) {
+      setLoading(saveBtn, false);
+      console.error("Save profile exception:", err);
+      toast(err.message || "An unexpected error occurred.", "error");
     }
   }
 
@@ -1792,319 +1009,103 @@ if (authMode === "signup") {
   // SIGN OUT
   // ==============================
 
-  async function signOut() {
-
-    const {
-      error
-    } =
+  async function handleSignOut() {
+    try {
       await supabase.auth.signOut();
-
-    if (error) {
-
-      console.error(
-        "Sign out error:",
-        error
-      );
-
-      toast(
-        error.message ||
-        "Could not sign out.",
-        "error"
-      );
-
-      return;
+      window.location.href = "index.html";
+    } catch (err) {
+      console.error("Sign out error:", err);
+      window.location.href = "index.html";
     }
-
-    currentUser = null;
-
-    lastDonorResults = [];
-
-    updateAuthUI();
-
-    if ($("donor-results")) {
-      $("donor-results")
-        .innerHTML = "";
-    }
-
-    if ($("donor-empty")) {
-      $("donor-empty")
-        .classList.add(
-          "hidden"
-        );
-    }
-
-    $("profile-modal")
-      ?.classList.add(
-        "hidden"
-      );
-
-    toast(
-      "You have been signed out.",
-      "info"
-    );
   }
 
   // ==============================
-  // CONNECT UI
+  // CONNECT EVENT LISTENERS
   // ==============================
 
-  function wireUI() {
-    // Toggle password visibility
-    const togglePasswordBtn = $("toggle-password-btn");
-    const authPasswordInput = $("auth-password");
-    if (togglePasswordBtn && authPasswordInput) {
-      togglePasswordBtn.addEventListener("click", () => {
-        if (authPasswordInput.type === "password") {
-          authPasswordInput.type = "text";
-          togglePasswordBtn.innerHTML = ICON_EYE_OFF;
-        } else {
-          authPasswordInput.type = "password";
-          togglePasswordBtn.innerHTML = ICON_EYE;
-        }
-      });
-    }
-
-    // Toggle confirm password visibility
-    const toggleConfirmPasswordBtn = $("toggle-confirm-password-btn");
-    const authConfirmPasswordInput = $("auth-confirm-password");
-    if (toggleConfirmPasswordBtn && authConfirmPasswordInput) {
-      toggleConfirmPasswordBtn.addEventListener("click", () => {
-        if (authConfirmPasswordInput.type === "password") {
-          authConfirmPasswordInput.type = "text";
-          toggleConfirmPasswordBtn.innerHTML = ICON_EYE_OFF;
-        } else {
-          authConfirmPasswordInput.type = "password";
-          toggleConfirmPasswordBtn.innerHTML = ICON_EYE;
-        }
-      });
-    }
-
-    // Navigation buttons
-    $$("[data-scroll]")
-      .forEach((button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-            scrollToId(
-              button.dataset.scroll
-            );
-          }
-        );
-
-      });
-
-    // Announcement links
-    $$(".announcement-link")
-      .forEach((button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-            scrollToId(
-              "request"
-            );
-          }
-        );
-
-      });
-
-    // Login button / Dashboard button
-    $("login-btn")
-      ?.addEventListener(
-        "click",
-        () => {
-
-          if (currentUser) {
-            window.location.href = "dashboard.html";
-          } else {
-            openAuth("signin");
-          }
-
-        }
-      );
-
-    // Locked login
-    $("locked-login")
-      ?.addEventListener(
-        "click",
-        () => {
-          openAuth("signin");
-        }
-      );
-
-    // Switch signin/signup
-    $("switch-auth")
-      ?.addEventListener(
-        "click",
-        () => {
-
-          openAuth(
-            authMode === "signin"
-              ? "signup"
-              : "signin"
-          );
-
-        }
-      );
-
-    // Auth form
-    $("auth-form")
-      ?.addEventListener(
-        "submit",
-        submitAuth
-      );
-
-    // Donor form
-    $("donor-form")
-      ?.addEventListener(
-        "submit",
-        submitDonor
-      );
-
-    // Request form
-    $("request-form")
-      ?.addEventListener(
-        "submit",
-        submitRequest
-      );
-
-    $("request-condition")?.addEventListener("change", showConditionGuidance);
-    $("detect-donor-location")?.addEventListener("click", detectLocation);
-    $("message-form")?.addEventListener("submit", sendMessage);
-    $$("[data-close-message]").forEach((element) => {
-      element.addEventListener("click", closeMessageComposer);
-    });
+  function wireDashboard() {
+    // Tab buttons
+    $("tab-profile-btn")?.addEventListener("click", () => switchTab("profile"));
+    $("tab-requests-btn")?.addEventListener("click", () => switchTab("requests"));
+    $("tab-messages-btn")?.addEventListener("click", () => switchTab("messages"));
+    $("switch-to-requests-btn")?.addEventListener("click", () => switchTab("requests"));
+    $("detect-profile-location")?.addEventListener("click", detectProfileLocation);
     $("language-toggle")?.addEventListener("click", () => {
       applyLanguage(currentLanguage === "en" ? "bn" : "en");
     });
+    $("reply-form")?.addEventListener("submit", sendReply);
+    $("close-reply-modal-btn")?.addEventListener("click", closeReplyModal);
+    $("close-reply-modal-backdrop")?.addEventListener("click", closeReplyModal);
     wireAssistant();
     applyLanguage();
 
-    // Search donors
-    $("search-donors")
-      ?.addEventListener(
-        "click",
-        searchDonors
-      );
+    // Profile form submission
+    $("profile-edit-form")?.addEventListener("submit", submitProfile);
 
-    // Sign out
-    $("signout-btn")
-      ?.addEventListener(
-        "click",
-        signOut
-      );
+    // Live preview inputs
+    ["edit-name", "edit-blood", "edit-district", "edit-area", "edit-phone", "edit-last"].forEach((id) => {
+      const el = $(id);
+      el?.addEventListener("input", updateLivePreview);
+      el?.addEventListener("change", updateLivePreview);
+    });
 
-    // Close auth modal
-    $$("[data-close-modal]")
-      .forEach((element) => {
+    $("edit-available")?.addEventListener("change", updateLivePreview);
 
-        element.addEventListener(
-          "click",
-          closeAuth
-        );
+    // Profile photo upload trigger
+    const chooseAvatarBtn = $("choose-avatar-btn");
+    const avatarInput = $("avatar-file-input");
 
-      });
+    chooseAvatarBtn?.addEventListener("click", () => {
+      avatarInput?.click();
+    });
 
-    // Close profile modal
-    $$("[data-close-profile]")
-      .forEach((element) => {
+    avatarInput?.addEventListener("change", async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-        element.addEventListener(
-          "click",
-          closeProfile
-        );
-
-      });
-
-    // Mobile menu
-    $("mobile-menu")
-      ?.addEventListener(
-        "click",
-        () => {
-
-          const nav =
-            $("main-nav");
-
-          if (!nav) return;
-
-          nav.style.display =
-            nav.style.display === "flex"
-              ? ""
-              : "flex";
-
-          nav.style.position =
-            "absolute";
-
-          nav.style.top =
-            "76px";
-
-          nav.style.left =
-            "0";
-
-          nav.style.right =
-            "0";
-
-          nav.style.padding =
-            "20px 5vw";
-
-          nav.style.background =
-            "#fff";
-
-          nav.style.flexDirection =
-            "column";
-
-          nav.style.borderBottom =
-            "1px solid #eee";
-        }
-      );
-
-    // Supabase authentication state
-    supabase.auth.onAuthStateChange(
-      (_event, session) => {
-
-        currentUser =
-          session?.user ?? null;
-
-        updateAuthUI();
+      try {
+        toast("Processing photo...", "info");
+        const compressedDataUrl = await processImageFile(file);
+        currentAvatarUrl = compressedDataUrl;
+        isAvatarRemoved = false;
+        updateAvatarDisplay(currentAvatarUrl, $("edit-name")?.value);
+        toast("Photo ready! Click 'Save profile changes' to persist.", "success");
+      } catch (err) {
+        console.error("Avatar process error:", err);
+        toast(err.message || "Could not process photo.", "error");
       }
-    );
+    });
+
+    // Remove avatar button
+    $("remove-avatar-btn")?.addEventListener("click", () => {
+      currentAvatarUrl = null;
+      isAvatarRemoved = true;
+      if (avatarInput) avatarInput.value = "";
+      updateAvatarDisplay(null, $("edit-name")?.value);
+      toast("Photo removed. Remember to click 'Save profile changes'.", "info");
+    });
+
+    // Edit request modal events
+    $("edit-request-form")?.addEventListener("submit", handleSaveEditedRequest);
+    $("close-edit-request-btn")?.addEventListener("click", closeEditRequestModal);
+    $("close-edit-modal-backdrop")?.addEventListener("click", closeEditRequestModal);
+    $("cancel-edit-modal-btn")?.addEventListener("click", closeEditRequestModal);
+
+    // Sign out button
+    $("dash-signout-btn")?.addEventListener("click", handleSignOut);
   }
 
   // ==============================
-  // INITIALIZE APP
+  // INITIALIZE
   // ==============================
 
-  async function initializeApp() {
-
-    wireUI();
-
-    await loadSession();
-    await refreshStats();
-    await loadBloodRequests();
-  }
-
-  // ==============================
-  // START
-  // ==============================
-
-  if (
-    document.readyState ===
-    "loading"
-  ) {
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      initializeApp,
-      {
-        once: true
-      }
-    );
-
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      wireDashboard();
+      loadDashboard();
+    }, { once: true });
   } else {
-
-    initializeApp();
-
+    wireDashboard();
+    loadDashboard();
   }
-
 })();
