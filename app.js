@@ -1421,14 +1421,18 @@
             `
         }
 
-          ${
-            currentUser && req.requester_id && req.requester_id !== currentUser.id
-              ? `<button type="button" class="btn btn-light request-message" style="margin-top:8px;display:block;width:100%;font-size:12px;">Message requester</button>`
-              : ""
-          }
+          <button type="button" class="btn btn-light request-message" style="margin-top:8px;display:block;width:100%;font-size:12px;">Message requester</button>
       `;
 
       card.querySelector(".request-message")?.addEventListener("click", () => {
+        if (!req.requester_id) {
+          toast("This older request is not linked to a user account yet. Please use the phone number shown above.", "info");
+          return;
+        }
+        if (currentUser && req.requester_id === currentUser.id) {
+          toast("This is your own blood request. Other donors can message you from this card.", "info");
+          return;
+        }
         openMessageComposer({ id: req.requester_id, name: patientName }, req.id);
       });
       grid.appendChild(card);
