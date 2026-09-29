@@ -17,6 +17,22 @@
   const supabase_PUBLISHABLE_KEY =
     "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
 
+  if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    console.error("Lifeline could not start: Supabase JS was not loaded. Add https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2 before app.js.");
+    const showSetupError = () => {
+      const root = document.getElementById("toast-root");
+      if (root) {
+        root.innerHTML = '<div class="toast error">Supabase could not load. Check the Supabase script tag before app.js.</div>';
+      }
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", showSetupError, { once: true });
+    } else {
+      showSetupError();
+    }
+    return;
+  }
+
   const { createClient } = window.supabase;
 
   const supabase = createClient(
@@ -532,7 +548,7 @@
   function openMessageComposer(target, requestId = null) {
     if (!currentUser) {
       openAuth("signin");
-      toast("Please sign in before sending a protected message.", "info");
+      toast("Please sign in before sending a message.", "info");
       return;
     }
     if (!target?.id || target.id === currentUser.id) {
