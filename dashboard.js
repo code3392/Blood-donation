@@ -36,6 +36,8 @@
   let currentAvatarUrl = null;
   let isAvatarRemoved = false;
   let userRequests = [];
+  let detectedLocation = null;
+  let currentLanguage = localStorage.getItem("lifeline-language") || "en";
 
   // ==============================
   // DOM HELPERS
@@ -127,6 +129,99 @@
         delete button.dataset.original;
       }
     }
+  }
+
+  // ==============================
+  // LANGUAGE & ASSISTANT
+  // ==============================
+
+  function applyLanguage(language = currentLanguage) {
+    currentLanguage = language === "bn" ? "bn" : "en";
+    localStorage.setItem("lifeline-language", currentLanguage);
+    document.documentElement.lang = currentLanguage === "bn" ? "bn" : "en";
+    const toggle = $("language-toggle");
+    if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
+    const copy = currentLanguage === "bn"
+      ? { dashboardTitle: "ডোনার ড্যাশবোর্ড", profileTab: "👤 ডোনার প্রোফাইল ও ছবি", requestsTab: "🩸 আমার রক্তের অনুরোধ", messagesTab: "✉ মেসেজ" }
+      : { dashboardTitle: "Donor Dashboard", profileTab: "👤 Donor Profile & Photo", requestsTab: "🩸 My Blood Requests", messagesTab: "✉ Messages" };
+    Object.entries(copy).forEach(([key, value]) => {
+      document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
+        el.textContent = value;
+      });
+    });
+  }
+
+  function assistantReply(question) {
+    const q = String(question || "").toLowerCase();
+    const bn = currentLanguage === "bn";
+    if (/o-.*(donate|give)|universal|b-.*ab-/.test(q)) {
+      return bn
+        ? "O− লোহিত রক্তকণিকার universal donor এবং B−, AB−-কে দিতে পারে। হাসপাতালকে cross-match করতেই হবে।"
+        : "O− is the universal red-cell donor, and B− can donate red cells to AB−. The hospital must still cross-match.";
+    }
+    if (/thalassemia|anemia|leukemia|hemophilia|sickle|disease|রোগ|থ্যালাসেমিয়া/.test(q)) {
+      return bn
+        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা treating hematologist ঠিক করবেন। Lifeline diagnosis বা prescription দেয় না।"
+        : "For blood-related disease, the treating hematologist decides which blood product is needed. Lifeline does not diagnose or prescribe.";
+    }
+    return bn
+      ? "আমি blood group, compatibility, request এবং Lifeline ব্যবহারে সাহায্য করতে পারি। জরুরি চিকিৎসায় হাসপাতালের নির্দেশ অনুসরণ করুন।"
+      : "I can help with blood groups, compatibility, requests, and using Lifeline. Follow the hospital team for urgent medical decisions.";
+  }
+
+  function wireAssistant() {
+    $("assistant-open")?.addEventListener("click", () => $("assistant-panel")?.classList.remove("hidden"));
+    $("assistant-close")?.addEventListener("click", () => $("assistant-panel")?.classList.add("hidden"));
+    $("assistant-form")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = $("assistant-input");
+      const question = input?.value?.trim();
+      const messages = $("assistant-messages");
+      if (!question || !messages) return;
+      const user = document.createElement("div");
+      user.className = "assistant-bubble user";
+      user.textContent = question;
+      const reply = document.createElement("div");
+      reply.className = "assistant-bubble assistant";
+      reply.textContent = assistantReply(question);
+      messages.append(user, reply);
+      messages.scrollTop = messages.scrollHeight;
+      if (input) input.value = "";
+    });
+  }
+
+  // ==============================
+  // APPROXIMATE PROFILE LOCATION
+  // ==============================
+
+  function detectProfileLocation() {
+    const status = $("profile-location-status");
+    if (!navigator.geolocation) {
+      if (status) status.textContent = "Location detection is not supported by this browser.";
+      return;
+    }
+    if (status) status.textContent = "Requesting approximate location…";
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      detectedLocation = {
+        lat: Number(position.coords.latitude.toFixed(6)),
+        lng: Number(position.coords.longitude.toFixed(6)),
+        accuracy: Math.round(position.coords.accuracy || 0)
+      };
+      try {
+        const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${detectedLocation.lat}&longitude=${detectedLocation.lng}&localityLanguage=en`);
+        const place = await response.json();
+        const district = place.city || place.locality || place.principalSubdivision || "";
+        const area = place.locality || place.city || "";
+        if (district && $("edit-district")) $("edit-district").value = district;
+        if (area && $("edit-area")) $("edit-area").value = area;
+        if (status) status.textContent = `Location detected: ${district || "nearby area"} (approx. ${detectedLocation.accuracy}m).`;
+        updateLivePreview();
+      } catch (error) {
+        if (status) status.textContent = `Coordinates detected (approx. ${detectedLocation.accuracy}m). Add your district if needed.`;
+      }
+    }, () => {
+      if (status) status.textContent = "Location permission was not granted. You can enter your district manually.";
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
   }
 
   // ==============================
@@ -272,21 +367,74 @@
   function switchTab(tabName) {
     const tabProfileBtn = $("tab-profile-btn");
     const tabRequestsBtn = $("tab-requests-btn");
+    const tabMessagesBtn = $("tab-messages-btn");
     const profileContent = $("profile-tab-content");
     const requestsContent = $("requests-tab-content");
+    const messagesContent = $("messages-tab-content");
 
     if (tabName === "requests") {
       tabProfileBtn?.classList.remove("active");
       tabRequestsBtn?.classList.add("active");
+      tabMessagesBtn?.classList.remove("active");
       profileContent?.classList.add("hidden");
       requestsContent?.classList.remove("hidden");
+      messagesContent?.classList.add("hidden");
       loadUserRequests();
+    } else if (tabName === "messages") {
+      tabProfileBtn?.classList.remove("active");
+      tabRequestsBtn?.classList.remove("active");
+      tabMessagesBtn?.classList.add("active");
+      profileContent?.classList.add("hidden");
+      requestsContent?.classList.add("hidden");
+      messagesContent?.classList.remove("hidden");
+      loadMessages();
     } else {
       tabRequestsBtn?.classList.remove("active");
+      tabMessagesBtn?.classList.remove("active");
       tabProfileBtn?.classList.add("active");
       requestsContent?.classList.add("hidden");
+      messagesContent?.classList.add("hidden");
       profileContent?.classList.remove("hidden");
     }
+  }
+
+  async function loadMessages() {
+    if (!currentUser || !$("messages-list")) return;
+    const list = $("messages-list");
+    const badge = $("messages-count-badge");
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>Messaging setup needed</h3><p>Run the included Supabase schema migration to enable protected messages.</p></div>`;
+      if (badge) badge.textContent = "0";
+      return;
+    }
+
+    const messages = data || [];
+    if (badge) badge.textContent = messages.filter((message) => message.recipient_id === currentUser.id && !message.read_at).length;
+    if (!messages.length) {
+      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>No messages yet</h3><p>When someone contacts you about a blood request, the conversation will appear here.</p></div>`;
+      return;
+    }
+
+    list.innerHTML = "";
+    messages.forEach((message) => {
+      const thread = document.createElement("article");
+      thread.className = "message-thread";
+      thread.innerHTML = `
+        <div class="message-thread-head">
+          <strong>${message.sender_id === currentUser.id ? "You sent a message" : "Incoming blood-network message"}</strong>
+          <small>${formatDate(message.created_at)}</small>
+        </div>
+        <p>${escapeHtml(message.body || "")}</p>
+      `;
+      list.appendChild(thread);
+    });
   }
 
   // ==============================
@@ -743,7 +891,14 @@
         last_donation_date: lastDonation,
         available: available,
         consent: consent,
-        avatar_url: targetAvatar
+        avatar_url: targetAvatar,
+        ...(detectedLocation
+          ? {
+              location_lat: detectedLocation.lat,
+              location_lng: detectedLocation.lng,
+              location_accuracy: detectedLocation.accuracy
+            }
+          : {})
       };
 
       let { error } = await supabase
@@ -763,6 +918,16 @@
         error = retryResult.error;
       }
 
+      if (error && /location_(lat|lng|accuracy)|column/i.test(error.message || "")) {
+        delete payload.location_lat;
+        delete payload.location_lng;
+        delete payload.location_accuracy;
+        const retryResult = await supabase
+          .from("donor_profiles")
+          .upsert(payload, { onConflict: "user_id" });
+        error = retryResult.error;
+      }
+
       setLoading(saveBtn, false);
 
       if (error) {
@@ -772,6 +937,7 @@
       }
 
       toast("Donor profile & picture saved successfully!", "success");
+      detectedLocation = null;
       updateLivePreview();
     } catch (err) {
       setLoading(saveBtn, false);
@@ -802,7 +968,14 @@
     // Tab buttons
     $("tab-profile-btn")?.addEventListener("click", () => switchTab("profile"));
     $("tab-requests-btn")?.addEventListener("click", () => switchTab("requests"));
+    $("tab-messages-btn")?.addEventListener("click", () => switchTab("messages"));
     $("switch-to-requests-btn")?.addEventListener("click", () => switchTab("requests"));
+    $("detect-profile-location")?.addEventListener("click", detectProfileLocation);
+    $("language-toggle")?.addEventListener("click", () => {
+      applyLanguage(currentLanguage === "en" ? "bn" : "en");
+    });
+    wireAssistant();
+    applyLanguage();
 
     // Profile form submission
     $("profile-edit-form")?.addEventListener("submit", submitProfile);
