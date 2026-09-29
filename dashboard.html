@@ -291,7 +291,6 @@
       <div class="dashboard-card">
         <div class="dashboard-card-title" style="margin-bottom: 6px;">
           <span>Messages</span>
-          <span class="status-pill">Protected</span>
         </div>
         <p class="dashboard-card-subtitle">Messages from donors and blood seekers appear here. Share only what is necessary for coordination.</p>
         <div id="messages-list" class="messages-list">
@@ -300,6 +299,24 @@
       </div>
     </div>
   </main>
+
+  <div id="reply-modal" class="modal hidden">
+    <div class="modal-backdrop" id="close-reply-modal-backdrop"></div>
+    <div class="modal-card message-modal-card">
+      <button class="modal-close" id="close-reply-modal-btn">×</button>
+      <div class="modal-icon">✉</div>
+      <div class="eyebrow">REPLY</div>
+      <h2 id="reply-title">Reply to message</h2>
+      <p>Keep your reply focused on coordinating the blood donation.</p>
+      <form id="reply-form">
+        <div class="field">
+          <label for="reply-body">Your reply</label>
+          <textarea id="reply-body" required maxlength="1000" placeholder="Write your reply…"></textarea>
+        </div>
+        <button class="btn btn-primary full-width btn-large" type="submit" id="send-reply-btn">Send reply <span>→</span></button>
+      </form>
+    </div>
+  </div>
 
   <!-- Edit Blood Request Modal -->
   <div id="edit-request-modal" class="modal hidden">
