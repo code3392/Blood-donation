@@ -34,6 +34,7 @@
     </nav>
 
     <div class="header-actions">
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Change language">বাংলা</button>
       <span id="header-user-email" class="mini-label" style="text-transform: none; font-size: 12px; color: #555; display: inline-block;">Loading...</span>
       <button class="btn btn-ghost" id="dash-signout-btn">Sign out</button>
     </div>
@@ -43,7 +44,7 @@
     <div class="dashboard-top">
       <div>
         <div class="eyebrow">YOUR ACCOUNT</div>
-        <h1>Donor Dashboard</h1>
+        <h1 data-i18n="dashboardTitle">Donor Dashboard</h1>
         <p>Edit your donor profile, manage availability, and update or cancel your posted blood requests.</p>
       </div>
 
@@ -58,10 +59,13 @@
     <!-- Navigation Tabs -->
     <div class="dashboard-tabs">
       <button type="button" class="tab-btn active" id="tab-profile-btn">
-        👤 Donor Profile & Photo
+        <span data-i18n="profileTab">👤 Donor Profile & Photo</span>
       </button>
       <button type="button" class="tab-btn" id="tab-requests-btn">
-        🩸 My Blood Requests <span class="tab-badge" id="requests-count-badge">0</span>
+        <span data-i18n="requestsTab">🩸 My Blood Requests</span> <span class="tab-badge" id="requests-count-badge">0</span>
+      </button>
+      <button type="button" class="tab-btn" id="tab-messages-btn">
+        <span data-i18n="messagesTab">✉ Messages</span> <span class="tab-badge" id="messages-count-badge">0</span>
       </button>
     </div>
 
@@ -127,6 +131,11 @@
               <div class="field">
                 <label for="edit-area">Area / Upazila <span class="optional">(optional)</span></label>
                 <input id="edit-area" maxlength="80" placeholder="e.g. Dhanmondi, Mirpur, Uttara" />
+              </div>
+
+              <div class="field full location-field">
+                <button class="btn btn-light location-btn" type="button" id="detect-profile-location">⌖ Detect my location</button>
+                <small id="profile-location-status" class="location-status">Use approximate location for better donor matching. Exact coordinates stay private.</small>
               </div>
 
               <div class="field">
@@ -229,6 +238,10 @@
                 <span>Your Requests</span>
                 <strong id="info-requests-count">0 posted</strong>
               </div>
+              <div class="quick-stat-item">
+                <span>Health guidance</span>
+                <strong>Ask Lifeline Assistant</strong>
+              </div>
             </div>
 
             <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
@@ -270,6 +283,19 @@
           <h3>No blood requests posted yet</h3>
           <p>When you publish an emergency blood request, you can edit its details or cancel it here anytime.</p>
           <a href="index.html#request" class="btn btn-primary" style="margin-top: 14px;">Publish an Emergency Request</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="messages-tab-content" class="hidden">
+      <div class="dashboard-card">
+        <div class="dashboard-card-title" style="margin-bottom: 6px;">
+          <span>Messages</span>
+          <span class="status-pill">Protected</span>
+        </div>
+        <p class="dashboard-card-subtitle">Messages from donors and blood seekers appear here. Share only what is necessary for coordination.</p>
+        <div id="messages-list" class="messages-list">
+          <div class="empty-state"><div>✉</div><h3>No messages yet</h3><p>When someone contacts you about a blood request, the conversation will appear here.</p></div>
         </div>
       </div>
     </div>
@@ -364,6 +390,21 @@
       <a href="index.html" class="text-btn">Return to home</a>
     </div>
   </footer>
+
+  <button class="assistant-fab" id="assistant-open" type="button" aria-label="Open Lifeline assistant">✦ <span>Lifeline AI</span></button>
+  <div id="assistant-panel" class="assistant-panel hidden" aria-live="polite">
+    <div class="assistant-header">
+      <div><strong>Lifeline Assistant</strong><small>Blood support guidance</small></div>
+      <button type="button" class="icon-btn" id="assistant-close" aria-label="Close assistant">×</button>
+    </div>
+    <div id="assistant-messages" class="assistant-messages">
+      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor matching, requests, or how Lifeline works. I can’t diagnose or replace a doctor.</div>
+    </div>
+    <form id="assistant-form" class="assistant-form">
+      <input id="assistant-input" required maxlength="400" placeholder="Ask a question…" autocomplete="off" />
+      <button class="btn btn-primary" type="submit">Ask</button>
+    </form>
+  </div>
 
   <script src="dashboard.js"></script>
 </body>
