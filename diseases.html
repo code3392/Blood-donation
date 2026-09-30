@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b91c1c" />
+  <meta name="description" content="Medical guidance on blood-related diseases, transfusion protocols, donor compatibility (Figure 6.12), and emergency care in Bangladesh." />
+  <title>Disease & Blood Guide — Lifeline</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- Ambient floating blood cells & particles -->
+  <div class="bg-animation-wrapper" aria-hidden="true">
+    <canvas id="ambient-blood-canvas" class="ambient-blood-canvas"></canvas>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="plasma-particle"></div>
+    <div class="plasma-particle"></div>
+    <div class="plasma-particle"></div>
+  </div>
+
+  <div id="toast-root" aria-live="polite"></div>
+
+  <div class="announcement">
+    <span class="pulse-dot"></span>
+    <span><strong>Medical Knowledge Base:</strong> Understand blood diseases, transfusion frequencies, and scientific compatibility.</span>
+    <a href="index.html#request" class="announcement-link">Emergency Request →</a>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Lifeline home">
+      <span class="brand-mark">✚</span>
+      <span>
+        <strong>Lifeline</strong>
+        <small>Medical Knowledge</small>
+      </span>
+    </a>
+
+    <nav id="main-nav" class="main-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#find">Find Donors</a>
+      <a href="diseases.html" class="active">Disease Info</a>
+      <a href="index.html#live-requests-preview">Requested Blood</a>
+      <a href="index.html#request">Request Blood</a>
+      <a href="index.html#donate">Become a Donor</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Change language">বাংলা</button>
+      <a href="index.html#login" class="btn btn-ghost" id="login-btn">Sign in</a>
+      <a href="index.html#request" class="btn btn-primary">Request Blood</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="disease-hero">
+      <div class="eyebrow">CLINICAL REFERENCE & PATIENT EDUCATION</div>
+      <h1>Blood Disorders & <span>Transfusion Guide</span></h1>
+      <p>
+        Accurate clinical knowledge on blood-related diseases, transfusion cycles, donor matching rules,
+        and essential safety precautions for patients and families across Bangladesh.
+      </p>
+
+      <div class="disease-search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="disease-search-input" placeholder="Search disease, symptoms, or blood product (e.g. Thalassemia, Dengue, Platelets)..." />
+      </div>
+    </section>
+
+    <!-- Interactive Figure 6.12 Blood Compatibility Table -->
+    <section class="section" style="padding-top: 20px; padding-bottom: 50px;">
+      <div class="section-heading centered">
+        <div class="eyebrow">STANDARDIZED MEDICAL COMPATIBILITY</div>
+        <h2>চিত্র ৬.১২: কোন গ্রুপের রক্ত কাকে দেওয়া যাবে তার ছক</h2>
+        <p>
+          This standardized scientific matrix determines blood transfusion compatibility.
+          Click any recipient group below to highlight matching donor groups.
+        </p>
+      </div>
+
+      <div style="max-width: 900px; margin: 0 auto;">
+        <div class="compat-table-wrap">
+          <table class="compat-table" id="interactive-compat-table">
+            <thead>
+              <tr>
+                <th colspan="2" rowspan="2" style="background:#f1f5f9; text-align:center; font-size:12px;">
+                  রক্তের গ্রুপ
+                </th>
+                <th colspan="8" class="header-donor">
+                  দাতা (Donor) ⟶
+                </th>
+              </tr>
+              <tr>
+                <th>O-</th>
+                <th>O+</th>
+                <th>B-</th>
+                <th>B+</th>
+                <th>A-</th>
+                <th>A+</th>
+                <th>AB-</th>
+                <th>AB+</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- AB+ -->
+              <tr data-recipient="AB+">
+                <th rowspan="8" class="header-recipient">গ্রহীতা (Recipient) ⟶</th>
+                <td class="row-group">AB+</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td>
+              </tr>
+              <!-- AB- -->
+              <tr data-recipient="AB-">
+                <td class="row-group">AB-</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td>
+              </tr>
+              <!-- A+ -->
+              <tr data-recipient="A+">
+                <td class="row-group">A+</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td>
+              </tr>
+              <!-- A- -->
+              <tr data-recipient="A-">
+                <td class="row-group">A-</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
+              </tr>
+              <!-- B+ -->
+              <tr data-recipient="B+">
+                <td class="row-group">B+</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
+              </tr>
+              <!-- B- -->
+              <tr data-recipient="B-">
+                <td class="row-group">B-</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
+              </tr>
+              <!-- O+ -->
+              <tr data-recipient="O+">
+                <td class="row-group">O+</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
+              </tr>
+              <!-- O- -->
+              <tr data-recipient="O-">
+                <td class="row-group">O-</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="chart-caption-box">
+          <strong>💡 বৈজ্ঞানিক মূলনীতি:</strong><br>
+          • <strong>O− (O নেগেটিভ):</strong> সর্বজনীন দাতা (Universal Donor) — লোহিত রক্তকণিকায় কোনো A, B বা Rh অ্যান্টিজেন না থাকায় যে কোনো গ্রুপকে রক্ত দিতে পারে।<br>
+          • <strong>AB+ (AB পজিটিভ):</strong> সর্বজনীন গ্রহীতা (Universal Recipient) — রক্তরসে কোনো অ্যান্টিবডি না থাকায় সব গ্রুপের রক্ত গ্রহণ করতে পারে।<br>
+          • <strong>Rh নিয়ম:</strong> Rh-পজিটিভ রক্ত কখনও Rh-নেগেটিভ রোগীকে দেওয়া যাবে না। Rh-নেগেটিভ রোগীকে অবশ্যই Rh-নেগেটিভ রক্ত দিতে হবে।
+        </div>
+      </div>
+    </section>
+
+    <!-- Disease Cards Section -->
+    <section class="section" style="padding-top: 0;">
+      <div class="section-heading centered">
+        <div class="eyebrow">DISEASE DOSSIERS</div>
+        <h2>Clinical Understanding of Blood Disorders</h2>
+        <p>Click on any condition to view detailed transfusion protocols and doctor guidance.</p>
+      </div>
+
+      <div class="disease-grid" id="disease-cards-container">
+        <!-- Card 1: Thalassemia -->
+        <article class="disease-card" id="thalassemia">
+          <div class="disease-badge-row">
+            <span class="disease-badge">Genetic Disorder</span>
+            <span class="mini-label">Frequent Transfusion</span>
+          </div>
+          <h3>Thalassemia (থ্যালাসেমিয়া)</h3>
+          <p>
+            An inherited genetic condition causing defective hemoglobin production. Patients with Thalassemia Major
+            cannot produce sufficient healthy red blood cells, leading to severe chronic anemia, bone deformities,
+            and organ enlargement.
+          </p>
+
+          <div class="disease-spec-box">
+            <div><span>Transfusion Cycle:</span><strong>Every 2 to 4 weeks</strong></div>
+            <div><span>Product Required:</span><strong>Leukoreduced Packed RBCs (PRBC)</strong></div>
+            <div><span>Key Precaution:</span><strong>Iron Chelation Therapy (Desferal / Kelfer)</strong></div>
+            <div><span>Compatibility:</span><strong>Extended Rh (C, c, E, e) & Kell Phenotyping</strong></div>
+          </div>
+
+          <p style="font-size:11.5px; color:#555;">
+            <strong>Doctor’s Guidance:</strong> Always provide leucodepleted red cells to prevent alloimmunization
+            and febrile reactions. Monitor serum ferritin routinely to prevent cardiac and liver iron toxicity.
+          </p>
+          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Thalassemia</a>
+        </article>
+
+        <!-- Card 2: Severe & Aplastic Anemia -->
+        <article class="disease-card" id="anemia">
+          <div class="disease-badge-row">
+            <span class="disease-badge" style="background:#eff6ff; color:#1e40af;">Bone Marrow / Blood Loss</span>
+            <span class="mini-label">Urgent / Planned</span>
+          </div>
+          <h3>Severe & Aplastic Anemia (রক্তস্বল্পতা)</h3>
+          <p>
+            Aplastic anemia is bone marrow failure where stem cells fail to produce RBCs, WBCs, and platelets.
+            Severe nutritional or hemolytic anemia causes dangerously low hemoglobin (< 6-7 g/dL) leading to heart strain.
+          </p>
+
+          <div class="disease-spec-box">
+            <div><span>Transfusion Threshold:</span><strong>Hb &lt; 7.0 g/dL (or symptomatic)</strong></div>
+            <div><span>Product Required:</span><strong>Packed Red Blood Cells (PRBC)</strong></div>
+            <div><span>Critical Risk:</span><strong>Volume overload & alloimmunization</strong></div>
+          </div>
+
+          <p style="font-size:11.5px; color:#555;">
+            <strong>Doctor’s Guidance:</strong> Do not transfuse whole blood if iron-deficiency can be corrected with IV iron.
+            In aplastic anemia, blood must be irradiated to prevent graft-versus-host disease (TA-GVHD).
+          </p>
+          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Anemia</a>
+        </article>
+
+        <!-- Card 3: Leukemia -->
+        <article class="disease-card" id="leukemia">
+          <div class="disease-badge-row">
+            <span class="disease-badge" style="background:#fef3c7; color:#92400e;">Hematologic Cancer</span>
+            <span class="mini-label">Emergency Critical</span>
+          </div>
+          <h3>Leukemia & Blood Cancers (লিউকেমিয়া)</h3>
+          <p>
+            Malignancies of blood-forming tissue (ALL, AML, Lymphoma). Chemotherapy and marrow infiltration cause
+            profound pancytopenia — life-threatening drops in both red cells and clotting platelets.
+          </p>
+
+          <div class="disease-spec-box">
+            <div><span>Transfusion Need:</span><strong>Single Donor Platelets (SDP) & PRBC</strong></div>
+            <div><span>Platelet Trigger:</span><strong>Count &lt; 10,000/µL or active bleeding</strong></div>
+            <div><span>Special Processing:</span><strong>Irradiated & Leukodepleted Products</strong></div>
+          </div>
+
+          <p style="font-size:11.5px; color:#555;">
+            <strong>Doctor’s Guidance:</strong> Platelet transfusions are time-sensitive. Coordinate early with apheresis
+            donors who have not taken aspirin or NSAIDs in the past 72 hours.
+          </p>
+          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Platelets / Blood</a>
+        </article>
+
+        <!-- Card 4: Hemophilia -->
+        <article class="disease-card" id="hemophilia">
+          <div class="disease-badge-row">
+            <span class="disease-badge" style="background:#f3e8ff; color:#6b21a8;">Coagulation Disorder</span>
+            <span class="mini-label">Clotting Emergency</span>
+          </div>
+          <h3>Hemophilia & Bleeding Disorders (হিমোফিলিয়া)</h3>
+          <p>
+            Deficiency of clotting Factor VIII (Hemophilia A) or Factor IX (Hemophilia B). Minor trauma can cause
+            devastating internal joint, muscle, or intracranial bleeds.
+          </p>
+
+          <div class="disease-spec-box">
+            <div><span>Primary Treatment:</span><strong>Factor Concentrates (Recombinant/Plasma)</strong></div>
+            <div><span>Alternative Emergency:</span><strong>Fresh Frozen Plasma (FFP) / Cryo</strong></div>
+            <div><span>Avoid:</span><strong>Whole blood (insufficient factor concentration)</strong></div>
+          </div>
+
+          <p style="font-size:11.5px; color:#555;">
+            <strong>Doctor’s Guidance:</strong> Standard whole blood is ineffective for hemophilia bleeds. Contact the
+            hematology center urgently for factor vials or specialized Cryoprecipitate.
+          </p>
+          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Find FFP / Blood Donors</a>
+        </article>
+
+        <!-- Card 5: Dengue -->
+        <article class="disease-card" id="dengue">
+          <div class="disease-badge-row">
+            <span class="disease-badge" style="background:#fee2e2; color:var(--red);">Seasonal Epidemic</span>
+            <span class="mini-label">Critical Window</span>
+          </div>
+          <h3>Dengue with Thrombocytopenia (ডেঙ্গু)</h3>
+          <p>
+            Dengue hemorrhagic fever causes immune-mediated destruction of platelets and capillary plasma leakage.
+            While platelet count drops sharply, prophylactic transfusion is usually NOT necessary unless severe bleeding exists.
+          </p>
+
+          <div class="disease-spec-box">
+            <div><span>Transfusion Criteria:</span><strong>Active bleeding OR count &lt; 10,000/µL</strong></div>
+            <div><span>Primary Therapy:</span><strong>Judicious IV crystalloid fluid management</strong></div>
+            <div><span>Blood Products:</span><strong>Platelet Concentrates / Fresh Whole Blood</strong></div>
+          </div>
+
+          <p style="font-size:11.5px; color:#555;">
+            <strong>Doctor’s Guidance:</strong> Avoid panicking over numerical platelet counts. Fluid resuscitation
+            is paramount. Follow the National Guidelines for Clinical Management of Dengue Syndrome.
+          </p>
+          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Urgent Platelets</a>
+        </article>
+
+        <!-- Card 6: Sickle Cell & Trauma -->
+        <article class="disease-card" id="sickle_cell">
+          <div class="disease-badge-row">
+            <span class="disease-badge" style="background:#ecfdf5; color:#166534;">Hemoglobinopathy / Surgery</span>
+            <span class="mini-label">Urgent Response</span>
+          </div>
+          <h3>Sickle Cell Disease & Emergency Trauma (সিকেল সেল ও ট্রমা)</h3>
+          <p>
+            Sickle cell patients experience acute chest syndrome or splenic sequestration. In road traffic accidents
+            and post-partum hemorrhage, massive blood loss requires immediate, synchronized transfusion.
+          </p>
+
+          <div class="disease-spec-box">
+            <div><span>Sickle Cell:</span><strong>Exchange transfusion to reduce HbS &lt; 30%</strong></div>
+            <div><span>Trauma / MTP:</span><strong>1:1:1 ratio (PRBC, FFP, Platelets)</strong></div>
+            <div><span>Universal Blood:</span><strong>O-Negative used prior to crossmatch</strong></div>
+          </div>
+
+          <p style="font-size:11.5px; color:#555;">
+            <strong>Doctor’s Guidance:</strong> In massive hemorrhage, warm blood products to prevent hypothermia
+            and coagulopathy. Always activate hospital emergency transfusion protocols immediately.
+          </p>
+          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Publish Emergency Request</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div>
+        <a class="brand" href="index.html">
+          <span class="brand-mark">✚</span>
+          <span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span>
+        </a>
+        <p>A protected humanitarian network connecting voluntary blood donors and patients across Bangladesh. Verified data, zero commercialization.</p>
+      </div>
+
+      <div class="footer-links-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html#home">Home</a></li>
+          <li><a href="index.html#find">Find Donors</a></li>
+          <li><a href="diseases.html">Disease & Transfusion Guide</a></li>
+          <li><a href="index.html#request">Request Blood</a></li>
+          <li><a href="index.html#donate">Become a Donor</a></li>
+          <li><a href="dashboard.html">Donor Dashboard</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-trust-badges">
+        <h4>Compliance & Ethics</h4>
+        <div class="trust-badge-item"><span>🔒</span> 256-Bit SSL Encrypted Protected Data</div>
+        <div class="trust-badge-item"><span>🩸</span> 100% Voluntary, Non-Commercial Donation</div>
+        <div class="trust-badge-item"><span>🇧🇩</span> Bangladesh Safe Blood Act Compliant</div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="terms.html">Terms & Conditions</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="diseases.html">Medical Guide</a>
+        <button type="button" id="cookie-settings-trigger" style="background:none;border:none;color:#666;cursor:pointer;padding:0;font-size:11px;">Cookie Preferences</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive table highlighting script -->
+  <script>
+    document.querySelectorAll('#interactive-compat-table tbody tr').forEach(row => {
+      row.addEventListener('click', () => {
+        document.querySelectorAll('#interactive-compat-table tbody tr').forEach(r => r.classList.remove('highlight-recipient'));
+        row.classList.add('highlight-recipient');
+      });
+    });
+
+    // Search filter for disease cards
+    const searchInput = document.getElementById('disease-search-input');
+    searchInput?.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.disease-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? 'flex' : 'none';
+      });
+    });
+
+    // Ambient floating canvas
+    (function initCanvas() {
+      const canvas = document.getElementById('ambient-blood-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      let width = window.innerWidth, height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      function resize() {
+        width = window.innerWidth; height = window.innerHeight;
+        canvas.width = width * dpr; canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      const cells = [];
+      for (let i = 0; i < 20; i++) {
+        cells.push({
+          x: Math.random() * width, y: Math.random() * height,
+          r: 14 + Math.random() * 24, vy: -0.2 - Math.random() * 0.4,
+          vx: (Math.random() - 0.5) * 0.3, opacity: 0.12 + Math.random() * 0.14,
+          wobble: Math.random() * Math.PI * 2
+        });
+      }
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < cells.length; i++) {
+          const c = cells[i];
+          c.wobble += 0.02;
+          c.x += c.vx + Math.sin(c.wobble) * 0.3;
+          c.y += c.vy;
+          if (c.y < -c.r * 2) { c.y = height + c.r * 2; c.x = Math.random() * width; }
+          ctx.beginPath();
+          const grad = ctx.createRadialGradient(c.x, c.y, c.r * 0.2, c.x, c.y, c.r);
+          grad.addColorStop(0, `rgba(254, 202, 202, ${c.opacity * 0.85})`);
+          grad.addColorStop(0.6, `rgba(239, 68, 68, ${c.opacity})`);
+          grad.addColorStop(1, 'rgba(185, 28, 28, 0)');
+          ctx.fillStyle = grad;
+          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+    })();
+  </script>
+</body>
+</html>

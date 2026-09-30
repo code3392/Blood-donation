@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b91c1c" />
+  <meta name="description" content="Privacy Policy and Data Protection standards for Lifeline blood donation platform." />
+  <title>Privacy Policy — Lifeline</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="bg-animation-wrapper" aria-hidden="true">
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="plasma-particle"></div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Lifeline home">
+      <span class="brand-mark">✚</span>
+      <span>
+        <strong>Lifeline</strong>
+        <small>Privacy & Trust</small>
+      </span>
+    </a>
+
+    <nav id="main-nav" class="main-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#find">Find Donors</a>
+      <a href="diseases.html">Disease Info</a>
+      <a href="index.html#request">Request Blood</a>
+      <a href="index.html#donate">Become a Donor</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="index.html" class="btn btn-light">← Back to Site</a>
+    </div>
+  </header>
+
+  <main style="padding: 40px 7vw 80px;">
+    <div class="legal-content-card">
+      <div class="eyebrow">DATA PROTECTION & CONFIDENTIALITY</div>
+      <h1 style="font-family: var(--display); font-size: clamp(30px, 4vw, 44px); margin: 0 0 10px;">Privacy Policy</h1>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 30px;">Last revised: October 2026 • Built on Consent-First Principles</p>
+
+      <h2>1. Our Privacy Pledge</h2>
+      <p>
+        At Lifeline, we understand that donating or seeking blood involves sensitive personal and medical circumstances.
+        We are fundamentally committed to data minimization, transparency, and donor privacy.
+        <strong>We do not sell, rent, monetize, or broker personal data to advertising companies or data brokers.</strong>
+      </p>
+
+      <h2>2. Information We Collect & Why</h2>
+      <ul>
+        <li><strong>Account Authentication:</strong> Email and password (encrypted and salted using Supabase Authentication with industry-standard bcrypt/Argon2 hashing).</li>
+        <li><strong>Volunteer Donor Profile:</strong> Name, blood group, district, optional neighborhood/upazila, contact phone number, and last donation date. This information is provided voluntarily to connect you with emergency patients.</li>
+        <li><strong>Emergency Blood Requests:</strong> Patient/contact name, blood group requested, hospital/district location, units needed, urgency level, and optional condition details.</li>
+        <li><strong>Direct WhatsApp-Style Messaging:</strong> Text and file attachments (prescriptions, hospital admission slips, cross-match reports) sent between logged-in users are stored securely and isolated with database Row-Level Security (RLS).</li>
+        <li><strong>Approximate Location Data:</strong> If you use the "Detect my location" feature, the browser detects approximate coordinates strictly to identify your district or nearby area. <em>Exact GPS coordinates are never displayed on public cards or revealed to third parties.</em></li>
+      </ul>
+
+      <h2>3. How We Protect Donor Information</h2>
+      <p>
+        Unlike open social media groups where phone numbers are scraped by commercial telemarketers, Lifeline enforces strict protective layers:
+      </p>
+      <ul>
+        <li><strong>Protected Directory:</strong> Anonymous visitors cannot view donor phone numbers or send direct messages. Users must sign in to access donor contact details.</li>
+        <li><strong>Granular Availability Control:</strong> Donors can toggle their availability status to "Unavailable" with one click in the Dashboard whenever they are sick, travelling, or recently donated.</li>
+        <li><strong>Row-Level Security (RLS):</strong> Supabase PostgreSQL RLS policies restrict message access so only the sender and intended recipient can view chat history and uploaded medical attachments.</li>
+      </ul>
+
+      <h2>4. Cookies & Local Storage</h2>
+      <p>
+        Lifeline uses cookies and browser local storage for:
+      </p>
+      <ul>
+        <li><strong>Essential Security & Session Tokens:</strong> Keeping your account securely signed in.</li>
+        <li><strong>Functional Preferences:</strong> Remembering your language preference (Bangla vs English) and cookie consent state.</li>
+        <li><strong>No Third-Party Advertising Cookies:</strong> We do not deploy behavioral ad trackers or cross-site tracking cookies.</li>
+      </ul>
+
+      <h2>5. Your Rights: Access, Correction & Deletion</h2>
+      <p>
+        You retain complete sovereignty over your data:
+      </p>
+      <ul>
+        <li>You can edit your contact information, name, and blood group anytime in your Donor Dashboard.</li>
+        <li>You can withdraw your consent to appear in the directory at any time.</li>
+        <li>You can permanently delete your blood requests or request full account deactivation by contacting support or deleting your profile in the Dashboard.</li>
+      </ul>
+
+      <h2>6. Security Infrastructure</h2>
+      <p>
+        Lifeline utilizes 256-bit Transport Layer Security (TLS/SSL) encryption for all traffic in transit, cloud-native
+        PostgreSQL database security, and role-based access management.
+      </p>
+
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; gap: 14px; flex-wrap: wrap;">
+        <a href="terms.html" class="btn btn-light">Read Terms of Service →</a>
+        <a href="diseases.html" class="btn btn-light">Blood & Disease Guide →</a>
+        <a href="index.html" class="btn btn-primary">Return to Homepage</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom" style="margin-top: 0; border: none;">
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="terms.html">Terms & Conditions</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="diseases.html">Disease Guide</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
