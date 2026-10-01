@@ -58,7 +58,6 @@
     </div>
 
     <div class="header-actions">
-      <a href="index.html#login" class="btn btn-ghost" id="login-btn">Sign in</a>
       <a href="request-blood.html" class="btn btn-primary">Request Blood</a>
     </div>
   </header>
@@ -151,7 +150,7 @@
 
       <div class="nav-drawer-footer">
         <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
-        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+        <a href="index.html?auth=signup" class="btn btn-light full-width" id="drawer-signin-btn">Register / Sign In</a>
       </div>
     </div>
   </div>
@@ -275,7 +274,7 @@
             <span class="disease-badge">Genetic Disorder</span>
             <span class="mini-label">Frequent Transfusion</span>
           </div>
-          <h3>Thalassemia (থ্যালাসেমিয়া)</h3>
+          <h3>Thalassemia</h3>
           <p>
             An inherited genetic condition causing defective hemoglobin production. Patients with Thalassemia Major
             cannot produce sufficient healthy red blood cells, leading to severe chronic anemia, bone deformities,
@@ -293,7 +292,7 @@
             <strong>Doctor’s Guidance:</strong> Always provide leucodepleted red cells to prevent alloimmunization
             and febrile reactions. Monitor serum ferritin routinely to prevent cardiac and liver iron toxicity.
           </p>
-          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Thalassemia</a>
+          <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Thalassemia</a>
         </article>
 
         <!-- Card 2: Severe & Aplastic Anemia -->
@@ -302,10 +301,10 @@
             <span class="disease-badge" style="background:#eff6ff; color:#1e40af;">Bone Marrow / Blood Loss</span>
             <span class="mini-label">Urgent / Planned</span>
           </div>
-          <h3>Severe & Aplastic Anemia (রক্তস্বল্পতা)</h3>
+          <h3>Severe & Aplastic Anemia</h3>
           <p>
             Aplastic anemia is bone marrow failure where stem cells fail to produce RBCs, WBCs, and platelets.
-            Severe nutritional or hemolytic anemia causes dangerously low hemoglobin (< 6-7 g/dL) leading to heart strain.
+            Severe nutritional or hemolytic anemia causes dangerously low hemoglobin (&lt; 6-7 g/dL) leading to heart strain.
           </p>
 
           <div class="disease-spec-box">
@@ -318,7 +317,7 @@
             <strong>Doctor’s Guidance:</strong> Do not transfuse whole blood if iron-deficiency can be corrected with IV iron.
             In aplastic anemia, blood must be irradiated to prevent graft-versus-host disease (TA-GVHD).
           </p>
-          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Anemia</a>
+          <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Anemia</a>
         </article>
 
         <!-- Card 3: Leukemia -->
@@ -327,7 +326,7 @@
             <span class="disease-badge" style="background:#fef3c7; color:#92400e;">Hematologic Cancer</span>
             <span class="mini-label">Emergency Critical</span>
           </div>
-          <h3>Leukemia & Blood Cancers (লিউকেমিয়া)</h3>
+          <h3>Leukemia & Blood Cancers</h3>
           <p>
             Malignancies of blood-forming tissue (ALL, AML, Lymphoma). Chemotherapy and marrow infiltration cause
             profound pancytopenia — life-threatening drops in both red cells and clotting platelets.
@@ -343,7 +342,7 @@
             <strong>Doctor’s Guidance:</strong> Platelet transfusions are time-sensitive. Coordinate early with apheresis
             donors who have not taken aspirin or NSAIDs in the past 72 hours.
           </p>
-          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Platelets / Blood</a>
+          <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Platelets / Blood</a>
         </article>
 
         <!-- Card 4: Hemophilia -->
@@ -352,7 +351,7 @@
             <span class="disease-badge" style="background:#f3e8ff; color:#6b21a8;">Coagulation Disorder</span>
             <span class="mini-label">Clotting Emergency</span>
           </div>
-          <h3>Hemophilia & Bleeding Disorders (হিমোফিলিয়া)</h3>
+          <h3>Hemophilia & Bleeding Disorders</h3>
           <p>
             Deficiency of clotting Factor VIII (Hemophilia A) or Factor IX (Hemophilia B). Minor trauma can cause
             devastating internal joint, muscle, or intracranial bleeds.
@@ -368,7 +367,7 @@
             <strong>Doctor’s Guidance:</strong> Standard whole blood is ineffective for hemophilia bleeds. Contact the
             hematology center urgently for factor vials or specialized Cryoprecipitate.
           </p>
-          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Find FFP / Blood Donors</a>
+          <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Find FFP / Blood Donors</a>
         </article>
 
         <!-- Card 5: Dengue -->
@@ -377,7 +376,7 @@
             <span class="disease-badge" style="background:#fee2e2; color:var(--red);">Seasonal Epidemic</span>
             <span class="mini-label">Critical Window</span>
           </div>
-          <h3>Dengue with Thrombocytopenia (ডেঙ্গু)</h3>
+          <h3>Dengue with Thrombocytopenia</h3>
           <p>
             Dengue hemorrhagic fever causes immune-mediated destruction of platelets and capillary plasma leakage.
             While platelet count drops sharply, prophylactic transfusion is usually NOT necessary unless severe bleeding exists.
@@ -393,7 +392,7 @@
             <strong>Doctor’s Guidance:</strong> Avoid panicking over numerical platelet counts. Fluid resuscitation
             is paramount. Follow the National Guidelines for Clinical Management of Dengue Syndrome.
           </p>
-          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Urgent Platelets</a>
+          <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Urgent Platelets</a>
         </article>
 
         <!-- Card 6: Sickle Cell & Trauma -->
@@ -402,7 +401,7 @@
             <span class="disease-badge" style="background:#ecfdf5; color:#166534;">Hemoglobinopathy / Surgery</span>
             <span class="mini-label">Urgent Response</span>
           </div>
-          <h3>Sickle Cell Disease & Emergency Trauma (সিকেল সেল ও ট্রমা)</h3>
+          <h3>Sickle Cell Disease & Emergency Trauma</h3>
           <p>
             Sickle cell patients experience acute chest syndrome or splenic sequestration. In road traffic accidents
             and post-partum hemorrhage, massive blood loss requires immediate, synchronized transfusion.
@@ -418,7 +417,7 @@
             <strong>Doctor’s Guidance:</strong> In massive hemorrhage, warm blood products to prevent hypothermia
             and coagulopathy. Always activate hospital emergency transfusion protocols immediately.
           </p>
-          <a href="index.html#request" class="btn btn-light" style="width: 100%; font-size: 12px;">Publish Emergency Request</a>
+          <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Publish Emergency Request</a>
         </article>
       </div>
     </section>
@@ -482,6 +481,8 @@
         const text = card.textContent.toLowerCase();
         card.style.display = text.includes(query) ? 'flex' : 'none';
       });
+    });
+
     // Slide-over Navigation Menu Drawer
     const navMenuBtn = document.getElementById("menu-trigger-btn");
     const navDrawer = document.getElementById("nav-menu-drawer");
