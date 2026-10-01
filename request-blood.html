@@ -141,7 +141,7 @@
 
       <div class="nav-drawer-footer">
         <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
-        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+        <a href="index.html?auth=signup" class="btn btn-light full-width" id="drawer-signin-btn">Register / Sign In</a>
       </div>
     </div>
   </div>
@@ -212,12 +212,12 @@
               <label for="request-condition">Blood-related condition <span class="optional">(optional)</span></label>
               <select id="request-condition">
                 <option value="">No condition selected</option>
-                <option value="anemia">Anemia (রক্তস্বল্পতা)</option>
-                <option value="thalassemia">Thalassemia (থ্যালাসেমিয়া)</option>
-                <option value="leukemia">Leukemia / cancer treatment (লিউকেমিয়া)</option>
-                <option value="hemophilia">Hemophilia / bleeding disorder (হিমোফিলিয়া)</option>
-                <option value="sickle_cell">Sickle cell disease (সিকেল সেল)</option>
-                <option value="dengue">Dengue with severe thrombocytopenia (ডেঙ্গু)</option>
+                <option value="anemia">Anemia</option>
+                <option value="thalassemia">Thalassemia</option>
+                <option value="leukemia">Leukemia / Cancer treatment</option>
+                <option value="hemophilia">Hemophilia / Bleeding disorder</option>
+                <option value="sickle_cell">Sickle Cell Disease</option>
+                <option value="dengue">Dengue with severe thrombocytopenia</option>
                 <option value="other">Another condition</option>
               </select>
               <div id="condition-guidance" class="medical-guidance hidden" role="status"></div>
