@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Blood — Scientific Auto-Matching | Lifeline</title>
+  <meta name="description" content="Publish an urgent blood request and immediately auto-match compatible voluntary donors worldwide according to international transfusion standards." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- Ambient Red Plasma Fluid Canvas Animation -->
+  <div class="ambient-blood-wrapper" aria-hidden="true">
+    <canvas id="ambient-blood-canvas" class="ambient-blood-canvas"></canvas>
+    <div class="floating-blood-drop drop-1"></div>
+    <div class="floating-blood-drop drop-2"></div>
+    <div class="floating-blood-drop drop-3"></div>
+  </div>
+
+  <div id="toast-root" aria-live="polite"></div>
+
+  <div class="announcement">
+    <span class="pulse-dot"></span>
+    <span><strong>Scientific Blood Matching:</strong> Automated compatibility matching based on international transfusion standards.</span>
+    <a href="diseases.html" class="announcement-link">View Compatibility Chart →</a>
+  </div>
+
+  <header class="site-header">
+    <div class="header-brand-group">
+      <a class="brand" href="index.html" aria-label="Lifeline home">
+        <span class="brand-mark">✚</span>
+        <span>
+          <strong>Lifeline</strong>
+          <small>Request Blood</small>
+        </span>
+      </a>
+
+      <!-- Menu Button that hides all 7 buttons behind 1 clean button -->
+      <button class="menu-trigger-btn" id="menu-trigger-btn" type="button" aria-label="Explore pages" aria-expanded="false">
+        <span class="menu-burger" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="login-btn">Sign in</button>
+      <a href="donate.html" class="btn btn-primary">Become a donor</a>
+    </div>
+  </header>
+
+  <!-- Slide-over Navigation Menu Drawer -->
+  <div id="nav-menu-drawer" class="nav-menu-drawer hidden" aria-hidden="true">
+    <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+    <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="nav-drawer-header">
+        <div class="drawer-brand">
+          <span class="brand-mark">✚</span>
+          <strong>Lifeline Portal</strong>
+        </div>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="nav-drawer-links">
+        <a href="index.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🏠</span>
+          <div>
+            <strong>Home</strong>
+            <small>Main emergency landing page</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Find Donors</strong>
+            <small>Search blood donors by group & district</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="requests.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📋</span>
+          <div>
+            <strong>Requested Blood</strong>
+            <small>View live open blood emergencies</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="request-blood.html" class="drawer-link-item active">
+          <span class="drawer-link-icon">🩸</span>
+          <div>
+            <strong>Request Blood</strong>
+            <small>Post an urgent request with auto-matching</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="donate.html" class="drawer-link-item">
+          <span class="drawer-link-icon">❤️</span>
+          <div>
+            <strong>Become a Donor</strong>
+            <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="diseases.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📖</span>
+          <div>
+            <strong>Disease Info & Medical Guide</strong>
+            <small>Scientific compatibility matrix & diseases</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="how-it-works.html" class="drawer-link-item">
+          <span class="drawer-link-icon">⚙️</span>
+          <div>
+            <strong>How It Works</strong>
+            <small>Step-by-step coordination guide</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="dashboard.html" class="drawer-link-item">
+          <span class="drawer-link-icon">💬</span>
+          <div>
+            <strong>Dashboard & Messages</strong>
+            <small>Manage your profile & chat threads</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="nav-drawer-footer">
+        <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
+        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section class="section request-section" style="padding-top: 50px;">
+      <div class="request-card reveal-on-scroll">
+        <div class="request-copy">
+          <div class="eyebrow">NEED BLOOD?</div>
+          <h1 style="font-family: var(--display); font-size: clamp(32px, 4.5vw, 50px); line-height: 1.05; letter-spacing: -0.04em; margin: 0 0 16px;">
+            Turn an urgent need into a <span>clear call for help.</span>
+          </h1>
+          <p>
+            Publish the blood group, hospital location, urgency and a safe contact number.
+            Lifeline immediately auto-matches compatible donors according to scientific medical compatibility criteria.
+          </p>
+          <div class="feature-list">
+            <div><span>01</span><p><strong>Post once.</strong> Keep request info structured and actionable.</p></div>
+            <div><span>02</span><p><strong>Instant Auto-Matching.</strong> Finds compatible donors using scientific transfusion standards.</p></div>
+            <div><span>03</span><p><strong>Direct Coordination.</strong> Send instant messages and prescriptions safely.</p></div>
+          </div>
+          <div style="margin-top: 24px;">
+            <button type="button" class="btn btn-light" id="open-chart-modal-btn">
+              🔬 View Blood Compatibility Chart
+            </button>
+          </div>
+        </div>
+
+        <form id="request-form" class="glass-form">
+          <div class="form-head">
+            <div><span class="form-icon">♥</span><div><h3>Blood request</h3><p>Instant matching worldwide</p></div></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Patient / requester name</label>
+              <input id="request-name" required maxlength="80" placeholder="e.g. Alex Morgan" />
+            </div>
+            <div class="field">
+              <label>Blood group</label>
+              <select id="request-blood" required>
+                <option value="">Select</option>
+                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>City / Country / Region</label>
+              <input id="request-district" required maxlength="80" placeholder="e.g. London, UK or New York, NY" />
+            </div>
+            <div class="field">
+              <label>Hospital / location</label>
+              <input id="request-location" required maxlength="120" placeholder="Hospital or area" />
+            </div>
+            <div class="field">
+              <label>Units needed</label>
+              <input id="request-units" type="number" min="1" max="20" value="1" required />
+            </div>
+            <div class="field">
+              <label>Urgency</label>
+              <select id="request-urgency">
+                <option value="critical">Critical — today</option>
+                <option value="urgent">Urgent — within 24h</option>
+                <option value="planned">Planned</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="request-condition">Blood-related condition <span class="optional">(optional)</span></label>
+              <select id="request-condition">
+                <option value="">No condition selected</option>
+                <option value="anemia">Anemia (রক্তস্বল্পতা)</option>
+                <option value="thalassemia">Thalassemia (থ্যালাসেমিয়া)</option>
+                <option value="leukemia">Leukemia / cancer treatment (লিউকেমিয়া)</option>
+                <option value="hemophilia">Hemophilia / bleeding disorder (হিমোফিলিয়া)</option>
+                <option value="sickle_cell">Sickle cell disease (সিকেল সেল)</option>
+                <option value="dengue">Dengue with severe thrombocytopenia (ডেঙ্গু)</option>
+                <option value="other">Another condition</option>
+              </select>
+              <div id="condition-guidance" class="medical-guidance hidden" role="status"></div>
+              <a href="diseases.html" id="condition-disease-link" class="disease-link hidden" target="_blank" style="margin-top:6px; font-size:11px; color:var(--red); display:inline-block; font-weight:700;">
+                Learn medical guidance & transfusion protocol for this condition ⟶
+              </a>
+            </div>
+            <div class="field full">
+              <label>Contact phone</label>
+              <input id="request-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" />
+            </div>
+            <div class="field full">
+              <label>Additional note <span class="optional">(optional)</span></label>
+              <textarea id="request-note" maxlength="300" placeholder="Add information a donor needs to know (e.g. cabin/ward number)."></textarea>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-large full-width" type="submit" id="request-submit-btn">
+            Publish Blood Request & Auto-Find Donors <span>→</span>
+          </button>
+          <p class="form-note">For life-threatening emergencies, contact the hospital blood bank directly as well.</p>
+        </form>
+      </div>
+
+      <!-- Container for Auto-Matched Donors Panel (Compatibility Matching Engine) -->
+      <div id="auto-matched-donors-container" style="max-width: 1180px; margin: 40px auto 0;"></div>
+    </section>
+  </main>
+
+  <!-- Pro Footer -->
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div>
+        <a class="brand" href="index.html">
+          <span class="brand-mark">✚</span>
+          <span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span>
+        </a>
+        <p>A humanitarian network connecting voluntary blood donors and emergency patients worldwide. Data is encrypted and non-commercial.</p>
+      </div>
+
+      <div class="footer-links-col">
+        <h4>Explore Lifeline</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="find-donors.html">Find Donors</a></li>
+          <li><a href="requests.html">Requested Blood (Live Feed)</a></li>
+          <li><a href="request-blood.html">Request Blood (Auto-Match)</a></li>
+          <li><a href="donate.html">Become a Donor</a></li>
+          <li><a href="diseases.html">Disease & Transfusion Guide</a></li>
+          <li><a href="how-it-works.html">How Lifeline Works</a></li>
+          <li><a href="dashboard.html">Donor Dashboard & Messages</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-trust-badges">
+        <h4>Compliance & Standards</h4>
+        <div class="trust-badge-item"><span>🔒</span> 256-Bit SSL Encrypted Protected Data</div>
+        <div class="trust-badge-item"><span>🩸</span> 100% Voluntary, Non-Commercial Donation</div>
+        <div class="trust-badge-item"><span>🌐</span> WHO & Global Safe Blood Standards Compliant</div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="terms.html">Terms & Conditions</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="diseases.html">Disease Guide</a>
+        <a href="how-it-works.html">How It Works</a>
+        <button type="button" id="cookie-settings-trigger" style="background:none;border:none;color:#666;cursor:pointer;padding:0;font-size:11px;">Cookie Preferences</button>
+      </div>
+      <button id="signout-btn" class="text-btn hidden">Sign out</button>
+    </div>
+  </footer>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button class="modal-close" data-close-modal>×</button>
+      <div class="modal-icon">✚</div>
+      <div class="eyebrow">PROTECTED NETWORK</div>
+      <h2 id="auth-title">Welcome to Lifeline</h2>
+      <p id="auth-subtitle">Sign in to search donor profiles and manage your availability.</p>
+
+      <form id="auth-form">
+        <div class="field"><label>Email</label><input id="auth-email" type="email" required placeholder="you@example.com" /></div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <div style="position: relative;">
+            <input id="auth-password" type="password" required minlength="6" placeholder="At least 6 characters" style="padding-right: 42px;" />
+            <button type="button" id="toggle-password-btn" style="position: absolute; right: 0; top: 0; bottom: 0; background: none; border: none; cursor: pointer; padding: 0 12px; display: flex; align-items: center; color: #6b7280;" aria-label="Toggle password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 7 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="field hidden" id="confirm-password-group">
+          <label for="auth-confirm-password">Confirm Password</label>
+          <div style="position: relative;">
+            <input id="auth-confirm-password" type="password" placeholder="Confirm password" autocomplete="new-password" style="padding-right: 42px;" />
+            <button type="button" id="toggle-confirm-password-btn" style="position: absolute; right: 0; top: 0; bottom: 0; background: none; border: none; cursor: pointer; padding: 0 12px; display: flex; align-items: center; color: #6b7280;" aria-label="Toggle confirm password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 7 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary full-width btn-large" id="auth-submit" type="submit">Sign in</button>
+      </form>
+      <button class="switch-auth" id="switch-auth">New here? Create an account</button>
+    </div>
+  </div>
+
+  <!-- Donor Profile Modal -->
+  <div id="profile-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-profile></div>
+    <div class="modal-card profile-modal">
+      <button class="modal-close" data-close-profile>×</button>
+      <div class="profile-hero"><div class="profile-blood" id="profile-blood">O+</div><div><h2 id="profile-name">Donor</h2><p id="profile-location">Location</p></div></div>
+      <div class="profile-details" id="profile-details"></div>
+      <div class="profile-actions">
+        <button id="profile-message" class="btn btn-primary full-width btn-large" type="button">💬 Message</button>
+        <a id="profile-call" class="btn btn-light full-width btn-large" href="#">📞 Call donor</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Messaging Modal -->
+  <div id="whatsapp-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-whatsapp></div>
+    <div class="whatsapp-modal-card" role="dialog" aria-modal="true" aria-labelledby="wa-contact-name">
+      <div class="wa-header">
+        <div class="wa-contact-info">
+          <button type="button" class="wa-action-btn" data-close-whatsapp title="Back">←</button>
+          <div class="wa-avatar" id="wa-avatar-box">✚</div>
+          <div class="wa-contact-text">
+            <h4 id="wa-contact-name">Donor</h4>
+            <div class="wa-online-status">
+              <span class="wa-online-dot"></span>
+              <span id="wa-status-text">online</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wa-header-actions">
+          <a href="#" class="wa-action-btn" id="wa-call-btn" title="Call Donor">📞</a>
+          <button type="button" class="wa-action-btn" data-close-whatsapp title="Close">✕</button>
+        </div>
+      </div>
+
+      <div class="wa-chat-body" id="wa-chat-body">
+        <div class="wa-date-pill">TODAY</div>
+        <div id="wa-messages-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <div class="wa-attachment-staging" id="wa-attachment-staging" style="display:none;">
+        <div class="wa-staging-info">
+          <span id="wa-staging-icon">📎</span>
+          <img id="wa-staging-thumb" class="wa-staging-thumb" style="display:none;" alt="Preview" />
+          <div>
+            <strong id="wa-staging-name">prescription.jpg</strong>
+            <small id="wa-staging-size" style="display:block; color:#667781;">120 KB</small>
+          </div>
+        </div>
+        <button type="button" class="wa-staging-remove" id="wa-remove-file-btn" title="Remove attachment">✕</button>
+      </div>
+
+      <div class="wa-quick-replies">
+        <button type="button" class="wa-chip" data-quick="🩸 Urgent blood need! Can you please donate?">🩸 Urgent blood need</button>
+        <button type="button" class="wa-chip" data-quick="🏥 Which hospital and ward is the patient admitted to?">🏥 Hospital & ward?</button>
+        <button type="button" class="wa-chip" data-quick="✅ I am willing and available to donate today.">✅ I can donate today</button>
+        <button type="button" class="wa-chip" data-quick="📄 Attaching the hospital prescription and crossmatch slip.">📄 Attaching prescription</button>
+      </div>
+
+      <form class="wa-input-bar" id="wa-chat-form">
+        <input type="file" id="wa-file-input" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none;" />
+        <button type="button" class="wa-attach-btn" id="wa-attach-btn" title="Attach file or prescription">📎</button>
+        <input type="text" class="wa-input-field" id="wa-message-input" placeholder="Type a message..." autocomplete="off" />
+        <button type="submit" class="wa-send-btn" id="wa-send-btn" title="Send message">➤</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Blood Compatibility Chart Modal -->
+  <div id="figure-chart-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-chart></div>
+    <div class="modal-card figure-chart-modal-card">
+      <button class="modal-close" data-close-chart>×</button>
+      <div class="modal-icon" style="background:#fee2e2; color:var(--red);">🔬</div>
+      <div class="eyebrow">MEDICAL STANDARDS</div>
+      <h2>Universal Blood Transfusion & Compatibility Matrix</h2>
+      <p>Scientific red blood cell compatibility matrix according to secondary biology standards.</p>
+
+      <div class="compat-table-wrap">
+        <table class="compat-table">
+          <thead>
+            <tr>
+              <th colspan="2" rowspan="2" style="background:#f1f5f9; text-align:center; font-size:12px;">Blood Group</th>
+              <th colspan="8" class="header-donor">Donor ⟶</th>
+            </tr>
+            <tr>
+              <th>O-</th><th>O+</th><th>B-</th><th>B+</th><th>A-</th><th>A+</th><th>AB-</th><th>AB+</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th rowspan="8" class="header-recipient">Recipient ⟶</th><td class="row-group">AB+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td></tr>
+            <tr><td class="row-group">AB-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">A+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">A-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">B+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">B-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">O+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">O-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="chart-caption-box">
+        <strong>💡 মূল তথ্য:</strong> O- হলো সর্বজনীন দাতা (Universal Donor) এবং AB+ হলো সর্বজনীন গ্রহীতা (Universal Recipient)। হাসপাতালের ব্লাড ব্যাংকে বাধ্যতামূলক ক্রস-ম্যাচিংয়ের পরেই রক্ত দেওয়া হয়।
+      </div>
+      <div style="margin-top:16px; text-align:right;">
+        <button type="button" class="btn btn-primary" data-close-chart>Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie Consent Banner -->
+  <aside id="cookie-banner" class="cookie-banner hidden" role="region" aria-label="Cookie consent">
+    <div class="cookie-icon" aria-hidden="true">🍪</div>
+    <div class="cookie-content">
+      <div class="cookie-title">We value your privacy & security</div>
+      <p class="cookie-desc">Lifeline uses essential cookies for secure authentication and optional analytics.</p>
+      <div class="cookie-actions">
+        <button id="cookie-accept" class="btn btn-primary btn-sm">Accept All</button>
+        <button id="cookie-reject" class="btn btn-light btn-sm">Essential Only</button>
+      </div>
+    </div>
+  </aside>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
