@@ -1077,10 +1077,10 @@
       const { data, error } = await supabase.auth.getSession();
 
       if (error || !data.session?.user) {
-        toast("Please sign in to access your donor dashboard.", "info");
+        toast("Please sign in to access your dashboard.", "info");
         setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1200);
+          window.location.href = "index.html?auth=1";
+        }, 800);
         return;
       }
 
