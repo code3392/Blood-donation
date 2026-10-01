@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#b91c1c" />
-  <meta name="description" content="Lifeline — a smart blood donation and emergency donor matching platform for Bangladesh." />
+  <meta name="description" content="Lifeline — a smart blood donation and emergency donor matching platform worldwide." />
   <title>Lifeline — Blood. Hope. Together.</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,39 +15,146 @@
 </head>
 
 <body>
+  <!-- Ambient floating blood cells & particles (Req 3) -->
+  <div class="bg-animation-wrapper" aria-hidden="true">
+    <canvas id="ambient-blood-canvas" class="ambient-blood-canvas"></canvas>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="plasma-particle"></div>
+    <div class="plasma-particle"></div>
+    <div class="plasma-particle"></div>
+  </div>
+
   <div id="toast-root" aria-live="polite"></div>
 
   <div class="announcement">
     <span class="pulse-dot"></span>
-    <span><strong>Emergency network:</strong> connect with nearby willing donors faster.</span>
-     <button class="announcement-link" data-scroll="request" data-i18n="requestBlood">Request blood</button>
+    <span><strong>Global Emergency Network:</strong> Connect with willing blood donors worldwide faster.</span>
+    <a href="request-blood.html" class="announcement-link">Request blood →</a>
   </div>
 
   <header class="site-header">
-    <a class="brand" href="#home" aria-label="Lifeline home">
-      <span class="brand-mark">✚</span>
-      <span>
-        <strong>Lifeline</strong>
-        <small>Blood. Hope. Together.</small>
-      </span>
-    </a>
+    <div class="header-brand-group">
+      <a class="brand" href="index.html" aria-label="Lifeline home">
+        <span class="brand-mark">✚</span>
+        <span>
+          <strong>Lifeline</strong>
+          <small>Global Emergency Network</small>
+        </span>
+      </a>
 
-    <nav id="main-nav" class="main-nav">
-      <a href="#home" data-i18n="home">Home</a>
-      <a href="#find" data-i18n="findDonors">Find Donors</a>
-      <a href="#live-requests-preview" data-i18n="requestedBlood">Requested Blood</a>
-      <a href="#request" data-i18n="requestBlood">Request Blood</a>
-      <a href="#donate" data-i18n="becomeDonor">Become a Donor</a>
-      <a href="#how" data-i18n="howItWorks">How it works</a>
-    </nav>
+      <!-- Menu Button that hides all 7 buttons behind 1 clean button (User Request) -->
+      <button class="menu-trigger-btn" id="menu-trigger-btn" type="button" aria-label="Explore pages" aria-expanded="false">
+        <span class="menu-burger" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
+      </button>
+    </div>
 
     <div class="header-actions">
-      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Change language">বাংলা</button>
-      <button class="icon-btn mobile-menu" id="mobile-menu" aria-label="Open menu">☰</button>
       <button class="btn btn-ghost" id="login-btn">Sign in</button>
-      <button class="btn btn-primary" data-scroll="donate">Become a donor</button>
+      <a href="donate.html" class="btn btn-primary">Become a donor</a>
     </div>
   </header>
+
+  <!-- Full Navigation Slide-over Drawer / Menu Panel -->
+  <div id="nav-menu-drawer" class="nav-menu-drawer hidden" aria-hidden="true">
+    <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+    <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="nav-drawer-header">
+        <div class="drawer-brand">
+          <span class="brand-mark">✚</span>
+          <strong>Lifeline Portal</strong>
+        </div>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="nav-drawer-links">
+        <a href="index.html" class="drawer-link-item active">
+          <span class="drawer-link-icon">🏠</span>
+          <div>
+            <strong>Home</strong>
+            <small>Main emergency landing page</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Find Donors</strong>
+            <small>Search blood donors by group & district</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="requests.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📋</span>
+          <div>
+            <strong>Requested Blood</strong>
+            <small>View live open blood emergencies</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="request-blood.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🩸</span>
+          <div>
+            <strong>Request Blood</strong>
+            <small>Post an urgent request with auto-matching</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="donate.html" class="drawer-link-item">
+          <span class="drawer-link-icon">❤️</span>
+          <div>
+            <strong>Become a Donor</strong>
+            <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="diseases.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📖</span>
+          <div>
+            <strong>Disease Info & Medical Guide</strong>
+            <small>Scientific compatibility matrix & diseases</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="how-it-works.html" class="drawer-link-item">
+          <span class="drawer-link-icon">⚙️</span>
+          <div>
+            <strong>How It Works</strong>
+            <small>Step-by-step coordination guide</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="dashboard.html" class="drawer-link-item">
+          <span class="drawer-link-icon">💬</span>
+          <div>
+            <strong>Dashboard & Messages</strong>
+            <small>Manage your profile & chat threads</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="nav-drawer-footer">
+        <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
+        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+      </div>
+    </div>
+  </div>
 
   <main>
     <section id="home" class="hero section">
@@ -56,12 +163,22 @@
         <h1>One donation can become someone's <span>second chance.</span></h1>
         <p class="hero-text" data-i18n="heroText">
           Lifeline helps people find willing blood donors, publish urgent requests,
-          and coordinate lifesaving support across Bangladesh — without the chaos.
+          and coordinate lifesaving support worldwide — without the chaos.
         </p>
 
+        <!-- Animated ECG Heartbeat Line -->
+        <div class="ecg-line-container" aria-hidden="true">
+          <svg class="ecg-svg" viewBox="0 0 520 40" preserveAspectRatio="none">
+            <path class="ecg-track" d="M0,20 L130,20 L145,8 L160,34 L175,4 L190,32 L205,20 L310,20 L325,7 L340,35 L355,5 L370,33 L385,20 L520,20" />
+            <path class="ecg-pulse" d="M0,20 L130,20 L145,8 L160,34 L175,4 L190,32 L205,20 L310,20 L325,7 L340,35 L355,5 L370,33 L385,20 L520,20" />
+          </svg>
+        </div>
+
         <div class="hero-actions">
-          <button class="btn btn-primary btn-large" data-scroll="find" data-i18n="findDonor">Find a donor <span>→</span></button>
-          <button class="btn btn-light btn-large" data-scroll="donate" data-i18n="wantDonate">I want to donate</button>
+          <a href="find-donors.html" class="btn btn-primary btn-large" data-i18n="findDonor">Find a donor <span>→</span></a>
+          <a href="request-blood.html" class="btn btn-primary btn-large" style="background:#b91c1c;">Request blood 🩸</a>
+          <a href="donate.html" class="btn btn-light btn-large" data-i18n="wantDonate">Become a donor</a>
+          <a href="diseases.html" class="btn btn-ghost btn-large" style="border:1px solid #ddd;">Medical Guide 📖</a>
         </div>
 
         <div class="trust-row">
@@ -97,7 +214,7 @@
             <div class="mini-avatar">B+</div>
             <div>
               <strong>Urgent B+ request</strong>
-              <span>Dhaka · Just now</span>
+              <span>Global Emergency · Just now</span>
             </div>
             <span class="match-score">98%</span>
           </div>
@@ -115,249 +232,166 @@
       </div>
     </section>
 
-    <section class="impact-strip">
+    <section class="impact-strip reveal-on-scroll">
       <div><strong id="stat-donors">0</strong><span>registered donors</span></div>
       <div><strong id="stat-requests">0</strong><span>blood requests</span></div>
       <div><strong id="stat-available">0</strong><span>available donors</span></div>
       <div><strong>8</strong><span>blood groups supported</span></div>
     </section>
 
-    <section id="find" class="section search-section">
+    <!-- ============================================================ -->
+    <!-- FEATURE SERVICES PORTAL (Hyperlinked Landing Page Grid)       -->
+    <!-- ============================================================ -->
+    <section class="portal-section reveal-on-scroll">
       <div class="section-heading centered">
-        <div class="eyebrow">SMART DONOR SEARCH</div>
-        <h2 data-i18n="findTitle">Find the right donor, faster.</h2>
-        <p>Filter by blood group and location. Sign in to protect donor contact information.</p>
+        <div class="eyebrow">DISCOVER LIFELINE SERVICES</div>
+        <h2>One Unified Platform. Every Lifesaving Service.</h2>
+        <p>Explore our specialized tools designed for emergency coordination, voluntary blood donation, and medical guidance.</p>
       </div>
 
-      <div class="search-panel">
-        <div class="field">
-          <label for="search-blood">Blood group</label>
-          <select id="search-blood">
-            <option value="">Any blood group</option>
-            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="search-district">District</label>
-          <select id="search-district">
-            <option value="">Any district</option>
-            <option>Dhaka</option><option>Gazipur</option><option>Savar</option><option>Narayanganj</option>
-            <option>Chattogram</option><option>Sylhet</option><option>Rajshahi</option><option>Khulna</option>
-            <option>Barishal</option><option>Rangpur</option><option>Mymensingh</option><option>Comilla</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="search-status">Availability</label>
-          <select id="search-status">
-            <option value="true">Available now</option>
-            <option value="">All donors</option>
-          </select>
-        </div>
-        <button class="btn btn-primary search-btn" id="search-donors">Search donors <span>→</span></button>
-      </div>
-
-      <div id="donor-lock" class="locked-card hidden">
-        <div class="lock-icon">⌕</div>
-        <div>
-          <strong>Donor directory is protected</strong>
-          <p>Sign in to search and contact consenting donors. This keeps personal contact data away from anonymous visitors.</p>
-        </div>
-        <button class="btn btn-primary" id="locked-login">Sign in</button>
-      </div>
-
-      <div id="donor-results" class="donor-grid"></div>
-      <div id="donor-empty" class="empty-state hidden">
-        <div>🩸</div>
-        <h3>No matching donors found</h3>
-        <p>Try another blood group or district, or publish an urgent request so donors can respond.</p>
-        <button class="btn btn-primary" data-scroll="request">Create request</button>
-      </div>
-    </section> 
-    
-    <section id="live-requests-preview" class="section search-section">
-      <div class="section-heading centered">
-        <div class="eyebrow">ACTIVE EMERGENCIES</div>
-        <h2 data-i18n="recentRequests">Recent Blood Requests</h2>
-      </div>
-      <div id="requests-results" class="donor-grid"></div>
-    </section>
-
-    <section id="request" class="section request-section">
-      <div class="request-card">
-        <div class="request-copy">
-          <div class="eyebrow">NEED BLOOD?</div>
-          <h2 data-i18n="requestTitle">Turn an urgent need into a clear call for help.</h2>
-          <p>
-            Publish the blood group, location, urgency and a safe contact number.
-            Authenticated donors can view active requests and reach out.
-          </p>
-          <div class="feature-list">
-            <div><span>01</span><p><strong>Post once.</strong> Keep the request information organized.</p></div>
-            <div><span>02</span><p><strong>Reach willing donors.</strong> Search and matching tools reduce noise.</p></div>
-            <div><span>03</span><p><strong>Close when fulfilled.</strong> Prevent stale emergency posts.</p></div>
+      <div class="portal-grid">
+        <!-- 1. Find Donors -->
+        <a href="find-donors.html" class="portal-card">
+          <div class="portal-card-top">
+            <div class="portal-card-icon">🔍</div>
+            <span class="portal-card-badge">VERIFIED</span>
           </div>
-        </div>
+          <h3>Find Donors</h3>
+          <p>Instant search across cities and regions worldwide. Filter by ABO & Rh blood groups with protected contacts.</p>
+          <span class="portal-card-action">Search Donors Directory <span>→</span></span>
+        </a>
 
-        <form id="request-form" class="glass-form">
-          <div class="form-head">
-            <div><span class="form-icon">♥</span><div><h3>Blood request</h3><p>For urgent or planned needs</p></div></div>
+        <!-- 2. Requested Blood (Active Emergencies) -->
+        <a href="requests.html" class="portal-card">
+          <div class="portal-card-top">
+            <div class="portal-card-icon" style="background:#fef2f2; color:#dc2626;">📋</div>
+            <span class="portal-card-badge" style="background:#fee2e2; color:#b91c1c;">LIVE FEED</span>
           </div>
+          <h3>Requested Blood</h3>
+          <p>Explore real-time emergency requests posted by hospital families. Track critical deadlines and donate directly.</p>
+          <span class="portal-card-action">View Active Emergencies <span>→</span></span>
+        </a>
 
-          <div class="form-grid">
-            <div class="field">
-              <label>Patient / requester name</label>
-              <input id="request-name" required maxlength="80" placeholder="e.g. Rahim Ahmed" />
-            </div>
-            <div class="field">
-              <label>Blood group</label>
-              <select id="request-blood" required>
-                <option value="">Select</option>
-                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-              </select>
-            </div>
-            <div class="field">
-          <label>District</label>
-          <input id="request-district" required maxlength="60" placeholder="e.g. Dhaka" />
-            </div>
-            <div class="field">
-              <label>Hospital / location</label>
-              <input id="request-location" required maxlength="120" placeholder="Hospital or area" />
-            </div>
-            <div class="field">
-              <label>Units needed</label>
-              <input id="request-units" type="number" min="1" max="20" value="1" required />
-            </div>
-            <div class="field">
-              <label>Urgency</label>
-              <select id="request-urgency">
-                <option value="critical">Critical — today</option>
-                <option value="urgent">Urgent — within 24h</option>
-                <option value="planned">Planned</option>
-              </select>
-            </div>
-            <div class="field full">
-              <label for="request-condition">Blood-related condition <span class="optional">(optional)</span></label>
-              <select id="request-condition">
-                <option value="">No condition selected</option>
-                <option value="anemia">Anemia</option>
-                <option value="thalassemia">Thalassemia</option>
-                <option value="leukemia">Leukemia / cancer treatment</option>
-                <option value="hemophilia">Hemophilia or bleeding disorder</option>
-                <option value="sickle_cell">Sickle cell disease</option>
-                <option value="other">Another condition</option>
-              </select>
-              <div id="condition-guidance" class="medical-guidance hidden" role="status"></div>
-            </div>
-            <div class="field full">
-              <label>Contact phone</label>
-              <input id="request-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" />
-            </div>
-            <div class="field full">
-              <label>Additional note <span class="optional">(optional)</span></label>
-              <textarea id="request-note" maxlength="300" placeholder="Add only information a donor needs to know."></textarea>
-            </div>
+        <!-- 3. Request Blood Urgently -->
+        <a href="request-blood.html" class="portal-card">
+          <div class="portal-card-top">
+            <div class="portal-card-icon" style="background:#fff1f2; color:#e11d48;">🩸</div>
+            <span class="portal-card-badge" style="background:#ffe4e6; color:#be123c;">AUTO-MATCH</span>
           </div>
+          <h3>Request Blood</h3>
+          <p>Publish an urgent request with condition details and let our system auto-match compatible donors with scientific compatibility.</p>
+          <span class="portal-card-action">Post Emergency Request <span>→</span></span>
+        </a>
 
-          <button class="btn btn-primary btn-large full-width" type="submit">Publish blood request <span>→</span></button>
-          <p class="form-note">For emergencies, contact the hospital/emergency service directly as well.</p>
-        </form>
-      </div>
-    </section>
-
-    <section id="donate" class="section donor-section">
-      <div class="section-heading centered">
-        <div class="eyebrow">JOIN THE LIFELINE</div>
-        <h2 data-i18n="donorTitle">Be the person someone is searching for.</h2>
-        <p>Create a donor profile and control when your availability is visible.</p>
-      </div>
-
-      <div class="donor-form-wrap">
-        <form id="donor-form" class="donor-form">
-          <div class="form-head">
-            <div><span class="form-icon">✚</span><div><h3>Donor registration</h3><p>It takes about 60 seconds.</p></div></div>
+        <!-- 4. Become a Donor -->
+        <a href="donate.html" class="portal-card">
+          <div class="portal-card-top">
+            <div class="portal-card-icon" style="background:#f0fdf4; color:#16a34a;">❤️</div>
+            <span class="portal-card-badge" style="background:#dcfce7; color:#15803d;">VOLUNTARY</span>
           </div>
+          <h3>Become a Donor</h3>
+          <p>Register your blood group, district, and emergency status. Toggle your availability anytime with full privacy.</p>
+          <span class="portal-card-action">Register as a Donor <span>→</span></span>
+        </a>
 
-          <div class="form-grid">
-            <div class="field"><label>Full name</label><input id="donor-name" required maxlength="80" placeholder="Your name" /></div>
-            <div class="field"><label>Blood group</label>
-              <select id="donor-blood" required>
-                <option value="">Select</option>
-                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>District</label>
-              <input id="donor-district" required maxlength="60" placeholder="e.g. Dhaka" />
-            </div>
-            <div class="field"><label>Area / upazila</label><input id="donor-area" maxlength="80" placeholder="e.g. Savar" /></div>
-            <div class="field full location-field">
-              <button class="btn btn-light location-btn" type="button" id="detect-donor-location">⌖ Detect my location</button>
-              <small id="donor-location-status" class="location-status">Location is only used to improve nearby matching and is never shown as exact coordinates.</small>
-            </div>
-            <div class="field"><label>Phone</label><input id="donor-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" /></div>
-            <div class="field"><label>Last donation date <span class="optional">(optional)</span></label><input id="donor-last" type="date" /></div>
+        <!-- 5. Disease Info & Guide -->
+        <a href="diseases.html" class="portal-card">
+          <div class="portal-card-top">
+            <div class="portal-card-icon" style="background:#eff6ff; color:#2563eb;">📖</div>
+            <span class="portal-card-badge" style="background:#dbeafe; color:#1d4ed8;">MEDICAL GUIDE</span>
           </div>
+          <h3>Disease & Compatibility</h3>
+          <p>Standardized medical transfusion compatibility matrix, clinical guidelines for Thalassemia, Dengue, and Anemia.</p>
+          <span class="portal-card-action">Open Medical Guide <span>→</span></span>
+        </a>
 
-          <label class="check-row">
-            <input id="donor-available" type="checkbox" checked />
-            <span><strong>I'm currently willing to donate</strong><small>Turn this off whenever you're unavailable.</small></span>
-          </label>
-          <label class="check-row">
-            <input id="donor-consent" type="checkbox" required />
-            <span><strong>I consent to Lifeline showing my profile to authenticated users.</strong><small>Your phone is only shown inside the protected donor directory.</small></span>
-          </label>
-
-          <button class="btn btn-primary btn-large full-width" type="submit">Create my donor profile <span>→</span></button>
-        </form>
-
-        <aside class="eligibility-card">
-          <div class="eyebrow">DONOR CHECK</div>
-          <h3>Before you donate</h3>
-          <p>Donation eligibility can depend on age, health, medication, recent procedures and local blood-bank rules.</p>
-          <div class="eligibility-item"><span>✓</span><div><strong>Check with a blood center</strong><small>They make the final eligibility decision.</small></div></div>
-          <div class="eligibility-item"><span>✓</span><div><strong>Keep your profile honest</strong><small>Accurate availability helps patients.</small></div></div>
-          <div class="eligibility-item"><span>✓</span><div><strong>Never share OTPs or passwords</strong><small>Lifeline will never ask for your authentication code.</small></div></div>
-        </aside>
+        <!-- 6. How It Works -->
+        <a href="how-it-works.html" class="portal-card">
+          <div class="portal-card-top">
+            <div class="portal-card-icon" style="background:#faf5ff; color:#9333ea;">⚙️</div>
+            <span class="portal-card-badge" style="background:#f3e8ff; color:#7e22ce;">WORKFLOW</span>
+          </div>
+          <h3>How Lifeline Works</h3>
+          <p>Understand the 4-step emergency workflow: search, scientific matching, WhatsApp coordination, and bedside donation.</p>
+          <span class="portal-card-action">Learn the Process <span>→</span></span>
+        </a>
       </div>
     </section>
 
     <section id="how" class="section how-section">
-      <div class="section-heading centered">
+      <div class="section-heading centered reveal-on-scroll">
         <div class="eyebrow">HOW IT WORKS</div>
         <h2>Designed around the moments that matter.</h2>
       </div>
 
-      <div class="steps">
-        <article class="step-card"><span>01</span><div class="step-icon">⌕</div><h3>Search</h3><p>Choose a blood group and area to discover willing donors in the protected network.</p></article>
-        <article class="step-card"><span>02</span><div class="step-icon">♥</div><h3>Request</h3><p>Publish a structured blood request with urgency and hospital/location details.</p></article>
-        <article class="step-card"><span>03</span><div class="step-icon">✓</div><h3>Connect</h3><p>Contact donors directly and coordinate with the hospital or blood center.</p></article>
+      <div class="steps reveal-on-scroll">
+        <article class="step-card"><span>01</span><div class="step-icon">⌕</div><h3>Search</h3><p>Filter by blood group, city or country to discover willing donors in the worldwide protected network.</p></article>
+        <article class="step-card"><span>02</span><div class="step-icon">♥</div><h3>Auto-Match</h3><p>Publish an emergency request to auto-find compatible donors using scientific compatibility standards.</p></article>
+        <article class="step-card"><span>03</span><div class="step-icon">✓</div><h3>Connect</h3><p>Coordinate directly via messages and share prescriptions safely.</p></article>
+      </div>
+      <div style="text-align: center; margin-top: 32px;">
+        <a href="how-it-works.html" class="btn btn-light btn-large">Explore Complete Workflow & Protocols <span>→</span></a>
       </div>
     </section>
 
     <section class="section mission-section">
-      <div class="mission-card">
+      <div class="mission-card reveal-on-scroll">
         <div><div class="eyebrow">WHY LIFELINE</div><h2>Not another social feed.<br><span>A focused emergency network.</span></h2></div>
         <div class="mission-points">
           <div><strong>Consent-first</strong><span>Donors control visibility.</span></div>
-          <div><strong>Structured requests</strong><span>Less noise, clearer action.</span></div>
-          <div><strong>Bangladesh-ready</strong><span>District-aware matching.</span></div>
+          <div><strong>Scientific Matching</strong><span>Standardized transfusion matrix.</span></div>
+          <div><strong>Global Network</strong><span>City & region-aware matching worldwide.</span></div>
         </div>
       </div>
     </section>
   </main>
 
+  <!-- Pro Footer with Legal & Compliance Links (Req 5) -->
   <footer class="site-footer">
     <div class="footer-main">
-      <a class="brand footer-brand" href="#home"><span class="brand-mark">✚</span><span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span></a>
-      <p>A competition-ready prototype for connecting blood donors and patients. Always verify donation and medical decisions with qualified professionals.</p>
-      <div class="footer-links"><a href="#find">Find donors</a><a href="#request">Request blood</a><a href="#donate">Donate</a></div>
+      <div>
+        <a class="brand" href="index.html">
+          <span class="brand-mark">✚</span>
+          <span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span>
+        </a>
+        <p>A competition-ready humanitarian network for connecting voluntary blood donors and emergency patients worldwide. Always verify medical decisions with qualified professionals.</p>
+      </div>
+
+      <div class="footer-links-col">
+        <h4>Explore Lifeline</h4>
+        <ul>
+          <li><a href="find-donors.html">Find Donors</a></li>
+          <li><a href="requests.html">Requested Blood (Live Feed)</a></li>
+          <li><a href="request-blood.html">Request Blood (Auto-Match)</a></li>
+          <li><a href="donate.html">Become a Donor</a></li>
+          <li><a href="diseases.html">Disease & Transfusion Guide</a></li>
+          <li><a href="how-it-works.html">How Lifeline Works</a></li>
+          <li><a href="dashboard.html">Donor Dashboard & Messages</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-trust-badges">
+        <h4>Compliance & Standards</h4>
+        <div class="trust-badge-item"><span>🔒</span> 256-Bit SSL Encrypted Protected Data</div>
+        <div class="trust-badge-item"><span>🩸</span> 100% Voluntary, Non-Commercial Donation</div>
+        <div class="trust-badge-item"><span>🌐</span> WHO & Global Safe Blood Standards Compliant</div>
+      </div>
     </div>
-    <div class="footer-bottom"><span>© 2026 Lifeline</span><span>Built with Supabase</span><button id="signout-btn" class="text-btn hidden">Sign out</button></div>
+
+    <div class="footer-bottom">
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="terms.html">Terms & Conditions</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="diseases.html">Disease Guide</a>
+        <a href="how-it-works.html">How It Works</a>
+        <button type="button" id="cookie-settings-trigger" style="background:none;border:none;color:#666;cursor:pointer;padding:0;font-size:11px;">Cookie Preferences</button>
+      </div>
+      <button id="signout-btn" class="text-btn hidden">Sign out</button>
+    </div>
   </footer>
 
+  <!-- Auth Modal -->
   <div id="auth-modal" class="modal hidden">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
@@ -396,6 +430,7 @@
     </div>
   </div>
 
+  <!-- Donor Profile Modal -->
   <div id="profile-modal" class="modal hidden">
     <div class="modal-backdrop" data-close-profile></div>
     <div class="modal-card profile-modal">
@@ -403,31 +438,204 @@
       <div class="profile-hero"><div class="profile-blood" id="profile-blood">O+</div><div><h2 id="profile-name">Donor</h2><p id="profile-location">Location</p></div></div>
       <div class="profile-details" id="profile-details"></div>
       <div class="profile-actions">
-        <button id="profile-message" class="btn btn-primary full-width btn-large" type="button">Message donor</button>
-        <a id="profile-call" class="btn btn-light full-width btn-large" href="#">Call donor</a>
+        <button id="profile-message" class="btn btn-primary full-width btn-large" type="button">💬 Message</button>
+        <a id="profile-call" class="btn btn-light full-width btn-large" href="#">📞 Call donor</a>
       </div>
       <p class="form-note">Only contact a donor for a genuine blood need and respect their availability.</p>
     </div>
   </div>
 
-  <div id="message-modal" class="modal hidden">
-    <div class="modal-backdrop" data-close-message></div>
-    <div class="modal-card message-modal-card">
-      <button class="modal-close" data-close-message>×</button>
-      <div class="modal-icon">✉</div>
-      <div class="eyebrow">MESSAGE</div>
-      <h2 id="message-title">Message</h2>
-      <p id="message-subtitle">Keep the conversation focused on the blood request.</p>
-      <form id="message-form">
-        <div class="field">
-          <label for="message-body">Your message</label>
-          <textarea id="message-body" required maxlength="1000" placeholder="Hello, I may be able to help with this blood request…"></textarea>
+  <!-- ============================================================ -->
+  <!-- 1. MESSAGING MODAL & FILE ATTACHMENT                         -->
+  <!-- ============================================================ -->
+  <div id="whatsapp-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-whatsapp></div>
+    <div class="whatsapp-modal-card" role="dialog" aria-modal="true" aria-labelledby="wa-contact-name">
+      <!-- Chat Header -->
+      <div class="wa-header">
+        <div class="wa-contact-info">
+          <button type="button" class="wa-action-btn" data-close-whatsapp title="Back">←</button>
+          <div class="wa-avatar" id="wa-avatar-box">✚</div>
+          <div class="wa-contact-text">
+            <h4 id="wa-contact-name">Rahim Ahmed</h4>
+            <div class="wa-online-status">
+              <span class="wa-online-dot"></span>
+              <span id="wa-status-text">online</span>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-primary full-width btn-large" type="submit" id="send-message-btn">Send message <span>→</span></button>
+
+        <div class="wa-header-actions">
+          <a href="#" class="wa-action-btn" id="wa-call-btn" title="Call Donor">📞</a>
+          <button type="button" class="wa-action-btn" id="wa-info-btn" title="Emergency Info">ℹ️</button>
+          <button type="button" class="wa-action-btn" data-close-whatsapp title="Close">✕</button>
+        </div>
+      </div>
+
+      <!-- Optional Request Context Strip -->
+      <div class="wa-context-bar" id="wa-context-bar" style="display:none;">
+        <span id="wa-context-text">🩸 Coordinating B+ blood request for Dhaka Medical College</span>
+      </div>
+
+      <!-- Chat Body -->
+      <div class="wa-chat-body" id="wa-chat-body">
+        <div class="wa-date-pill">TODAY</div>
+        <div id="wa-messages-container" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- Dynamically populated WhatsApp bubbles -->
+        </div>
+      </div>
+
+      <!-- Attachment Staging Banner (Appears when a file is selected) -->
+      <div class="wa-attachment-staging" id="wa-attachment-staging" style="display:none;">
+        <div class="wa-staging-info">
+          <span id="wa-staging-icon">📎</span>
+          <img id="wa-staging-thumb" class="wa-staging-thumb" style="display:none;" alt="Preview" />
+          <div>
+            <strong id="wa-staging-name">prescription.jpg</strong>
+            <small id="wa-staging-size" style="display:block; color:#667781;">120 KB</small>
+          </div>
+        </div>
+        <button type="button" class="wa-staging-remove" id="wa-remove-file-btn" title="Remove attachment">✕</button>
+      </div>
+
+      <!-- Quick Template Chips -->
+      <div class="wa-quick-replies">
+        <button type="button" class="wa-chip" data-quick="🩸 Urgent blood need! Can you please donate?">🩸 Urgent blood need</button>
+        <button type="button" class="wa-chip" data-quick="🏥 Which hospital and ward is the patient admitted to?">🏥 Hospital & ward?</button>
+        <button type="button" class="wa-chip" data-quick="✅ I am willing and available to donate today.">✅ I can donate today</button>
+        <button type="button" class="wa-chip" data-quick="📄 Attaching the hospital prescription and crossmatch slip.">📄 Attaching prescription</button>
+      </div>
+
+      <!-- WhatsApp Input Bar with File Picker -->
+      <form class="wa-input-bar" id="wa-chat-form">
+        <!-- Hidden file input for documents/images -->
+        <input type="file" id="wa-file-input" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none;" />
+        
+        <button type="button" class="wa-attach-btn" id="wa-attach-btn" title="Attach file or prescription">
+          📎
+        </button>
+
+        <input type="text" class="wa-input-field" id="wa-message-input" placeholder="Type a message..." autocomplete="off" />
+
+        <button type="submit" class="wa-send-btn" id="wa-send-btn" title="Send message">
+          ➤
+        </button>
       </form>
     </div>
   </div>
 
+  <!-- ============================================================ -->
+  <!-- 2. BLOOD COMPATIBILITY CHART MODAL                           -->
+  <!-- ============================================================ -->
+  <div id="figure-chart-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-chart></div>
+    <div class="modal-card figure-chart-modal-card">
+      <button class="modal-close" data-close-chart>×</button>
+      <div class="modal-icon" style="background:#fee2e2; color:var(--red);">🔬</div>
+      <div class="eyebrow">MEDICAL STANDARDS</div>
+      <h2>Universal Blood Transfusion & Compatibility Matrix</h2>
+      <p>Scientific red blood cell compatibility matrix according to secondary biology standards.</p>
+
+      <div class="compat-table-wrap">
+        <table class="compat-table">
+          <thead>
+            <tr>
+              <th colspan="2" rowspan="2" style="background:#f1f5f9; text-align:center; font-size:12px;">Blood Group</th>
+              <th colspan="8" class="header-donor">Donor ⟶</th>
+            </tr>
+            <tr>
+              <th>O-</th><th>O+</th><th>B-</th><th>B+</th><th>A-</th><th>A+</th><th>AB-</th><th>AB+</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th rowspan="8" class="header-recipient">Recipient ⟶</th><td class="row-group">AB+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td></tr>
+            <tr><td class="row-group">AB-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">A+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">A-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">B+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">B-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">O+</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+            <tr><td class="row-group">O-</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="chart-caption-box">
+        <strong>💡 মূল তথ্য:</strong> O- হলো সর্বজনীন দাতা (Universal Donor) এবং AB+ হলো সর্বজনীন গ্রহীতা (Universal Recipient)। হাসপাতালের ব্লাড ব্যাংকে বাধ্যতামূলক ক্রস-ম্যাচিংয়ের পরেই রক্ত দেওয়া হয়।
+      </div>
+      <div style="margin-top:16px; text-align:right;">
+        <button type="button" class="btn btn-primary" data-close-chart>Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 5. COOKIE CONSENT BANNER & SETTINGS (REQ 5)                  -->
+  <!-- ============================================================ -->
+  <div id="cookie-banner" class="cookie-banner" style="display:none;">
+    <div class="cookie-banner-head">
+      <span>🍪</span>
+      <h4>Cookie & Privacy Preferences</h4>
+    </div>
+    <p>
+      Lifeline uses necessary cookies to keep your session secure, remember language settings,
+      and enable emergency donor matching. We never sell your data to advertisers.
+    </p>
+    <div class="cookie-btn-row">
+      <button type="button" class="btn btn-primary" id="cookie-accept-all">Accept All</button>
+      <button type="button" class="btn btn-light" id="cookie-essential-only">Essential Only</button>
+      <button type="button" class="btn btn-ghost" id="cookie-open-settings" style="color:#fca5a5;">Customize</button>
+    </div>
+  </div>
+
+  <!-- Cookie Settings Modal -->
+  <div id="cookie-settings-modal" class="modal hidden">
+    <div class="modal-backdrop" data-close-cookie-modal></div>
+    <div class="modal-card cookie-settings-modal">
+      <button class="modal-close" data-close-cookie-modal>×</button>
+      <div class="modal-icon" style="background:#fef3c7; color:#92400e;">🍪</div>
+      <div class="eyebrow">PREFERENCES</div>
+      <h2>Cookie Settings</h2>
+      <p>Configure which cookies you consent to during your Lifeline browsing session.</p>
+
+      <div class="cookie-option">
+        <div>
+          <strong>Strictly Essential (Required)</strong>
+          <small>Supabase authentication, CSRF tokens, session state</small>
+        </div>
+        <span style="font-size:11px; font-weight:800; color:var(--green);">Always active</span>
+      </div>
+
+      <div class="cookie-option">
+        <div>
+          <strong>Functional Preferences</strong>
+          <small>Remembers language selection (Bangla/English) and UI state</small>
+        </div>
+        <label class="switch-toggle">
+          <input type="checkbox" id="cookie-functional-check" checked />
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <div class="cookie-option">
+        <div>
+          <strong>Emergency Performance Metrics</strong>
+          <small>Anonymized donor response latency to improve emergency dispatch</small>
+        </div>
+        <label class="switch-toggle">
+          <input type="checkbox" id="cookie-analytics-check" checked />
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <div style="margin-top:20px; display:flex; gap:10px;">
+        <button type="button" class="btn btn-primary full-width" id="cookie-save-settings">Save Preferences</button>
+        <button type="button" class="btn btn-light" data-close-cookie-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lifeline Assistant -->
   <button class="assistant-fab" id="assistant-open" type="button" aria-label="Open Lifeline assistant">✦ <span>Lifeline AI</span></button>
   <div id="assistant-panel" class="assistant-panel hidden" aria-live="polite">
     <div class="assistant-header">
@@ -435,7 +643,7 @@
       <button type="button" class="icon-btn" id="assistant-close" aria-label="Close assistant">×</button>
     </div>
     <div id="assistant-messages" class="assistant-messages">
-      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor matching, requests, or how Lifeline works. I can’t diagnose or replace a doctor.</div>
+      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor matching, requests, or disease guidance. I can’t diagnose or replace a doctor.</div>
     </div>
     <form id="assistant-form" class="assistant-form">
       <input id="assistant-input" required maxlength="400" placeholder="Ask a question…" autocomplete="off" />
@@ -443,7 +651,6 @@
     </form>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabaseclient-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
