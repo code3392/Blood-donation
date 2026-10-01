@@ -7,11 +7,8 @@
   // SUPABASE CONFIGURATION
   // ==============================
 
-  const supabase_URL =
-    "https://heflnehkwmqsetqkiqgv.supabase.co";
-
-  const supabase_PUBLISHABLE_KEY =
-    "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
+  const supabase_URL = "https://heflnehkwmqsetqkiqgv.supabase.co";
+  const supabase_PUBLISHABLE_KEY = "sb_publishable_Ncu8yv6R1hOh8_1Z3j9Mrg_xSJrf6hd";
 
   const { createClient } = window.supabase;
 
@@ -38,7 +35,12 @@
   let userRequests = [];
   let detectedLocation = null;
   let currentLanguage = localStorage.getItem("lifeline-language") || "en";
-  let replyTarget = null;
+
+  // WhatsApp Web Dashboard State
+  let activeChatPartner = null;
+  let dashboardChatPolling = null;
+  let dashCurrentAttachment = null;
+  let conversationThreads = [];
 
   // ==============================
   // DOM HELPERS
@@ -115,6 +117,27 @@
     });
   }
 
+  function formatTime(timestamp) {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  }
+
+  function safePhone(value = "") {
+    return String(value)
+      .trim()
+      .replace(/[^\d+()\-\s]/g, "");
+  }
+
   function setLoading(button, loading, text) {
     if (!button) return;
     if (loading) {
@@ -143,8 +166,8 @@
     const toggle = $("language-toggle");
     if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
     const copy = currentLanguage === "bn"
-      ? { dashboardTitle: "ডোনার ড্যাশবোর্ড", profileTab: "👤 ডোনার প্রোফাইল ও ছবি", requestsTab: "🩸 আমার রক্তের অনুরোধ", messagesTab: "✉ মেসেজ" }
-      : { dashboardTitle: "Donor Dashboard", profileTab: "👤 Donor Profile & Photo", requestsTab: "🩸 My Blood Requests", messagesTab: "✉ Messages" };
+      ? { dashboardTitle: "ডোনার ড্যাশবোর্ড", profileTab: "👤 ডোনার প্রোফাইল ও ছবি", requestsTab: "🩸 আমার রক্তের অনুরোধ", messagesTab: "💬 মেসেজ" }
+      : { dashboardTitle: "Donor Dashboard", profileTab: "👤 Donor Profile & Photo", requestsTab: "🩸 My Blood Requests", messagesTab: "💬 Messages" };
     Object.entries(copy).forEach(([key, value]) => {
       document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
         el.textContent = value;
@@ -155,19 +178,24 @@
   function assistantReply(question) {
     const q = String(question || "").toLowerCase();
     const bn = currentLanguage === "bn";
+    if (/fig.*6\.12|transfusion|compatibility|chart|matrix|donor.*match/.test(q)) {
+      return bn
+        ? "মানসম্মত ট্রান্সফিউশন প্রোটোকল অনুযায়ী: O− সর্বজনীন দাতা এবং AB+ সর্বজনীন গ্রহীতা। বিস্তারিত দেখতে 'Medical Guide' পেজে যান।"
+        : "According to standard transfusion protocols: O- is universal red-cell donor and AB+ is universal recipient. Check our Disease Info page for the full matrix.";
+    }
     if (/o-.*(donate|give)|universal|b-.*ab-/.test(q)) {
       return bn
         ? "O− লোহিত রক্তকণিকার universal donor এবং B−, AB−-কে দিতে পারে। হাসপাতালকে cross-match করতেই হবে।"
-        : "O− is the universal red-cell donor, and B− can donate red cells to AB−. The hospital must still cross-match.";
+        : "O− is universal red-cell donor, and B− can donate red cells to AB−. The hospital blood bank must always cross-match.";
     }
-    if (/thalassemia|anemia|leukemia|hemophilia|sickle|disease|রোগ|থ্যালাসেমিয়া/.test(q)) {
+    if (/thalassemia|anemia|leukemia|hemophilia|sickle|dengue|disease|রোগ|থ্যালাসেমিয়া|ডেঙ্গু/.test(q)) {
       return bn
-        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা treating hematologist ঠিক করবেন। Lifeline diagnosis বা prescription দেয় না।"
-        : "For blood-related disease, the treating hematologist decides which blood product is needed. Lifeline does not diagnose or prescribe.";
+        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা treating hematologist ঠিক করবেন। বিস্তারিত জানতে 'Disease Guide' দেখুন।"
+        : "For blood-related diseases, the treating hematologist determines needed components. See our Disease Guide page.";
     }
     return bn
-      ? "আমি blood group, compatibility, request এবং Lifeline ব্যবহারে সাহায্য করতে পারি। জরুরি চিকিৎসায় হাসপাতালের নির্দেশ অনুসরণ করুন।"
-      : "I can help with blood groups, compatibility, requests, and using Lifeline. Follow the hospital team for urgent medical decisions.";
+      ? "আমি blood group, donor compatibility, requests এবং Lifeline ব্যবহারে সাহায্য করতে পারি।"
+      : "I can help with blood groups, donor compatibility, requests, and using Lifeline.";
   }
 
   function wireAssistant() {
@@ -202,27 +230,33 @@
       return;
     }
     if (status) status.textContent = "Requesting approximate location…";
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      detectedLocation = {
-        lat: Number(position.coords.latitude.toFixed(6)),
-        lng: Number(position.coords.longitude.toFixed(6)),
-        accuracy: Math.round(position.coords.accuracy || 0)
-      };
-      try {
-        const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${detectedLocation.lat}&longitude=${detectedLocation.lng}&localityLanguage=en`);
-        const place = await response.json();
-        const district = place.city || place.locality || place.principalSubdivision || "";
-        const area = place.locality || place.city || "";
-        if (district && $("edit-district")) $("edit-district").value = district;
-        if (area && $("edit-area")) $("edit-area").value = area;
-        if (status) status.textContent = `Location detected: ${district || "nearby area"} (approx. ${detectedLocation.accuracy}m).`;
-        updateLivePreview();
-      } catch (error) {
-        if (status) status.textContent = `Coordinates detected (approx. ${detectedLocation.accuracy}m). Add your district if needed.`;
-      }
-    }, () => {
-      if (status) status.textContent = "Location permission was not granted. You can enter your district manually.";
-    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        detectedLocation = {
+          lat: Number(position.coords.latitude.toFixed(6)),
+          lng: Number(position.coords.longitude.toFixed(6)),
+          accuracy: Math.round(position.coords.accuracy || 0)
+        };
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${detectedLocation.lat}&longitude=${detectedLocation.lng}&localityLanguage=en`
+          );
+          const place = await response.json();
+          const district = place.city || place.locality || place.principalSubdivision || "";
+          const area = place.locality || place.city || "";
+          if (district && $("edit-district")) $("edit-district").value = district;
+          if (area && $("edit-area")) $("edit-area").value = area;
+          if (status) status.textContent = `Location detected: ${district || "nearby area"} (approx. ${detectedLocation.accuracy}m).`;
+          updateLivePreview();
+        } catch (error) {
+          if (status) status.textContent = `Coordinates detected (approx. ${detectedLocation.accuracy}m). Add your district if needed.`;
+        }
+      },
+      () => {
+        if (status) status.textContent = "Location permission was not granted. You can enter your district manually.";
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
   }
 
   // ==============================
@@ -243,7 +277,7 @@
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const maxDim = 400; // Optimal square dimension for profile avatar
+          const maxDim = 400;
           let width = img.width;
           let height = img.height;
 
@@ -287,26 +321,14 @@
     const cardAvatar = $("preview-card-avatar");
 
     if (avatarUrl) {
-      if (previewBox) {
-        previewBox.innerHTML = `<img src="${avatarUrl}" alt="Avatar preview" />`;
-      }
-      if (cardAvatar) {
-        cardAvatar.innerHTML = `<img src="${avatarUrl}" alt="Card avatar" />`;
-      }
-      if (removeBtn) {
-        removeBtn.style.display = "inline-flex";
-      }
+      if (previewBox) previewBox.innerHTML = `<img src="${avatarUrl}" alt="Avatar preview" />`;
+      if (cardAvatar) cardAvatar.innerHTML = `<img src="${avatarUrl}" alt="Card avatar" />`;
+      if (removeBtn) removeBtn.style.display = "inline-flex";
     } else {
       const userInitials = initials(donorName);
-      if (previewBox) {
-        previewBox.innerHTML = `<span id="avatar-initials-fallback">${userInitials}</span>`;
-      }
-      if (cardAvatar) {
-        cardAvatar.innerHTML = userInitials;
-      }
-      if (removeBtn) {
-        removeBtn.style.display = "none";
-      }
+      if (previewBox) previewBox.innerHTML = `<span id="avatar-initials-fallback">${userInitials}</span>`;
+      if (cardAvatar) cardAvatar.innerHTML = userInitials;
+      if (removeBtn) removeBtn.style.display = "none";
     }
   }
 
@@ -322,16 +344,14 @@
     const lastDate = $("edit-last")?.value || "";
     const available = $("edit-available")?.checked ?? true;
 
-    // Card texts
     if ($("preview-card-name")) $("preview-card-name").textContent = name;
     if ($("preview-card-location")) {
-      $("preview-card-location").textContent = [area, district, "Bangladesh"].filter(Boolean).join(" · ");
+      $("preview-card-location").textContent = [area, district].filter(Boolean).join(" · ") || "Worldwide";
     }
     if ($("preview-card-blood")) $("preview-card-blood").textContent = blood;
     if ($("preview-card-district")) $("preview-card-district").textContent = district;
     if ($("preview-card-last")) $("preview-card-last").textContent = formatDate(lastDate);
 
-    // Availability indicator
     const dot = $("preview-card-dot");
     const statusText = $("info-availability-text");
     const dashStatus = $("dashboard-status-indicator");
@@ -381,6 +401,7 @@
       requestsContent?.classList.remove("hidden");
       messagesContent?.classList.add("hidden");
       loadUserRequests();
+      if (dashboardChatPolling) clearInterval(dashboardChatPolling);
     } else if (tabName === "messages") {
       tabProfileBtn?.classList.remove("active");
       tabRequestsBtn?.classList.remove("active");
@@ -388,7 +409,9 @@
       profileContent?.classList.add("hidden");
       requestsContent?.classList.add("hidden");
       messagesContent?.classList.remove("hidden");
-      loadMessages();
+      loadWhatsAppDashboard();
+      if (dashboardChatPolling) clearInterval(dashboardChatPolling);
+      dashboardChatPolling = setInterval(pollActiveChat, 2500);
     } else {
       tabRequestsBtn?.classList.remove("active");
       tabMessagesBtn?.classList.remove("active");
@@ -396,104 +419,380 @@
       requestsContent?.classList.add("hidden");
       messagesContent?.classList.add("hidden");
       profileContent?.classList.remove("hidden");
+      if (dashboardChatPolling) clearInterval(dashboardChatPolling);
     }
   }
 
-  async function loadMessages() {
-    if (!currentUser || !$("messages-list")) return;
-    const list = $("messages-list");
+  // ============================================================
+  // 1. WHATSAPP WEB MESSENGER FOR DASHBOARD (REQ 1)
+  // ============================================================
+
+  async function loadWhatsAppDashboard() {
+    if (!currentUser) return;
+    const threadsList = $("wa-threads-list");
     const badge = $("messages-count-badge");
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const activeBadge = $("wa-active-count-badge");
 
-    if (error) {
-      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>Messaging setup needed</h3><p>Run the included Supabase schema migration to enable messages.</p></div>`;
-      if (badge) badge.textContent = "0";
-      return;
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        if (threadsList) {
+          threadsList.innerHTML = `
+            <div style="padding:24px 16px; text-align:center; color:#ef4444; font-size:12px;">
+              <div>✉</div>
+              <p>Run the updated Supabase SQL migration to activate WhatsApp messaging.</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      const allMessages = data || [];
+      const partnersMap = new Map();
+
+      allMessages.forEach((msg) => {
+        const partnerId = msg.sender_id === currentUser.id ? msg.recipient_id : msg.sender_id;
+        if (!partnersMap.has(partnerId)) {
+          partnersMap.set(partnerId, {
+            partnerId,
+            lastMessage: msg,
+            unreadCount: (!msg.read_at && msg.recipient_id === currentUser.id) ? 1 : 0
+          });
+        }
+      });
+
+      conversationThreads = Array.from(partnersMap.values());
+
+      if (badge) badge.textContent = conversationThreads.reduce((acc, t) => acc + t.unreadCount, 0);
+      if (activeBadge) activeBadge.textContent = conversationThreads.length;
+
+      if (!conversationThreads.length) {
+        if (threadsList) {
+          threadsList.innerHTML = `
+            <div style="padding:40px 16px; text-align:center; color:#667781; font-size:12px;">
+              <div>💬</div>
+              <strong>No conversations yet</strong>
+              <p style="margin:4px 0 0; font-size:11px;">When you message a donor or requester, your chat appears here.</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Fetch donor profile names for partners
+      const partnerIds = conversationThreads.map((t) => t.partnerId);
+      const { data: profiles } = await supabase
+        .from("donor_profiles")
+        .select("user_id, full_name, blood_group, phone, avatar_url")
+        .in("user_id", partnerIds);
+
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+
+      conversationThreads.forEach((t) => {
+        t.profile = profileMap.get(t.partnerId) || {
+          full_name: "Donor Contact",
+          blood_group: "✚",
+          phone: null
+        };
+      });
+
+      renderWhatsAppThreads(conversationThreads);
+
+      // Auto-select first thread if none active
+      if (!activeChatPartner && conversationThreads.length > 0) {
+        selectChatPartner(conversationThreads[0]);
+      }
+    } catch (err) {
+      console.warn("WhatsApp dashboard load error:", err);
+    }
+  }
+
+  function renderWhatsAppThreads(threads) {
+    const list = $("wa-threads-list");
+    if (!list) return;
+
+    list.innerHTML = threads
+      .map((t) => {
+        const name = t.profile.full_name || "Donor Contact";
+        let snippet = t.lastMessage.body || "";
+        if (snippet.startsWith("{") && snippet.includes('"attachment":')) {
+          snippet = "📎 [Document / Photo Attached]";
+        }
+        const isSelected = activeChatPartner && activeChatPartner.partnerId === t.partnerId;
+
+        return `
+          <div class="wa-thread-item ${isSelected ? "active" : ""}" data-partner-id="${escapeHtml(t.partnerId)}">
+            <div class="wa-avatar" style="width:38px; height:38px; font-size:13px;">
+              ${
+                t.profile.avatar_url
+                  ? `<img src="${escapeHtml(t.profile.avatar_url)}" alt="${escapeHtml(name)}" />`
+                  : escapeHtml(initials(name))
+              }
+            </div>
+            <div class="wa-thread-details">
+              <div class="wa-thread-top">
+                <strong>${escapeHtml(name)} (${escapeHtml(t.profile.blood_group || "✚")})</strong>
+                <small>${formatTime(t.lastMessage.created_at)}</small>
+              </div>
+              <div class="wa-thread-snippet">${escapeHtml(snippet)}</div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    list.querySelectorAll(".wa-thread-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const pId = item.dataset.partnerId;
+        const thread = threads.find((t) => t.partnerId === pId);
+        if (thread) selectChatPartner(thread);
+      });
+    });
+  }
+
+  async function selectChatPartner(thread) {
+    activeChatPartner = thread;
+    $$(".wa-thread-item").forEach((el) => {
+      el.classList.toggle("active", el.dataset.partnerId === thread.partnerId);
+    });
+
+    const name = thread.profile.full_name || "Donor Contact";
+    if ($("dash-wa-contact-name")) {
+      $("dash-wa-contact-name").textContent = `${name} (${thread.profile.blood_group || "Blood Network"})`;
+    }
+    if ($("dash-wa-avatar")) $("dash-wa-avatar").textContent = initials(name);
+
+    const callBtn = $("dash-wa-call-btn");
+    if (callBtn) {
+      if (thread.profile.phone) {
+        callBtn.href = `tel:${safePhone(thread.profile.phone)}`;
+        callBtn.style.display = "inline-grid";
+      } else {
+        callBtn.style.display = "none";
+      }
     }
 
-    const messages = data || [];
-    if (badge) badge.textContent = messages.filter((message) => message.recipient_id === currentUser.id && !message.read_at).length;
+    clearDashAttachmentStaging();
+    await loadActiveChatMessages();
+  }
+
+  async function loadActiveChatMessages() {
+    if (!currentUser || !activeChatPartner) return;
+    const container = $("dash-wa-messages-container");
+    if (!container) return;
+
+    try {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .or(
+          `and(sender_id.eq.${currentUser.id},recipient_id.eq.${activeChatPartner.partnerId}),and(sender_id.eq.${activeChatPartner.partnerId},recipient_id.eq.${currentUser.id})`
+        )
+        .order("created_at", { ascending: true })
+        .limit(60);
+
+      renderDashChatMessages(data || []);
+    } catch (e) {}
+  }
+
+  async function pollActiveChat() {
+    if (activeChatPartner && $("messages-tab-content") && !$("messages-tab-content").classList.contains("hidden")) {
+      await loadActiveChatMessages();
+    }
+  }
+
+  function renderDashChatMessages(messages) {
+    const container = $("dash-wa-messages-container");
+    if (!container) return;
+
     if (!messages.length) {
-      list.innerHTML = `<div class="empty-state"><div>✉</div><h3>No messages yet</h3><p>When someone contacts you about a blood request, the conversation will appear here.</p></div>`;
-      return;
-    }
-
-    list.innerHTML = "";
-    messages.forEach((message) => {
-      const thread = document.createElement("article");
-      thread.className = "message-thread";
-      thread.innerHTML = `
-        <div class="message-thread-head">
-          <strong>${message.sender_id === currentUser.id ? "You sent a message" : "Incoming blood-network message"}</strong>
-          <small>${formatDate(message.created_at)}</small>
-        </div>
-        <p>${escapeHtml(message.body || "")}</p>
-        <div class="request-card-actions">
-          <button type="button" class="btn btn-light reply-message-btn" style="font-size:12px;padding:8px 14px;">Reply</button>
+      container.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#667781; font-size:12px;">
+          <div>💬</div>
+          <p>No messages yet. Send a message or attach a prescription below.</p>
         </div>
       `;
-      thread.querySelector(".reply-message-btn")?.addEventListener("click", () => {
-        openReplyModal(message);
-      });
-      list.appendChild(thread);
-    });
-  }
-
-  function openReplyModal(message) {
-    if (!message || !currentUser) return;
-    const recipientId = message.sender_id === currentUser.id
-      ? message.recipient_id
-      : message.sender_id;
-    if (!recipientId || recipientId === currentUser.id) {
-      toast("This message does not have another account to reply to.", "info");
       return;
     }
-    replyTarget = {
-      recipientId,
-      requestId: message.request_id || null
-    };
-    if ($("reply-title")) {
-      $("reply-title").textContent = message.sender_id === currentUser.id
-        ? "Continue the conversation"
-        : "Reply to message";
+
+    container.innerHTML = messages
+      .map((msg) => {
+        const isOutgoing = msg.sender_id === currentUser.id;
+        let textContent = msg.body || "";
+        let attachment = null;
+
+        if (textContent.startsWith("{") && textContent.includes('"attachment":')) {
+          try {
+            const parsed = JSON.parse(textContent);
+            textContent = parsed.text || "";
+            attachment = parsed.attachment || null;
+          } catch (e) {}
+        }
+
+        if (!attachment && msg.attachment_url) {
+          attachment = {
+            url: msg.attachment_url,
+            name: msg.attachment_name || "Attachment",
+            type: msg.attachment_type || "",
+            size: msg.attachment_size || 0
+          };
+        }
+
+        let attachmentHtml = "";
+        if (attachment) {
+          if (attachment.type && attachment.type.startsWith("image/")) {
+            attachmentHtml = `
+              <div class="wa-attachment-box">
+                <a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener">
+                  <img src="${escapeHtml(attachment.url)}" class="wa-image-attachment" alt="Prescription" />
+                </a>
+              </div>
+            `;
+          } else {
+            attachmentHtml = `
+              <div class="wa-attachment-box">
+                <div class="wa-doc-attachment">
+                  <div class="wa-doc-icon">📄</div>
+                  <div class="wa-doc-info">
+                    <strong>${escapeHtml(attachment.name || "Document.pdf")}</strong>
+                    <small>${formatBytes(attachment.size)}</small>
+                  </div>
+                  <a href="${escapeHtml(attachment.url)}" download="${escapeHtml(attachment.name)}" class="wa-doc-download" target="_blank">Download</a>
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        return `
+          <div class="wa-bubble-row">
+            <div class="wa-bubble ${isOutgoing ? "outgoing" : "incoming"}">
+              ${attachmentHtml}
+              ${textContent ? `<div>${escapeHtml(textContent)}</div>` : ""}
+              <div class="wa-bubble-meta">
+                <span>${formatTime(msg.created_at)}</span>
+                ${isOutgoing ? `<span class="wa-blue-ticks">✓✓</span>` : ""}
+              </div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    const body = $("dash-wa-chat-body");
+    if (body) body.scrollTop = body.scrollHeight;
+  }
+
+  function clearDashAttachmentStaging() {
+    dashCurrentAttachment = null;
+    const staging = $("dash-wa-attachment-staging");
+    if (staging) staging.style.display = "none";
+    const fileInput = $("dash-wa-file-input");
+    if (fileInput) fileInput.value = "";
+  }
+
+  async function handleSendDashWhatsAppMessage(e) {
+    e.preventDefault();
+    if (!currentUser || !activeChatPartner) return;
+
+    const input = $("dash-wa-input");
+    const text = input?.value?.trim() || "";
+
+    if (!text && !dashCurrentAttachment) {
+      toast("Please enter a message or attach a file.", "info");
+      return;
     }
-    $("reply-modal")?.classList.remove("hidden");
-    $("reply-body")?.focus();
-  }
 
-  function closeReplyModal() {
-    $("reply-modal")?.classList.add("hidden");
-    replyTarget = null;
-    $("reply-form")?.reset();
-  }
+    const sendBtn = $("dash-wa-send-btn");
+    if (sendBtn) sendBtn.disabled = true;
 
-  async function sendReply(event) {
-    event.preventDefault();
-    if (!currentUser || !replyTarget) return;
-    const body = $("reply-body")?.value?.trim() || "";
-    if (!body) return;
-    const button = $("send-reply-btn");
-    setLoading(button, true, "Sending…");
-    const { error } = await supabase.from("messages").insert({
+    const payload = {
       sender_id: currentUser.id,
-      recipient_id: replyTarget.recipientId,
-      request_id: replyTarget.requestId,
-      body
-    });
-    setLoading(button, false);
+      recipient_id: activeChatPartner.partnerId,
+      body: dashCurrentAttachment ? JSON.stringify({ text, attachment: dashCurrentAttachment }) : text
+    };
+
+    if (dashCurrentAttachment) {
+      payload.attachment_url = dashCurrentAttachment.url;
+      payload.attachment_name = dashCurrentAttachment.name;
+      payload.attachment_type = dashCurrentAttachment.type;
+      payload.attachment_size = dashCurrentAttachment.size;
+    }
+
+    let { error } = await supabase.from("messages").insert(payload);
+
+    if (error && /attachment_/i.test(error.message || "")) {
+      delete payload.attachment_url;
+      delete payload.attachment_name;
+      delete payload.attachment_type;
+      delete payload.attachment_size;
+      const retry = await supabase.from("messages").insert(payload);
+      error = retry.error;
+    }
+
+    if (sendBtn) sendBtn.disabled = false;
+
     if (error) {
-      console.error("Reply send error:", error);
-      toast(error.message || "Could not send reply.", "error");
+      console.error("Dashboard message send error:", error);
+      toast("Could not deliver message.", "error");
       return;
     }
-    closeReplyModal();
-    toast("Reply sent.", "success");
-    await loadMessages();
+
+    if (input) input.value = "";
+    clearDashAttachmentStaging();
+    toast("Delivered via WhatsApp network.", "success");
+    await loadActiveChatMessages();
+  }
+
+  function handleDashFileSelect(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast("File size should be under 5MB.", "error");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      dashCurrentAttachment = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: e.target.result
+      };
+
+      const staging = $("dash-wa-attachment-staging");
+      const nameEl = $("dash-wa-staging-name");
+      const sizeEl = $("dash-wa-staging-size");
+      const thumbEl = $("dash-wa-staging-thumb");
+      const iconEl = $("dash-wa-staging-icon");
+
+      if (nameEl) nameEl.textContent = file.name;
+      if (sizeEl) sizeEl.textContent = formatBytes(file.size);
+
+      if (file.type.startsWith("image/") && thumbEl && iconEl) {
+        thumbEl.src = e.target.result;
+        thumbEl.style.display = "block";
+        iconEl.style.display = "none";
+      } else if (thumbEl && iconEl) {
+        thumbEl.style.display = "none";
+        iconEl.style.display = "inline";
+        iconEl.textContent = "📄";
+      }
+
+      if (staging) staging.style.display = "flex";
+      toast(`Attached: ${file.name}`, "info");
+    };
+
+    reader.readAsDataURL(file);
   }
 
   // ==============================
@@ -525,7 +824,6 @@
 
       userRequests = data || [];
 
-      // Update counters - active requests decrease when cancelled or fulfilled
       const activeCount = userRequests.filter((r) => r.status === "open").length;
       if (badge) badge.textContent = activeCount;
       if (infoCount) infoCount.textContent = `${activeCount} active (${userRequests.length} total)`;
@@ -638,36 +936,18 @@
         </div>
       `;
 
-      // Event listeners for actions
-      card.querySelector(".edit-req-btn")?.addEventListener("click", () => {
-        openEditRequestModal(req);
-      });
-
-      card.querySelector(".fulfill-req-btn")?.addEventListener("click", () => {
-        updateRequestStatus(req.id, "fulfilled", "Mark this request as fulfilled? (This means you have found blood and donors will no longer be contacted.)");
-      });
-
-      card.querySelector(".cancel-req-btn")?.addEventListener("click", () => {
-        updateRequestStatus(req.id, "cancelled", "Are you sure you want to cancel this blood request? It will be marked as cancelled.");
-      });
-
-      card.querySelector(".reopen-req-btn")?.addEventListener("click", () => {
-        updateRequestStatus(req.id, "open", "Re-open this blood request so it appears active in emergency searches again?");
-      });
-
-      card.querySelector(".delete-req-btn")?.addEventListener("click", () => {
-        deleteRequest(req.id);
-      });
+      card.querySelector(".edit-req-btn")?.addEventListener("click", () => openEditRequestModal(req));
+      card.querySelector(".fulfill-req-btn")?.addEventListener("click", () => updateRequestStatus(req.id, "fulfilled", "Mark this request as fulfilled?"));
+      card.querySelector(".cancel-req-btn")?.addEventListener("click", () => updateRequestStatus(req.id, "cancelled", "Are you sure you want to cancel this request?"));
+      card.querySelector(".reopen-req-btn")?.addEventListener("click", () => updateRequestStatus(req.id, "open", "Re-open this blood request?"));
+      card.querySelector(".delete-req-btn")?.addEventListener("click", () => deleteRequest(req.id));
 
       listContainer.appendChild(card);
     });
   }
 
-  // Delete request permanently
   async function deleteRequest(requestId) {
-    if (!confirm("Are you sure you want to permanently delete this blood request? This action cannot be undone.")) {
-      return;
-    }
+    if (!confirm("Are you sure you want to permanently delete this blood request?")) return;
 
     try {
       const { error } = await supabase
@@ -677,24 +957,19 @@
         .eq("requester_id", currentUser.id);
 
       if (error) {
-        console.error("Delete request error:", error);
-        toast(error.message || "Failed to delete blood request.", "error");
+        toast(error.message || "Failed to delete request.", "error");
         return;
       }
 
       toast("Blood request deleted permanently.", "info");
       await loadUserRequests();
     } catch (err) {
-      console.error("Delete request exception:", err);
       toast("Error deleting request.", "error");
     }
   }
 
-  // Update status (cancel, fulfill, reopen)
   async function updateRequestStatus(requestId, newStatus, confirmMessage) {
-    if (confirmMessage && !confirm(confirmMessage)) {
-      return;
-    }
+    if (confirmMessage && !confirm(confirmMessage)) return;
 
     try {
       const { error } = await supabase
@@ -704,28 +979,16 @@
         .eq("requester_id", currentUser.id);
 
       if (error) {
-        console.error("Status update error:", error);
-        toast(error.message || "Failed to update request status.", "error");
+        toast(error.message || "Failed to update status.", "error");
         return;
       }
 
-      const statusLabels = {
-        open: "Request re-opened and active.",
-        fulfilled: "Request marked as fulfilled! Thank you for updating.",
-        cancelled: "Blood request has been cancelled."
-      };
-
-      toast(statusLabels[newStatus] || "Status updated.", "success");
+      toast("Status updated.", "success");
       await loadUserRequests();
     } catch (err) {
-      console.error("Status update exception:", err);
       toast("Error updating status.", "error");
     }
   }
-
-  // ==============================
-  // EDIT REQUEST MODAL
-  // ==============================
 
   function openEditRequestModal(request) {
     if (!request) return;
@@ -792,7 +1055,6 @@
       setLoading(saveBtn, false);
 
       if (error) {
-        console.error("Save request error:", error);
         toast(error.message || "Failed to update blood request.", "error");
         return;
       }
@@ -802,7 +1064,6 @@
       await loadUserRequests();
     } catch (err) {
       setLoading(saveBtn, false);
-      console.error("Save request exception:", err);
       toast("Error updating blood request.", "error");
     }
   }
@@ -825,29 +1086,18 @@
 
       currentUser = data.session.user;
 
-      // Update header email
-      if ($("header-user-email")) {
-        $("header-user-email").textContent = currentUser.email;
-      }
-      if ($("info-account-email")) {
-        $("info-account-email").textContent = currentUser.email;
-      }
+      if ($("header-user-email")) $("header-user-email").textContent = currentUser.email;
+      if ($("info-account-email")) $("info-account-email").textContent = currentUser.email;
 
-      // Check user metadata for stored avatar
       if (currentUser.user_metadata?.avatar_url) {
         currentAvatarUrl = currentUser.user_metadata.avatar_url;
       }
 
-      // Fetch donor profile from database
-      const { data: profile, error: profileErr } = await supabase
+      const { data: profile } = await supabase
         .from("donor_profiles")
         .select("*")
         .eq("user_id", currentUser.id)
         .maybeSingle();
-
-      if (profileErr) {
-        console.warn("Could not fetch donor profile:", profileErr);
-      }
 
       currentProfile = profile;
 
@@ -861,9 +1111,7 @@
         if ($("edit-available")) $("edit-available").checked = !!profile.available;
         if ($("edit-consent")) $("edit-consent").checked = profile.consent !== false;
 
-        if (profile.avatar_url) {
-          currentAvatarUrl = profile.avatar_url;
-        }
+        if (profile.avatar_url) currentAvatarUrl = profile.avatar_url;
 
         if ($("info-profile-status")) {
           $("info-profile-status").textContent = profile.verified ? "Verified Donor" : "Registered Donor";
@@ -879,8 +1127,6 @@
       }
 
       updateLivePreview();
-
-      // Load user requests in background
       await loadUserRequests();
     } catch (err) {
       console.error("Dashboard initialization error:", err);
@@ -914,7 +1160,7 @@
 
     if (!fullName || !bloodGroup || !district || !phone) {
       setLoading(saveBtn, false);
-      toast("Please fill in all required fields (Name, Blood Group, District, Phone).", "error");
+      toast("Please fill in required fields (Name, Blood Group, District, Phone).", "error");
       return;
     }
 
@@ -927,19 +1173,12 @@
     try {
       const targetAvatar = isAvatarRemoved ? null : currentAvatarUrl;
 
-      // 1. Update user metadata in Supabase Auth
       try {
         await supabase.auth.updateUser({
-          data: {
-            avatar_url: targetAvatar,
-            full_name: fullName
-          }
+          data: { avatar_url: targetAvatar, full_name: fullName }
         });
-      } catch (authErr) {
-        console.warn("Could not update auth metadata:", authErr);
-      }
+      } catch (authErr) {}
 
-      // 2. Prepare payload for donor_profiles table
       const payload = {
         user_id: currentUser.id,
         full_name: fullName,
@@ -960,20 +1199,11 @@
           : {})
       };
 
-      let { error } = await supabase
-        .from("donor_profiles")
-        .upsert(payload, {
-          onConflict: "user_id"
-        });
+      let { error } = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
 
       if (error && (error.message?.includes("avatar_url") || error.details?.includes("avatar_url"))) {
-        console.warn("avatar_url column not found in database table, updating without it.");
         delete payload.avatar_url;
-        const retryResult = await supabase
-          .from("donor_profiles")
-          .upsert(payload, {
-            onConflict: "user_id"
-          });
+        const retryResult = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
         error = retryResult.error;
       }
 
@@ -981,16 +1211,13 @@
         delete payload.location_lat;
         delete payload.location_lng;
         delete payload.location_accuracy;
-        const retryResult = await supabase
-          .from("donor_profiles")
-          .upsert(payload, { onConflict: "user_id" });
+        const retryResult = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
         error = retryResult.error;
       }
 
       setLoading(saveBtn, false);
 
       if (error) {
-        console.error("Profile save error:", error);
         toast(error.message || "Failed to save profile.", "error");
         return;
       }
@@ -1000,49 +1227,38 @@
       updateLivePreview();
     } catch (err) {
       setLoading(saveBtn, false);
-      console.error("Save profile exception:", err);
       toast(err.message || "An unexpected error occurred.", "error");
     }
   }
-
-  // ==============================
-  // SIGN OUT
-  // ==============================
 
   async function handleSignOut() {
     try {
       await supabase.auth.signOut();
       window.location.href = "index.html";
     } catch (err) {
-      console.error("Sign out error:", err);
       window.location.href = "index.html";
     }
   }
 
   // ==============================
-  // CONNECT EVENT LISTENERS
+  // WIRE DASHBOARD
   // ==============================
 
   function wireDashboard() {
-    // Tab buttons
     $("tab-profile-btn")?.addEventListener("click", () => switchTab("profile"));
     $("tab-requests-btn")?.addEventListener("click", () => switchTab("requests"));
     $("tab-messages-btn")?.addEventListener("click", () => switchTab("messages"));
     $("switch-to-requests-btn")?.addEventListener("click", () => switchTab("requests"));
     $("detect-profile-location")?.addEventListener("click", detectProfileLocation);
+
     $("language-toggle")?.addEventListener("click", () => {
       applyLanguage(currentLanguage === "en" ? "bn" : "en");
     });
-    $("reply-form")?.addEventListener("submit", sendReply);
-    $("close-reply-modal-btn")?.addEventListener("click", closeReplyModal);
-    $("close-reply-modal-backdrop")?.addEventListener("click", closeReplyModal);
     wireAssistant();
     applyLanguage();
 
-    // Profile form submission
     $("profile-edit-form")?.addEventListener("submit", submitProfile);
 
-    // Live preview inputs
     ["edit-name", "edit-blood", "edit-district", "edit-area", "edit-phone", "edit-last"].forEach((id) => {
       const el = $(id);
       el?.addEventListener("input", updateLivePreview);
@@ -1055,9 +1271,7 @@
     const chooseAvatarBtn = $("choose-avatar-btn");
     const avatarInput = $("avatar-file-input");
 
-    chooseAvatarBtn?.addEventListener("click", () => {
-      avatarInput?.click();
-    });
+    chooseAvatarBtn?.addEventListener("click", () => avatarInput?.click());
 
     avatarInput?.addEventListener("change", async (e) => {
       const file = e.target.files?.[0];
@@ -1071,12 +1285,10 @@
         updateAvatarDisplay(currentAvatarUrl, $("edit-name")?.value);
         toast("Photo ready! Click 'Save profile changes' to persist.", "success");
       } catch (err) {
-        console.error("Avatar process error:", err);
         toast(err.message || "Could not process photo.", "error");
       }
     });
 
-    // Remove avatar button
     $("remove-avatar-btn")?.addEventListener("click", () => {
       currentAvatarUrl = null;
       isAvatarRemoved = true;
@@ -1091,8 +1303,259 @@
     $("close-edit-modal-backdrop")?.addEventListener("click", closeEditRequestModal);
     $("cancel-edit-modal-btn")?.addEventListener("click", closeEditRequestModal);
 
+    // WhatsApp Dashboard Events
+    $("dash-wa-chat-form")?.addEventListener("submit", handleSendDashWhatsAppMessage);
+    $("dash-wa-attach-btn")?.addEventListener("click", () => $("dash-wa-file-input")?.click());
+    $("dash-wa-file-input")?.addEventListener("change", handleDashFileSelect);
+    $("dash-wa-remove-file")?.addEventListener("click", clearDashAttachmentStaging);
+
+    // Filter conversations
+    $("wa-search-contacts")?.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = conversationThreads.filter((t) => {
+        const name = (t.profile.full_name || "").toLowerCase();
+        const blood = (t.profile.blood_group || "").toLowerCase();
+        return name.includes(q) || blood.includes(q);
+      });
+      renderWhatsAppThreads(filtered);
+    });
+
     // Sign out button
     $("dash-signout-btn")?.addEventListener("click", handleSignOut);
+
+    // Slide-over Navigation Menu Drawer
+    const navMenuBtn = $("nav-menu-toggle-btn") || $("menu-trigger-btn");
+    const navDrawer = $("nav-menu-drawer");
+    const navBackdrop = $("nav-drawer-backdrop");
+    const navClose = $("nav-drawer-close");
+
+    function openNavDrawer() {
+      navDrawer?.classList.remove("hidden");
+      navMenuBtn?.setAttribute("aria-expanded", "true");
+      navMenuBtn?.classList.add("is-active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeNavDrawer() {
+      navDrawer?.classList.add("hidden");
+      navMenuBtn?.setAttribute("aria-expanded", "false");
+      navMenuBtn?.classList.remove("is-active");
+      document.body.style.overflow = "";
+    }
+
+    navMenuBtn?.addEventListener("click", () => {
+      if (navDrawer?.classList.contains("hidden")) {
+        openNavDrawer();
+      } else {
+        closeNavDrawer();
+      }
+    });
+
+    navClose?.addEventListener("click", closeNavDrawer);
+    navBackdrop?.addEventListener("click", closeNavDrawer);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !navDrawer?.classList.contains("hidden")) {
+        closeNavDrawer();
+      }
+    });
+  }
+
+  // ==============================
+  // AMBIENT FLUID BLOOD CANVAS & PARTICLES
+  // ==============================
+
+  function initAmbientCanvas() {
+    const wrapper = document.querySelector(".bg-animation-wrapper");
+    if (!wrapper) return;
+
+    let canvas = document.getElementById("ambient-blood-canvas");
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.id = "ambient-blood-canvas";
+      canvas.className = "ambient-blood-canvas";
+      wrapper.prepend(canvas);
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let animationFrameId = null;
+    let isVisible = true;
+
+    const mouse = { x: -1000, y: -1000, targetX: -1000, targetY: -1000, active: false };
+
+    function onMouseMove(e) {
+      mouse.targetX = e.clientX;
+      mouse.targetY = e.clientY;
+      mouse.active = true;
+    }
+
+    function onMouseLeave() {
+      mouse.targetX = -1000;
+      mouse.targetY = -1000;
+      mouse.active = false;
+    }
+
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    document.addEventListener("mouseleave", onMouseLeave, { passive: true });
+
+    const CELL_COUNT = Math.max(14, Math.min(28, Math.floor(window.innerWidth / 50)));
+    const PARTICLE_COUNT = Math.max(16, Math.min(32, Math.floor(window.innerWidth / 45)));
+    const cells = [];
+    const particles = [];
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+
+    window.addEventListener("resize", () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      resize();
+    });
+    resize();
+
+    for (let i = 0; i < CELL_COUNT; i++) {
+      cells.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: 16 + Math.random() * 26,
+        angle: Math.random() * Math.PI * 2,
+        angularSpeed: (Math.random() - 0.5) * 0.008,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: -0.25 - Math.random() * 0.5,
+        opacity: 0.28 + Math.random() * 0.24,
+        wobblePhase: Math.random() * Math.PI * 2,
+        wobbleSpeed: 0.015 + Math.random() * 0.02,
+        aspectRatio: 0.72 + Math.random() * 0.24,
+        repelX: 0,
+        repelY: 0
+      });
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: 2 + Math.random() * 2.5,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -0.35 - Math.random() * 0.5,
+        opacity: 0.35 + Math.random() * 0.45,
+        glow: Math.random() > 0.4 ? "rgba(239, 68, 68, " : "rgba(251, 146, 60, ",
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.03 + Math.random() * 0.04
+      });
+    }
+
+    let lastTime = performance.now();
+
+    function render(currentTime) {
+      if (!isVisible) return;
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+      lastTime = currentTime;
+
+      mouse.x += (mouse.targetX - mouse.x) * 0.1;
+      mouse.y += (mouse.targetY - mouse.y) * 0.1;
+
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < cells.length; i++) {
+        const c = cells[i];
+        const dx = c.x - mouse.x;
+        const dy = c.y - mouse.y;
+        const dist = Math.hypot(dx, dy);
+        const maxDist = 140;
+
+        if (dist < maxDist && dist > 1) {
+          const force = (1 - dist / maxDist) * 35;
+          c.repelX += (dx / dist) * force * dt;
+          c.repelY += (dy / dist) * force * dt;
+        }
+
+        c.repelX *= 0.94;
+        c.repelY *= 0.94;
+
+        c.wobblePhase += c.wobbleSpeed;
+        c.x += c.vx + Math.sin(c.wobblePhase) * 0.4 + c.repelX;
+        c.y += c.vy + c.repelY;
+        c.angle += c.angularSpeed;
+
+        if (c.y < -c.r * 2) {
+          c.y = height + c.r * 2;
+          c.x = Math.random() * width;
+        }
+        if (c.x < -c.r * 2) c.x = width + c.r * 2;
+        if (c.x > width + c.r * 2) c.x = -c.r * 2;
+
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.angle);
+        ctx.scale(1, c.aspectRatio);
+
+        const grad = ctx.createRadialGradient(0, 0, c.r * 0.22, 0, 0, c.r);
+        grad.addColorStop(0, `rgba(254, 202, 202, ${c.opacity * 0.85})`);
+        grad.addColorStop(0.55, `rgba(239, 68, 68, ${c.opacity})`);
+        grad.addColorStop(0.85, `rgba(220, 38, 38, ${c.opacity * 0.95})`);
+        grad.addColorStop(1, `rgba(185, 28, 28, 0)`);
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, c.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, c.r * 0.38, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(185, 28, 28, ${c.opacity * 0.45})`;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      for (let j = 0; j < particles.length; j++) {
+        const p = particles[j];
+        p.pulse += p.pulseSpeed;
+        p.x += p.vx + Math.cos(p.pulse) * 0.3;
+        p.y += p.vy;
+
+        if (p.y < -10) {
+          p.y = height + 10;
+          p.x = Math.random() * width;
+        }
+
+        const currentOpacity = p.opacity * (0.65 + 0.35 * Math.sin(p.pulse));
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.glow + currentOpacity + ")";
+        ctx.shadowColor = p.glow + "0.6)";
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    }
+
+    animationFrameId = requestAnimationFrame(render);
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        isVisible = false;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      } else {
+        isVisible = true;
+        lastTime = performance.now();
+        animationFrameId = requestAnimationFrame(render);
+      }
+    });
   }
 
   // ==============================
@@ -1101,10 +1564,12 @@
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
+      initAmbientCanvas();
       wireDashboard();
       loadDashboard();
     }, { once: true });
   } else {
+    initAmbientCanvas();
     wireDashboard();
     loadDashboard();
   }
