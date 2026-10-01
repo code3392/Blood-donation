@@ -1552,7 +1552,36 @@
     });
 
     $("locked-login")?.addEventListener("click", () => openAuth("signin"));
+    $("drawer-signin-btn")?.addEventListener("click", (e) => { 
+      e.preventDefault(); 
+      const navDrawer = $("nav-menu-drawer");
+      if (navDrawer && !navDrawer.classList.contains("hidden")) {
+        navDrawer.classList.add("hidden");
+        $("menu-trigger-btn")?.setAttribute("aria-expanded", "false");
+        $("menu-trigger-btn")?.classList.remove("is-active");
+        document.body.style.overflow = "";
+      }
+      openAuth("signup"); 
+    });
     $("switch-auth")?.addEventListener("click", () => openAuth(authMode === "signin" ? "signup" : "signin"));
+
+    // Dashboard links check: if user is not registered / logged in, take them to sign in
+    $$('a[href="dashboard.html"]').forEach((link) => {
+      link.addEventListener("click", (e) => {
+        if (!currentUser) {
+          e.preventDefault();
+          const navDrawer = $("nav-menu-drawer");
+          if (navDrawer && !navDrawer.classList.contains("hidden")) {
+            navDrawer.classList.add("hidden");
+            $("menu-trigger-btn")?.setAttribute("aria-expanded", "false");
+            $("menu-trigger-btn")?.classList.remove("is-active");
+            document.body.style.overflow = "";
+          }
+          toast("Please sign in or register to access the dashboard.", "info");
+          openAuth("signin");
+        }
+      });
+    });
 
     // Forms
     $("auth-form")?.addEventListener("submit", submitAuth);
@@ -1893,6 +1922,25 @@
     await loadSession();
     await refreshStats();
     await loadBloodRequests();
+
+    // Auto-open auth modal when requested via URL query param or hash
+    function checkUrlAuthTriggers() {
+      if (currentUser) return;
+      const params = new URLSearchParams(window.location.search);
+      const authParam = (params.get("auth") || "").toLowerCase();
+      const hash = (window.location.hash || "").toLowerCase();
+
+      if (authParam === "signup" || authParam === "register" || hash === "#register" || hash === "#signup") {
+        setTimeout(() => openAuth("signup"), 300);
+        if (authParam) history.replaceState({}, "", window.location.pathname + window.location.hash);
+      } else if (authParam === "1" || authParam === "signin" || authParam === "login" || hash === "#login" || hash === "#signin" || hash === "#auth") {
+        setTimeout(() => openAuth("signin"), 300);
+        if (authParam) history.replaceState({}, "", window.location.pathname + window.location.hash);
+      }
+    }
+
+    checkUrlAuthTriggers();
+    window.addEventListener("hashchange", checkUrlAuthTriggers);
   }
 
   if (document.readyState === "loading") {
