@@ -21,26 +21,122 @@
   </div>
 
   <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Lifeline home">
-      <span class="brand-mark">✚</span>
-      <span>
-        <strong>Lifeline</strong>
-        <small>Privacy & Trust</small>
-      </span>
-    </a>
+    <div class="header-brand-group">
+      <a class="brand" href="index.html" aria-label="Lifeline home">
+        <span class="brand-mark">✚</span>
+        <span>
+          <strong>Lifeline</strong>
+          <small>Privacy & Trust</small>
+        </span>
+      </a>
 
-    <nav id="main-nav" class="main-nav">
-      <a href="index.html">Home</a>
-      <a href="index.html#find">Find Donors</a>
-      <a href="diseases.html">Disease Info</a>
-      <a href="index.html#request">Request Blood</a>
-      <a href="index.html#donate">Become a Donor</a>
-    </nav>
+      <!-- Menu Button that hides all 7 buttons behind 1 clean button -->
+      <button class="menu-trigger-btn" id="menu-trigger-btn" type="button" aria-label="Explore pages" aria-expanded="false">
+        <span class="menu-burger" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
+      </button>
+    </div>
 
     <div class="header-actions">
       <a href="index.html" class="btn btn-light">← Back to Site</a>
     </div>
   </header>
+
+  <!-- Slide-over Navigation Menu Drawer -->
+  <div id="nav-menu-drawer" class="nav-menu-drawer hidden" aria-hidden="true">
+    <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+    <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="nav-drawer-header">
+        <div class="drawer-brand">
+          <span class="brand-mark">✚</span>
+          <strong>Lifeline Portal</strong>
+        </div>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="nav-drawer-links">
+        <a href="index.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🏠</span>
+          <div>
+            <strong>Home</strong>
+            <small>Main emergency landing page</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Find Donors</strong>
+            <small>Search blood donors by group & district</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="requests.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📋</span>
+          <div>
+            <strong>Requested Blood</strong>
+            <small>View live open blood emergencies</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="request-blood.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🩸</span>
+          <div>
+            <strong>Request Blood</strong>
+            <small>Post an urgent request with auto-matching</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="donate.html" class="drawer-link-item">
+          <span class="drawer-link-icon">❤️</span>
+          <div>
+            <strong>Become a Donor</strong>
+            <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="diseases.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📖</span>
+          <div>
+            <strong>Disease Info & Medical Guide</strong>
+            <small>Scientific compatibility matrix & diseases</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="how-it-works.html" class="drawer-link-item">
+          <span class="drawer-link-icon">⚙️</span>
+          <div>
+            <strong>How It Works</strong>
+            <small>Step-by-step coordination guide</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="dashboard.html" class="drawer-link-item">
+          <span class="drawer-link-icon">💬</span>
+          <div>
+            <strong>Dashboard & Messages</strong>
+            <small>Manage your profile & chat threads</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="nav-drawer-footer">
+        <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
+        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+      </div>
+    </div>
+  </div>
 
   <main style="padding: 40px 7vw 80px;">
     <div class="legal-content-card">
@@ -118,5 +214,42 @@
       </div>
     </div>
   </footer>
+
+  <script>
+    const navMenuBtn = document.getElementById("menu-trigger-btn");
+    const navDrawer = document.getElementById("nav-menu-drawer");
+    const navBackdrop = document.getElementById("nav-drawer-backdrop");
+    const navClose = document.getElementById("nav-drawer-close");
+
+    function openNavDrawer() {
+      navDrawer?.classList.remove("hidden");
+      navMenuBtn?.setAttribute("aria-expanded", "true");
+      navMenuBtn?.classList.add("is-active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeNavDrawer() {
+      navDrawer?.classList.add("hidden");
+      navMenuBtn?.setAttribute("aria-expanded", "false");
+      navMenuBtn?.classList.remove("is-active");
+      document.body.style.overflow = "";
+    }
+
+    navMenuBtn?.addEventListener("click", () => {
+      if (navDrawer?.classList.contains("hidden")) {
+        openNavDrawer();
+      } else {
+        closeNavDrawer();
+      }
+    });
+
+    navClose?.addEventListener("click", closeNavDrawer);
+    navBackdrop?.addEventListener("click", closeNavDrawer);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !navDrawer?.classList.contains("hidden")) {
+        closeNavDrawer();
+      }
+    });
+  </script>
 </body>
 </html>
