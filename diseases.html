@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#b91c1c" />
-  <meta name="description" content="Medical guidance on blood-related diseases, transfusion protocols, donor compatibility (Figure 6.12), and emergency care in Bangladesh." />
+  <meta name="description" content="Medical guidance on blood-related diseases, transfusion protocols, donor compatibility standards, and emergency care worldwide." />
   <title>Disease & Blood Guide — Lifeline</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,29 +38,123 @@
   </div>
 
   <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Lifeline home">
-      <span class="brand-mark">✚</span>
-      <span>
-        <strong>Lifeline</strong>
-        <small>Medical Knowledge</small>
-      </span>
-    </a>
+    <div class="header-brand-group">
+      <a class="brand" href="index.html" aria-label="Lifeline home">
+        <span class="brand-mark">✚</span>
+        <span>
+          <strong>Lifeline</strong>
+          <small>Medical Knowledge</small>
+        </span>
+      </a>
 
-    <nav id="main-nav" class="main-nav">
-      <a href="index.html">Home</a>
-      <a href="index.html#find">Find Donors</a>
-      <a href="diseases.html" class="active">Disease Info</a>
-      <a href="index.html#live-requests-preview">Requested Blood</a>
-      <a href="index.html#request">Request Blood</a>
-      <a href="index.html#donate">Become a Donor</a>
-    </nav>
+      <!-- Menu Button that hides all 7 buttons behind 1 clean button -->
+      <button class="menu-trigger-btn" id="menu-trigger-btn" type="button" aria-label="Explore pages" aria-expanded="false">
+        <span class="menu-burger" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
+      </button>
+    </div>
 
     <div class="header-actions">
-      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Change language">বাংলা</button>
       <a href="index.html#login" class="btn btn-ghost" id="login-btn">Sign in</a>
-      <a href="index.html#request" class="btn btn-primary">Request Blood</a>
+      <a href="request-blood.html" class="btn btn-primary">Request Blood</a>
     </div>
   </header>
+
+  <!-- Slide-over Navigation Menu Drawer -->
+  <div id="nav-menu-drawer" class="nav-menu-drawer hidden" aria-hidden="true">
+    <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+    <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="nav-drawer-header">
+        <div class="drawer-brand">
+          <span class="brand-mark">✚</span>
+          <strong>Lifeline Portal</strong>
+        </div>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="nav-drawer-links">
+        <a href="index.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🏠</span>
+          <div>
+            <strong>Home</strong>
+            <small>Main emergency landing page</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Find Donors</strong>
+            <small>Search blood donors by group & district</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="requests.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📋</span>
+          <div>
+            <strong>Requested Blood</strong>
+            <small>View live open blood emergencies</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="request-blood.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🩸</span>
+          <div>
+            <strong>Request Blood</strong>
+            <small>Post an urgent request with auto-matching</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="donate.html" class="drawer-link-item">
+          <span class="drawer-link-icon">❤️</span>
+          <div>
+            <strong>Become a Donor</strong>
+            <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="diseases.html" class="drawer-link-item active">
+          <span class="drawer-link-icon">📖</span>
+          <div>
+            <strong>Disease Info & Medical Guide</strong>
+            <small>Scientific compatibility matrix & diseases</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="how-it-works.html" class="drawer-link-item">
+          <span class="drawer-link-icon">⚙️</span>
+          <div>
+            <strong>How It Works</strong>
+            <small>Step-by-step coordination guide</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="dashboard.html" class="drawer-link-item">
+          <span class="drawer-link-icon">💬</span>
+          <div>
+            <strong>Dashboard & Messages</strong>
+            <small>Manage your profile & chat threads</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="nav-drawer-footer">
+        <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
+        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+      </div>
+    </div>
+  </div>
 
   <main>
     <section class="disease-hero">
@@ -68,7 +162,7 @@
       <h1>Blood Disorders & <span>Transfusion Guide</span></h1>
       <p>
         Accurate clinical knowledge on blood-related diseases, transfusion cycles, donor matching rules,
-        and essential safety precautions for patients and families across Bangladesh.
+        and essential safety precautions for patients and families worldwide.
       </p>
 
       <div class="disease-search-bar">
@@ -77,11 +171,11 @@
       </div>
     </section>
 
-    <!-- Interactive Figure 6.12 Blood Compatibility Table -->
+    <!-- Interactive Blood Compatibility Table -->
     <section class="section" style="padding-top: 20px; padding-bottom: 50px;">
       <div class="section-heading centered">
         <div class="eyebrow">STANDARDIZED MEDICAL COMPATIBILITY</div>
-        <h2>চিত্র ৬.১২: কোন গ্রুপের রক্ত কাকে দেওয়া যাবে তার ছক</h2>
+        <h2>Blood Group Compatibility Matrix: Who Can Give Blood to Whom</h2>
         <p>
           This standardized scientific matrix determines blood transfusion compatibility.
           Click any recipient group below to highlight matching donor groups.
@@ -94,10 +188,10 @@
             <thead>
               <tr>
                 <th colspan="2" rowspan="2" style="background:#f1f5f9; text-align:center; font-size:12px;">
-                  রক্তের গ্রুপ
+                  Blood Group
                 </th>
                 <th colspan="8" class="header-donor">
-                  দাতা (Donor) ⟶
+                  Donor ⟶
                 </th>
               </tr>
               <tr>
@@ -114,7 +208,7 @@
             <tbody>
               <!-- AB+ -->
               <tr data-recipient="AB+">
-                <th rowspan="8" class="header-recipient">গ্রহীতা (Recipient) ⟶</th>
+                <th rowspan="8" class="header-recipient">Recipient ⟶</th>
                 <td class="row-group">AB+</td>
                 <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td>
               </tr>
@@ -158,10 +252,10 @@
         </div>
 
         <div class="chart-caption-box">
-          <strong>💡 বৈজ্ঞানিক মূলনীতি:</strong><br>
-          • <strong>O− (O নেগেটিভ):</strong> সর্বজনীন দাতা (Universal Donor) — লোহিত রক্তকণিকায় কোনো A, B বা Rh অ্যান্টিজেন না থাকায় যে কোনো গ্রুপকে রক্ত দিতে পারে।<br>
-          • <strong>AB+ (AB পজিটিভ):</strong> সর্বজনীন গ্রহীতা (Universal Recipient) — রক্তরসে কোনো অ্যান্টিবডি না থাকায় সব গ্রুপের রক্ত গ্রহণ করতে পারে।<br>
-          • <strong>Rh নিয়ম:</strong> Rh-পজিটিভ রক্ত কখনও Rh-নেগেটিভ রোগীকে দেওয়া যাবে না। Rh-নেগেটিভ রোগীকে অবশ্যই Rh-নেগেটিভ রক্ত দিতে হবে।
+          <strong>💡 Scientific Principles:</strong><br>
+          • <strong>O− (O Negative):</strong> Universal Donor — Lacks A, B, and Rh antigens on red blood cells and can safely donate red cells to any blood group.<br>
+          • <strong>AB+ (AB Positive):</strong> Universal Recipient — Contains no anti-A, anti-B, or anti-Rh antibodies in plasma and can receive red cells from any blood group.<br>
+          • <strong>Rh Factor Rule:</strong> Rh-positive blood must never be transfused into an Rh-negative patient. Rh-negative patients must strictly receive Rh-negative blood.
         </div>
       </div>
     </section>
@@ -337,7 +431,7 @@
           <span class="brand-mark">✚</span>
           <span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span>
         </a>
-        <p>A protected humanitarian network connecting voluntary blood donors and patients across Bangladesh. Verified data, zero commercialization.</p>
+        <p>A protected humanitarian network connecting voluntary blood donors and patients worldwide. Verified data, zero commercialization.</p>
       </div>
 
       <div class="footer-links-col">
@@ -356,7 +450,7 @@
         <h4>Compliance & Ethics</h4>
         <div class="trust-badge-item"><span>🔒</span> 256-Bit SSL Encrypted Protected Data</div>
         <div class="trust-badge-item"><span>🩸</span> 100% Voluntary, Non-Commercial Donation</div>
-        <div class="trust-badge-item"><span>🇧🇩</span> Bangladesh Safe Blood Act Compliant</div>
+        <div class="trust-badge-item"><span>🌐</span> WHO & Global Safe Blood Standards Compliant</div>
       </div>
     </div>
 
@@ -388,6 +482,40 @@
         const text = card.textContent.toLowerCase();
         card.style.display = text.includes(query) ? 'flex' : 'none';
       });
+    // Slide-over Navigation Menu Drawer
+    const navMenuBtn = document.getElementById("menu-trigger-btn");
+    const navDrawer = document.getElementById("nav-menu-drawer");
+    const navBackdrop = document.getElementById("nav-drawer-backdrop");
+    const navClose = document.getElementById("nav-drawer-close");
+
+    function openNavDrawer() {
+      navDrawer?.classList.remove("hidden");
+      navMenuBtn?.setAttribute("aria-expanded", "true");
+      navMenuBtn?.classList.add("is-active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeNavDrawer() {
+      navDrawer?.classList.add("hidden");
+      navMenuBtn?.setAttribute("aria-expanded", "false");
+      navMenuBtn?.classList.remove("is-active");
+      document.body.style.overflow = "";
+    }
+
+    navMenuBtn?.addEventListener("click", () => {
+      if (navDrawer?.classList.contains("hidden")) {
+        openNavDrawer();
+      } else {
+        closeNavDrawer();
+      }
+    });
+
+    navClose?.addEventListener("click", closeNavDrawer);
+    navBackdrop?.addEventListener("click", closeNavDrawer);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !navDrawer?.classList.contains("hidden")) {
+        closeNavDrawer();
+      }
     });
 
     // Ambient floating canvas
