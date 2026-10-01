@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#b91c1c" />
-  <meta name="description" content="Lifeline Donor Dashboard — edit your profile and availability." />
+  <meta name="description" content="Lifeline Donor Dashboard — edit your profile, manage blood requests, and coordinate via WhatsApp messaging." />
   <title>Donor Dashboard — Lifeline</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,44 +15,150 @@
 </head>
 
 <body>
+  <!-- Ambient floating blood cells & particles (Req 3) -->
+  <div class="bg-animation-wrapper" aria-hidden="true">
+    <canvas id="ambient-blood-canvas" class="ambient-blood-canvas"></canvas>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="floating-cell"></div>
+    <div class="plasma-particle"></div>
+  </div>
+
   <div id="toast-root" aria-live="polite"></div>
 
   <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Lifeline home">
-      <span class="brand-mark">✚</span>
-      <span>
-        <strong>Lifeline</strong>
-        <small>Donor Dashboard</small>
-      </span>
-    </a>
+    <div class="header-brand-group">
+      <a class="brand" href="index.html" aria-label="Lifeline home">
+        <span class="brand-mark">✚</span>
+        <span>
+          <strong>Lifeline</strong>
+          <small>Donor Dashboard</small>
+        </span>
+      </a>
 
-    <nav class="main-nav">
-      <a href="index.html">← Back to Home</a>
-      <a href="index.html#find">Find Donors</a>
-      <a href="index.html#live-requests-preview">Requested Blood</a>
-      <a href="index.html#request">Request Blood</a>
-    </nav>
+      <!-- Menu Button that hides all 7 buttons behind 1 clean button -->
+      <button class="menu-trigger-btn" id="menu-trigger-btn" type="button" aria-label="Explore pages" aria-expanded="false">
+        <span class="menu-burger" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
+      </button>
+    </div>
 
     <div class="header-actions">
-      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Change language">বাংলা</button>
       <span id="header-user-email" class="mini-label" style="text-transform: none; font-size: 12px; color: #555; display: inline-block;">Loading...</span>
       <button class="btn btn-ghost" id="dash-signout-btn">Sign out</button>
     </div>
   </header>
+
+  <!-- Slide-over Navigation Menu Drawer -->
+  <div id="nav-menu-drawer" class="nav-menu-drawer hidden" aria-hidden="true">
+    <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+    <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="nav-drawer-header">
+        <div class="drawer-brand">
+          <span class="brand-mark">✚</span>
+          <strong>Lifeline Portal</strong>
+        </div>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="nav-drawer-links">
+        <a href="index.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🏠</span>
+          <div>
+            <strong>Home</strong>
+            <small>Main emergency landing page</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Find Donors</strong>
+            <small>Search blood donors by group & district</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="requests.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📋</span>
+          <div>
+            <strong>Requested Blood</strong>
+            <small>View live open blood emergencies</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="request-blood.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🩸</span>
+          <div>
+            <strong>Request Blood</strong>
+            <small>Post an urgent request with auto-matching</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="donate.html" class="drawer-link-item">
+          <span class="drawer-link-icon">❤️</span>
+          <div>
+            <strong>Become a Donor</strong>
+            <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="diseases.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📖</span>
+          <div>
+            <strong>Disease Info & Medical Guide</strong>
+            <small>Scientific compatibility matrix & diseases</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="how-it-works.html" class="drawer-link-item">
+          <span class="drawer-link-icon">⚙️</span>
+          <div>
+            <strong>How It Works</strong>
+            <small>Step-by-step coordination guide</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="dashboard.html" class="drawer-link-item active">
+          <span class="drawer-link-icon">💬</span>
+          <div>
+            <strong>Dashboard & Messages</strong>
+            <small>Manage your profile & chat threads</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="nav-drawer-footer">
+        <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
+        <a href="donate.html" class="btn btn-light full-width">Register as a Donor</a>
+      </div>
+    </div>
+  </div>
 
   <main class="dashboard-page">
     <div class="dashboard-top">
       <div>
         <div class="eyebrow">YOUR ACCOUNT</div>
         <h1 data-i18n="dashboardTitle">Donor Dashboard</h1>
-        <p>Edit your donor profile, manage availability, and update or cancel your posted blood requests.</p>
+        <p>Edit your donor profile, manage availability, coordinate via WhatsApp, and manage emergency blood requests.</p>
       </div>
 
-      <div style="display: flex; gap: 10px; align-items: center;">
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <span class="status-pill" id="dashboard-status-indicator">
           <span></span> Online & Ready
         </span>
-        <a href="index.html" class="btn btn-light">View Public Site</a>
+        <a href="diseases.html" class="btn btn-light" style="font-size: 12px;">📖 Disease Guide</a>
+        <a href="index.html" class="btn btn-light" style="font-size: 12px;">View Public Site</a>
       </div>
     </div>
 
@@ -65,7 +171,7 @@
         <span data-i18n="requestsTab">🩸 My Blood Requests</span> <span class="tab-badge" id="requests-count-badge">0</span>
       </button>
       <button type="button" class="tab-btn" id="tab-messages-btn">
-        <span data-i18n="messagesTab">✉ Messages</span> <span class="tab-badge" id="messages-count-badge">0</span>
+        <span data-i18n="messagesTab">💬 Messages</span> <span class="tab-badge" id="messages-count-badge">0</span>
       </button>
     </div>
 
@@ -135,7 +241,7 @@
 
               <div class="field full location-field">
                 <button class="btn btn-light location-btn" type="button" id="detect-profile-location">⌖ Detect my location</button>
-                <small id="profile-location-status" class="location-status">Use approximate location for better donor matching. Exact coordinates stay private.</small>
+                <small id="profile-location-status" class="location-status">Use approximate location for nearby matching. Exact coordinates stay private.</small>
               </div>
 
               <div class="field">
@@ -190,7 +296,7 @@
 
                 <div>
                   <h3 id="preview-card-name">Your Name</h3>
-                  <div class="meta" id="preview-card-location">District, Bangladesh</div>
+                  <div class="meta" id="preview-card-location">City, Country</div>
                 </div>
 
                 <span class="available-dot" id="preview-card-dot" title="Available"></span>
@@ -200,8 +306,8 @@
 
               <div class="details">
                 <div>
-                  <strong id="preview-card-district">Dhaka</strong>
-                  District
+                  <strong id="preview-card-district">City</strong>
+                  Location
                 </div>
                 <div>
                   <strong id="preview-card-status">Registered</strong>
@@ -214,7 +320,7 @@
               </div>
 
               <button type="button" class="btn btn-primary contact" style="margin-top: 14px; width: 100%; opacity: 0.85;">
-                View & contact (Demo)
+                💬 Message (Demo)
               </button>
             </article>
           </div>
@@ -240,7 +346,7 @@
               </div>
               <div class="quick-stat-item">
                 <span>Health guidance</span>
-                <strong>Ask Lifeline Assistant</strong>
+                <a href="diseases.html" style="color:var(--red); font-weight:700;">View Medical Guide ↗</a>
               </div>
             </div>
 
@@ -287,36 +393,90 @@
       </div>
     </div>
 
+    <!-- TAB 3: Messages -->
     <div id="messages-tab-content" class="hidden">
-      <div class="dashboard-card">
-        <div class="dashboard-card-title" style="margin-bottom: 6px;">
+      <div class="dashboard-card" style="padding: 16px;">
+        <div class="dashboard-card-title" style="margin-bottom: 12px; padding: 0 8px;">
           <span>Messages</span>
         </div>
-        <p class="dashboard-card-subtitle">Messages from donors and blood seekers appear here. Share only what is necessary for coordination.</p>
-        <div id="messages-list" class="messages-list">
-          <div class="empty-state"><div>✉</div><h3>No messages yet</h3><p>When someone contacts you about a blood request, the conversation will appear here.</p></div>
+
+        <!-- Chat Split-View Interface -->
+        <div class="wa-web-container" id="wa-web-dashboard-container">
+          <!-- Left Sidebar: Active Conversations -->
+          <div class="wa-web-sidebar">
+            <div class="wa-sidebar-header">
+              <strong style="font-size: 14px;">Recent Chats</strong>
+              <span id="wa-active-count-badge" class="tab-badge" style="background:#00a884; color:#fff;">0</span>
+            </div>
+            <div class="wa-sidebar-search">
+              <input type="text" id="wa-search-contacts" placeholder="Search chats or donors…" />
+            </div>
+            <div class="wa-threads-list" id="wa-threads-list">
+              <div style="padding: 24px; text-align: center; color: var(--muted); font-size: 12px;">
+                Loading conversations…
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Pane: Active Chat Window -->
+          <div class="wa-web-chat-pane" id="wa-web-chat-pane">
+            <!-- Active Chat Header -->
+            <div class="wa-header" style="border-radius: 0;">
+              <div class="wa-contact-info">
+                <div class="wa-avatar" id="dash-wa-avatar">✚</div>
+                <div class="wa-contact-text">
+                  <h4 id="dash-wa-contact-name">Select a conversation</h4>
+                  <div class="wa-online-status">
+                    <span class="wa-online-dot"></span>
+                    <span id="dash-wa-status-text">online</span>
+                  </div>
+                </div>
+              </div>
+              <div class="wa-header-actions">
+                <a href="#" class="wa-action-btn" id="dash-wa-call-btn" style="display:none;" title="Call Donor">📞</a>
+              </div>
+            </div>
+
+            <!-- Chat message body -->
+            <div class="wa-chat-body" id="dash-wa-chat-body" style="height: 380px;">
+              <div id="dash-wa-messages-container" style="display:flex; flex-direction:column; gap:8px;">
+                <div style="text-align:center; padding:50px 20px; color:#667781; font-size:13px;">
+                  <div>💬</div>
+                  <strong>Select a conversation on the left to start messaging.</strong>
+                  <p style="margin:4px 0 0; font-size:11px;">You can also message donors directly from any card on the public website.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Staging bar for attachments -->
+            <div class="wa-attachment-staging" id="dash-wa-attachment-staging" style="display:none;">
+              <div class="wa-staging-info">
+                <span id="dash-wa-staging-icon">📎</span>
+                <img id="dash-wa-staging-thumb" class="wa-staging-thumb" style="display:none;" alt="Preview" />
+                <div>
+                  <strong id="dash-wa-staging-name">file.jpg</strong>
+                  <small id="dash-wa-staging-size" style="display:block; color:#667781;">0 KB</small>
+                </div>
+              </div>
+              <button type="button" class="wa-staging-remove" id="dash-wa-remove-file" title="Remove attachment">✕</button>
+            </div>
+
+            <!-- WhatsApp input form with file attachment button -->
+            <form class="wa-input-bar" id="dash-wa-chat-form">
+              <input type="file" id="dash-wa-file-input" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none;" />
+              <button type="button" class="wa-attach-btn" id="dash-wa-attach-btn" title="Attach prescription or lab report">
+                📎
+              </button>
+              <input type="text" class="wa-input-field" id="dash-wa-input" placeholder="Type a message or attach report..." autocomplete="off" />
+              <button type="submit" class="wa-send-btn" id="dash-wa-send-btn" title="Send message">
+                ➤
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
   </main>
-
-  <div id="reply-modal" class="modal hidden">
-    <div class="modal-backdrop" id="close-reply-modal-backdrop"></div>
-    <div class="modal-card message-modal-card">
-      <button class="modal-close" id="close-reply-modal-btn">×</button>
-      <div class="modal-icon">✉</div>
-      <div class="eyebrow">REPLY</div>
-      <h2 id="reply-title">Reply to message</h2>
-      <p>Keep your reply focused on coordinating the blood donation.</p>
-      <form id="reply-form">
-        <div class="field">
-          <label for="reply-body">Your reply</label>
-          <textarea id="reply-body" required maxlength="1000" placeholder="Write your reply…"></textarea>
-        </div>
-        <button class="btn btn-primary full-width btn-large" type="submit" id="send-reply-btn">Send reply <span>→</span></button>
-      </form>
-    </div>
-  </div>
 
   <!-- Edit Blood Request Modal -->
   <div id="edit-request-modal" class="modal hidden">
@@ -403,8 +563,13 @@
 
   <footer class="site-footer">
     <div class="footer-bottom" style="margin-top: 0; border: none;">
-      <span>© 2026 Lifeline — Emergency Blood Matching Network</span>
-      <a href="index.html" class="text-btn">Return to home</a>
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="terms.html">Terms & Conditions</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="diseases.html">Disease Guide</a>
+        <a href="index.html" class="text-btn">Return to home</a>
+      </div>
     </div>
   </footer>
 
@@ -415,7 +580,7 @@
       <button type="button" class="icon-btn" id="assistant-close" aria-label="Close assistant">×</button>
     </div>
     <div id="assistant-messages" class="assistant-messages">
-      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor matching, requests, or how Lifeline works. I can’t diagnose or replace a doctor.</div>
+      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor compatibility matching, requests, or clinical guidance. I can’t diagnose or replace a doctor.</div>
     </div>
     <form id="assistant-form" class="assistant-form">
       <input id="assistant-input" required maxlength="400" placeholder="Ask a question…" autocomplete="off" />
