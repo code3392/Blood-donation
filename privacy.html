@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -41,6 +42,7 @@
     </div>
 
     <div class="header-actions">
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Toggle language">🌐 বাংলা</button>
       <a href="index.html" class="btn btn-light">← Back to Site</a>
     </div>
   </header>
@@ -250,6 +252,20 @@
         closeNavDrawer();
       }
     });
+  
+    // Language & Bangla font toggle support
+    const langBtn = document.getElementById("language-toggle");
+    let currentLang = localStorage.getItem("lifeline-language") || "en";
+    function updateLang(lang) {
+      currentLang = lang === "bn" ? "bn" : "en";
+      localStorage.setItem("lifeline-language", currentLang);
+      document.documentElement.lang = currentLang;
+      if (langBtn) langBtn.textContent = currentLang === "en" ? "🌐 বাংলা" : "🌐 English";
+    }
+    updateLang(currentLang);
+    langBtn?.addEventListener("click", () => updateLang(currentLang === "en" ? "bn" : "en"));
+
   </script>
+  <script src="translator.js"></script>
 </body>
 </html>

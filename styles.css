@@ -47,6 +47,64 @@ body {
 }
 
 /* ============================================================ */
+/* BANGLA FONT & LANGUAGE TOGGLE SUPPORT                         */
+/* ============================================================ */
+
+html[lang="bn"],
+html[lang="bn"] body,
+html[lang="bn"] button,
+html[lang="bn"] input,
+html[lang="bn"] select,
+html[lang="bn"] textarea,
+html[lang="bn"] h1,
+html[lang="bn"] h2,
+html[lang="bn"] h3,
+html[lang="bn"] h4 {
+  font-family: 'Hind Siliguri', 'DM Sans', system-ui, -apple-system, sans-serif !important;
+}
+
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  transition: var(--transition-smooth);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  user-select: none;
+}
+
+.language-toggle:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+/* Hide Google Translate toolbar & iframe artifacts */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame {
+  display: none !important;
+}
+body {
+  top: 0px !important;
+}
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-text-highlight,
+.skiptranslate,
+#google_translate_element {
+  display: none !important;
+}
+
+/* ============================================================ */
 /* 6. UNIVERSAL HYPERLINK & INTERACTION TRANSITIONS (REQ 6)     */
 /* ============================================================ */
 

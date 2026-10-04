@@ -164,7 +164,7 @@
     localStorage.setItem("lifeline-language", currentLanguage);
     document.documentElement.lang = currentLanguage === "bn" ? "bn" : "en";
     const toggle = $("language-toggle");
-    if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
+    if (toggle) toggle.textContent = currentLanguage === "en" ? "🌐 বাংলা" : "🌐 English";
     const copy = currentLanguage === "bn"
       ? { dashboardTitle: "ডোনার ড্যাশবোর্ড", profileTab: "👤 ডোনার প্রোফাইল ও ছবি", requestsTab: "🩸 আমার রক্তের অনুরোধ", messagesTab: "💬 মেসেজ" }
       : { dashboardTitle: "Donor Dashboard", profileTab: "👤 Donor Profile & Photo", requestsTab: "🩸 My Blood Requests", messagesTab: "💬 Messages" };
@@ -173,6 +173,9 @@
         el.textContent = value;
       });
     });
+    if (window.LifelineTranslator) {
+      window.LifelineTranslator.setLanguage(currentLanguage);
+    }
   }
 
   function assistantReply(question) {

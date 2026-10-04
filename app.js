@@ -864,7 +864,7 @@
       donorTitle: "Be the person someone is searching for."
     },
     bn: {
-      heroText: "লাইফলাইন মানুষকে স্বেচ্ছায় রক্তদাতা খুঁজে পেতে, জরুরি অনুরোধ প্রকাশ করতে এবং বাংলাদেশজুড়ে জীবনরক্ষাকারী সহায়তা সমন্বয় করতে সাহায্য করে।",
+      heroText: "লাইফলাইন মানুষকে স্বেচ্ছায় রক্তদাতা খুঁজে পেতে, জরুরি অনুরোধ প্রকাশ করতে এবং বিশ্বজুড়ে জীবনরক্ষাকারী সহায়তা সমন্বয় করতে সাহায্য করে।",
       findDonor: "রক্তদাতা খুঁজুন →",
       wantDonate: "আমি রক্ত দিতে চাই",
       requestBlood: "রক্তের অনুরোধ",
@@ -886,12 +886,15 @@
     localStorage.setItem("lifeline-language", currentLanguage);
     document.documentElement.lang = currentLanguage === "bn" ? "bn" : "en";
     const toggle = $("language-toggle");
-    if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
+    if (toggle) toggle.textContent = currentLanguage === "en" ? "🌐 বাংলা" : "🌐 English";
     Object.entries(translations[currentLanguage]).forEach(([key, value]) => {
       document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
         el.textContent = value;
       });
     });
+    if (window.LifelineTranslator) {
+      window.LifelineTranslator.setLanguage(currentLanguage);
+    }
   }
 
   // ==============================
