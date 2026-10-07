@@ -169,6 +169,20 @@
       <div class="container">
         <h1>Interactive Blood Donor Map</h1>
         <p>Find nearby donors based on their registered locations.</p>
+        <div class="map-controls" style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+          <select id="map-blood-filter" class="form-select" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc;">
+            <option value="">All Blood Groups</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+          <button id="locate-me-btn" class="btn btn-primary" style="padding: 8px 16px;">📍 Locate Me</button>
+        </div>
         <div id="map"></div>
       </div>
     </section>
@@ -204,9 +218,36 @@
           
         if (donors && donors.length > 0) {
           const bounds = [];
+          const allMarkers = [];
+
+          // Filter logic
+          const bloodFilter = document.getElementById("map-blood-filter");
+          bloodFilter.addEventListener("change", (e) => {
+            const selected = e.target.value;
+            allMarkers.forEach(m => {
+              if (!selected || m.donor.blood_group === selected) {
+                map.addLayer(m.marker);
+              } else {
+                map.removeLayer(m.marker);
+              }
+            });
+          });
+
+          // Locate logic
+          const locateBtn = document.getElementById("locate-me-btn");
+          locateBtn.addEventListener("click", () => {
+            map.locate({setView: true, maxZoom: 14});
+          });
+          map.on("locationfound", function(e){
+            L.marker(e.latlng).addTo(map).bindPopup("You are here").openPopup();
+          });
+          map.on("locationerror", function(e){
+            alert("Location access denied or unavailable.");
+          });
           donors.forEach(donor => {
             if(donor.location_lat && donor.location_lng) {
               const marker = L.marker([donor.location_lat, donor.location_lng]).addTo(map);
+              allMarkers.push({ marker, donor });
               marker.bindPopup(`
                 <b>${donor.full_name}</b><br>
                 Blood Group: <strong style="color:red;">${donor.blood_group}</strong><br>
