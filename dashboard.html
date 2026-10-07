@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#b91c1c" />
-  <meta name="description" content="Lifeline Donor Dashboard â€” edit your profile, manage blood requests, and coordinate via WhatsApp messaging." />
-  <title>Donor Dashboard â€” Lifeline</title>
+  <meta name="description" content="Lifeline Donor Dashboard — edit your profile, manage blood requests, and coordinate via WhatsApp messaging." />
+  <title>Donor Dashboard — Lifeline</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
   <header class="site-header">
     <div class="header-brand-group">
       <a class="brand" href="index.html" aria-label="Lifeline home">
-        <span class="brand-mark">âœš</span>
+        <span class="brand-mark">✚</span>
         <span>
           <strong>Lifeline</strong>
           <small>Donor Dashboard</small>
@@ -43,12 +43,12 @@
           <span></span><span></span><span></span>
         </span>
         <span class="menu-label">Menu</span>
-        <span class="menu-arrow" aria-hidden="true">â–¾</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
       </button>
     </div>
 
     <div class="header-actions">
-      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Toggle language">ðŸŒ à¦¬à¦¾à¦‚à¦²à¦¾</button>
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Toggle language">🌐 বাংলা</button>
       <span id="header-user-email" class="mini-label" style="text-transform: none; font-size: 12px; color: #555; display: inline-block;">Loading...</span>
       <button class="btn btn-ghost" id="dash-signout-btn">Sign out</button>
     </div>
@@ -60,31 +60,23 @@
     <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
       <div class="nav-drawer-header">
         <div class="drawer-brand">
-          <span class="brand-mark">âœš</span>
+          <span class="brand-mark">✚</span>
           <strong>Lifeline Portal</strong>
         </div>
-        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">âœ•</button>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
       </div>
 
       <div class="nav-drawer-links">
         <a href="index.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ </span>
+          <span class="drawer-link-icon">🏠</span>
           <div>
             <strong>Home</strong>
             <small>Main emergency landing page</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
-        <a href="find-donors.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ”</span>
-          <div>
-            <strong>Find Donors</strong>
-            <small>Search blood donors by group & district</small>
-          </div>
-          <span class="drawer-arrow">â†’</span>
-        </a>
-
+        \n
         <a href="map.html" class="drawer-link-item">
           <span class="drawer-link-icon">🗺️</span>
           <div>
@@ -95,57 +87,57 @@
         </a>
 
         <a href="requests.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ“‹</span>
+          <span class="drawer-link-icon">📋</span>
           <div>
             <strong>Requested Blood</strong>
             <small>View live open blood emergencies</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="request-blood.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ©¸</span>
+          <span class="drawer-link-icon">🩸</span>
           <div>
             <strong>Request Blood</strong>
             <small>Post an urgent request with auto-matching</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="donate.html" class="drawer-link-item">
-          <span class="drawer-link-icon">â¤ï¸</span>
+          <span class="drawer-link-icon">❤️</span>
           <div>
             <strong>Become a Donor</strong>
             <small>Join our network of lifesaving donors</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="diseases.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ“–</span>
+          <span class="drawer-link-icon">📖</span>
           <div>
             <strong>Disease Info & Medical Guide</strong>
             <small>Scientific compatibility matrix & diseases</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="how-it-works.html" class="drawer-link-item">
-          <span class="drawer-link-icon">âš™ï¸</span>
+          <span class="drawer-link-icon">⚙️</span>
           <div>
             <strong>How It Works</strong>
             <small>Step-by-step coordination guide</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="dashboard.html" class="drawer-link-item active">
-          <span class="drawer-link-icon">ðŸ’¬</span>
+          <span class="drawer-link-icon">💬</span>
           <div>
             <strong>Dashboard & Messages</strong>
             <small>Manage your profile & chat threads</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
       </div>
 
@@ -168,7 +160,7 @@
         <span class="status-pill" id="dashboard-status-indicator">
           <span></span> Online & Ready
         </span>
-        <a href="diseases.html" class="btn btn-light" style="font-size: 12px;">ðŸ“– Disease Guide</a>
+        <a href="diseases.html" class="btn btn-light" style="font-size: 12px;">📖 Disease Guide</a>
         <a href="index.html" class="btn btn-light" style="font-size: 12px;">View Public Site</a>
       </div>
     </div>
@@ -176,13 +168,13 @@
     <!-- Navigation Tabs -->
     <div class="dashboard-tabs">
       <button type="button" class="tab-btn active" id="tab-profile-btn">
-        <span data-i18n="profileTab">ðŸ‘¤ Donor Profile & Photo</span>
+        <span data-i18n="profileTab">👤 Donor Profile & Photo</span>
       </button>
       <button type="button" class="tab-btn" id="tab-requests-btn">
-        <span data-i18n="requestsTab">ðŸ©¸ My Blood Requests</span> <span class="tab-badge" id="requests-count-badge">0</span>
+        <span data-i18n="requestsTab">🩸 My Blood Requests</span> <span class="tab-badge" id="requests-count-badge">0</span>
       </button>
       <button type="button" class="tab-btn" id="tab-messages-btn">
-        <span data-i18n="messagesTab">ðŸ’¬ Messages</span> <span class="tab-badge" id="messages-count-badge">0</span>
+        <span data-i18n="messagesTab">💬 Messages</span> <span class="tab-badge" id="messages-count-badge">0</span>
       </button>
     </div>
 
@@ -199,7 +191,7 @@
           <!-- Avatar Uploader -->
           <div class="avatar-uploader-section">
             <div class="avatar-preview-box" id="avatar-preview-display">
-              <span id="avatar-initials-fallback">âœš</span>
+              <span id="avatar-initials-fallback">✚</span>
             </div>
 
             <div class="avatar-upload-info">
@@ -209,7 +201,7 @@
               <input type="file" id="avatar-file-input" accept="image/png, image/jpeg, image/webp" style="display: none;" />
               <div class="avatar-btn-row">
                 <button type="button" class="btn btn-light" id="choose-avatar-btn">
-                  ðŸ“· Choose photo
+                  📷 Choose photo
                 </button>
                 <button type="button" class="btn btn-ghost" id="remove-avatar-btn" style="color: #ef4444; display: none;">
                   Remove
@@ -251,7 +243,7 @@
               </div>
 
               <div class="field full location-field">
-                <button class="btn btn-light location-btn" type="button" id="detect-profile-location">âŒ– Detect my location</button>
+                <button class="btn btn-light location-btn" type="button" id="detect-profile-location">⌖ Detect my location</button>
                 <small id="profile-location-status" class="location-status">Use approximate location for nearby matching. Exact coordinates stay private.</small>
               </div>
 
@@ -285,7 +277,7 @@
             </div>
 
             <button class="btn btn-primary btn-large full-width" id="save-profile-btn" type="submit" style="margin-top: 14px;">
-              Save profile changes <span>â†’</span>
+              Save profile changes <span>→</span>
             </button>
           </form>
         </section>
@@ -302,7 +294,7 @@
             <article class="donor-card" id="preview-donor-card" style="box-shadow: none; border-color: #e5e7eb; pointer-events: none;">
               <div class="donor-top">
                 <div class="donor-avatar" id="preview-card-avatar">
-                  âœš
+                  ✚
                 </div>
 
                 <div>
@@ -331,7 +323,7 @@
               </div>
 
               <button type="button" class="btn btn-primary contact" style="margin-top: 14px; width: 100%; opacity: 0.85;">
-                ðŸ’¬ Message (Demo)
+                💬 Message (Demo)
               </button>
             </article>
           </div>
@@ -341,7 +333,7 @@
             <div class="quick-stats-list">
               <div class="quick-stat-item">
                 <span>Account Email</span>
-                <strong id="info-account-email">â€”</strong>
+                <strong id="info-account-email">—</strong>
               </div>
               <div class="quick-stat-item">
                 <span>Verification Status</span>
@@ -357,7 +349,7 @@
               </div>
               <div class="quick-stat-item">
                 <span>Health guidance</span>
-                <a href="diseases.html" style="color:var(--red); font-weight:700;">View Medical Guide â†—</a>
+                <a href="diseases.html" style="color:var(--red); font-weight:700;">View Medical Guide ↗</a>
               </div>
             </div>
 
@@ -380,7 +372,7 @@
         <div class="dashboard-card-title" style="margin-bottom: 6px;">
           <span>My Blood Requests</span>
           <a href="index.html#request" class="btn btn-primary" style="font-size: 12px; padding: 8px 14px;">
-            ï¼‹ Post New Request
+            ＋ Post New Request
           </a>
         </div>
         <p class="dashboard-card-subtitle">
@@ -396,7 +388,7 @@
 
         <!-- Empty state when no requests exist -->
         <div class="empty-state" id="requests-empty-state" style="display: none;">
-          <div>ðŸ©¸</div>
+          <div>🩸</div>
           <h3>No blood requests posted yet</h3>
           <p>When you publish an emergency blood request, you can edit its details or cancel it here anytime.</p>
           <a href="index.html#request" class="btn btn-primary" style="margin-top: 14px;">Publish an Emergency Request</a>
@@ -420,11 +412,11 @@
               <span id="wa-active-count-badge" class="tab-badge" style="background:#00a884; color:#fff;">0</span>
             </div>
             <div class="wa-sidebar-search">
-              <input type="text" id="wa-search-contacts" placeholder="Search chats or donorsâ€¦" />
+              <input type="text" id="wa-search-contacts" placeholder="Search chats or donors…" />
             </div>
             <div class="wa-threads-list" id="wa-threads-list">
               <div style="padding: 24px; text-align: center; color: var(--muted); font-size: 12px;">
-                Loading conversationsâ€¦
+                Loading conversations…
               </div>
             </div>
           </div>
@@ -434,7 +426,7 @@
             <!-- Active Chat Header -->
             <div class="wa-header" style="border-radius: 0;">
               <div class="wa-contact-info">
-                <div class="wa-avatar" id="dash-wa-avatar">âœš</div>
+                <div class="wa-avatar" id="dash-wa-avatar">✚</div>
                 <div class="wa-contact-text">
                   <h4 id="dash-wa-contact-name">Select a conversation</h4>
                   <div class="wa-online-status">
@@ -444,7 +436,7 @@
                 </div>
               </div>
               <div class="wa-header-actions">
-                <a href="#" class="wa-action-btn" id="dash-wa-call-btn" style="display:none;" title="Call Donor">ðŸ“ž</a>
+                <a href="#" class="wa-action-btn" id="dash-wa-call-btn" style="display:none;" title="Call Donor">📞</a>
               </div>
             </div>
 
@@ -452,7 +444,7 @@
             <div class="wa-chat-body" id="dash-wa-chat-body" style="height: 380px;">
               <div id="dash-wa-messages-container" style="display:flex; flex-direction:column; gap:8px;">
                 <div style="text-align:center; padding:50px 20px; color:#667781; font-size:13px;">
-                  <div>ðŸ’¬</div>
+                  <div>💬</div>
                   <strong>Select a conversation on the left to start messaging.</strong>
                   <p style="margin:4px 0 0; font-size:11px;">You can also message donors directly from any card on the public website.</p>
                 </div>
@@ -462,25 +454,25 @@
             <!-- Staging bar for attachments -->
             <div class="wa-attachment-staging" id="dash-wa-attachment-staging" style="display:none;">
               <div class="wa-staging-info">
-                <span id="dash-wa-staging-icon">ðŸ“Ž</span>
+                <span id="dash-wa-staging-icon">📎</span>
                 <img id="dash-wa-staging-thumb" class="wa-staging-thumb" style="display:none;" alt="Preview" />
                 <div>
                   <strong id="dash-wa-staging-name">file.jpg</strong>
                   <small id="dash-wa-staging-size" style="display:block; color:#667781;">0 KB</small>
                 </div>
               </div>
-              <button type="button" class="wa-staging-remove" id="dash-wa-remove-file" title="Remove attachment">âœ•</button>
+              <button type="button" class="wa-staging-remove" id="dash-wa-remove-file" title="Remove attachment">✕</button>
             </div>
 
             <!-- WhatsApp input form with file attachment button -->
             <form class="wa-input-bar" id="dash-wa-chat-form">
               <input type="file" id="dash-wa-file-input" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none;" />
               <button type="button" class="wa-attach-btn" id="dash-wa-attach-btn" title="Attach prescription or lab report">
-                ðŸ“Ž
+                📎
               </button>
               <input type="text" class="wa-input-field" id="dash-wa-input" placeholder="Type a message or attach report..." autocomplete="off" />
               <button type="submit" class="wa-send-btn" id="dash-wa-send-btn" title="Send message">
-                âž¤
+                ➤
               </button>
             </form>
           </div>
@@ -493,8 +485,8 @@
   <div id="edit-request-modal" class="modal hidden">
     <div class="modal-backdrop" id="close-edit-modal-backdrop"></div>
     <div class="modal-card" style="width: min(560px, calc(100% - 30px)); max-height: 90vh; overflow-y: auto;">
-      <button class="modal-close" id="close-edit-request-btn">Ã—</button>
-      <div class="modal-icon" style="background: var(--red-soft); color: var(--red); font-size: 20px;">âœï¸</div>
+      <button class="modal-close" id="close-edit-request-btn">×</button>
+      <div class="modal-icon" style="background: var(--red-soft); color: var(--red); font-size: 20px;">✏️</div>
       <div class="eyebrow">MANAGE REQUEST</div>
       <h2>Edit Blood Request</h2>
       <p>Update hospital details, units needed, contact phone, or change the request status.</p>
@@ -534,8 +526,8 @@
           <div class="field">
             <label for="edit-req-urgency">Urgency</label>
             <select id="edit-req-urgency" required>
-              <option value="critical">Critical â€” today</option>
-              <option value="urgent">Urgent â€” within 24h</option>
+              <option value="critical">Critical — today</option>
+              <option value="urgent">Urgent — within 24h</option>
               <option value="planned">Planned</option>
             </select>
           </div>
@@ -548,9 +540,9 @@
           <div class="field full">
             <label for="edit-req-status">Request status</label>
             <select id="edit-req-status" required>
-              <option value="open">ðŸŸ¢ Active / Open (Visible to network donors)</option>
-              <option value="fulfilled">ðŸ”µ Fulfilled (Blood received, close request)</option>
-              <option value="cancelled">âšª Cancelled (No longer needed)</option>
+              <option value="open">🟢 Active / Open (Visible to network donors)</option>
+              <option value="fulfilled">🔵 Fulfilled (Blood received, close request)</option>
+              <option value="cancelled">⚪ Cancelled (No longer needed)</option>
             </select>
           </div>
 
@@ -562,7 +554,7 @@
 
         <div style="display: flex; gap: 10px; margin-top: 18px;">
           <button type="submit" class="btn btn-primary full-width" id="save-request-btn">
-            Save Changes <span>âœ“</span>
+            Save Changes <span>✓</span>
           </button>
           <button type="button" class="btn btn-light" id="cancel-edit-modal-btn">
             Cancel
@@ -574,7 +566,7 @@
 
   <footer class="site-footer">
     <div class="footer-bottom" style="margin-top: 0; border: none;">
-      <span>Â© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
       <div class="footer-bottom-links">
         <a href="terms.html">Terms & Conditions</a>
         <a href="privacy.html">Privacy Policy</a>
@@ -584,17 +576,17 @@
     </div>
   </footer>
 
-  <button class="assistant-fab" id="assistant-open" type="button" aria-label="Open Lifeline assistant">âœ¦ <span>Lifeline AI</span></button>
+  <button class="assistant-fab" id="assistant-open" type="button" aria-label="Open Lifeline assistant">✦ <span>Lifeline AI</span></button>
   <div id="assistant-panel" class="assistant-panel hidden" aria-live="polite">
     <div class="assistant-header">
       <div><strong>Lifeline Assistant</strong><small>Blood support guidance</small></div>
-      <button type="button" class="icon-btn" id="assistant-close" aria-label="Close assistant">Ã—</button>
+      <button type="button" class="icon-btn" id="assistant-close" aria-label="Close assistant">×</button>
     </div>
     <div id="assistant-messages" class="assistant-messages">
-      <div class="assistant-bubble assistant">Hi â€” ask me about blood groups, donor compatibility matching, requests, or clinical guidance. I canâ€™t diagnose or replace a doctor.</div>
+      <div class="assistant-bubble assistant">Hi — ask me about blood groups, donor compatibility matching, requests, or clinical guidance. I can’t diagnose or replace a doctor.</div>
     </div>
     <form id="assistant-form" class="assistant-form">
-      <input id="assistant-input" required maxlength="400" placeholder="Ask a questionâ€¦" autocomplete="off" />
+      <input id="assistant-input" required maxlength="400" placeholder="Ask a question…" autocomplete="off" />
       <button class="btn btn-primary" type="submit">Ask</button>
     </form>
   </div>
@@ -603,5 +595,3 @@
   <script src="translator.js"></script>
 </body>
 </html>
-
-

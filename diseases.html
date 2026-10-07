@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#b91c1c" />
   <meta name="description" content="Medical guidance on blood-related diseases, transfusion protocols, donor compatibility standards, and emergency care worldwide." />
-  <title>Disease & Blood Guide â€” Lifeline</title>
+  <title>Disease & Blood Guide — Lifeline</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
       currentLang = lang === "bn" ? "bn" : "en";
       localStorage.setItem("lifeline-language", currentLang);
       document.documentElement.lang = currentLang;
-      if (langBtn) langBtn.textContent = currentLang === "en" ? "ðŸŒ à¦¬à¦¾à¦‚à¦²à¦¾" : "ðŸŒ English";
+      if (langBtn) langBtn.textContent = currentLang === "en" ? "🌐 বাংলা" : "🌐 English";
     }
     updateLang(currentLang);
     langBtn?.addEventListener("click", () => updateLang(currentLang === "en" ? "bn" : "en"));
@@ -48,13 +48,13 @@
   <div class="announcement">
     <span class="pulse-dot"></span>
     <span><strong>Medical Knowledge Base:</strong> Understand blood diseases, transfusion frequencies, and scientific compatibility.</span>
-    <a href="index.html#request" class="announcement-link">Emergency Request â†’</a>
+    <a href="index.html#request" class="announcement-link">Emergency Request →</a>
   </div>
 
   <header class="site-header">
     <div class="header-brand-group">
       <a class="brand" href="index.html" aria-label="Lifeline home">
-        <span class="brand-mark">âœš</span>
+        <span class="brand-mark">✚</span>
         <span>
           <strong>Lifeline</strong>
           <small>Medical Knowledge</small>
@@ -67,12 +67,12 @@
           <span></span><span></span><span></span>
         </span>
         <span class="menu-label">Menu</span>
-        <span class="menu-arrow" aria-hidden="true">â–¾</span>
+        <span class="menu-arrow" aria-hidden="true">▾</span>
       </button>
     </div>
 
     <div class="header-actions">
-      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Toggle language">ðŸŒ à¦¬à¦¾à¦‚à¦²à¦¾</button>
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Toggle language">🌐 বাংলা</button>
       <a href="request-blood.html" class="btn btn-primary">Request Blood</a>
     </div>
   </header>
@@ -83,31 +83,23 @@
     <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
       <div class="nav-drawer-header">
         <div class="drawer-brand">
-          <span class="brand-mark">âœš</span>
+          <span class="brand-mark">✚</span>
           <strong>Lifeline Portal</strong>
         </div>
-        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">âœ•</button>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
       </div>
 
       <div class="nav-drawer-links">
         <a href="index.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ </span>
+          <span class="drawer-link-icon">🏠</span>
           <div>
             <strong>Home</strong>
             <small>Main emergency landing page</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
-        <a href="find-donors.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ”</span>
-          <div>
-            <strong>Find Donors</strong>
-            <small>Search blood donors by group & district</small>
-          </div>
-          <span class="drawer-arrow">â†’</span>
-        </a>
-
+        \n
         <a href="map.html" class="drawer-link-item">
           <span class="drawer-link-icon">🗺️</span>
           <div>
@@ -118,57 +110,57 @@
         </a>
 
         <a href="requests.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ“‹</span>
+          <span class="drawer-link-icon">📋</span>
           <div>
             <strong>Requested Blood</strong>
             <small>View live open blood emergencies</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="request-blood.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ©¸</span>
+          <span class="drawer-link-icon">🩸</span>
           <div>
             <strong>Request Blood</strong>
             <small>Post an urgent request with auto-matching</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="donate.html" class="drawer-link-item">
-          <span class="drawer-link-icon">â¤ï¸</span>
+          <span class="drawer-link-icon">❤️</span>
           <div>
             <strong>Become a Donor</strong>
             <small>Join our network of lifesaving donors</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="diseases.html" class="drawer-link-item active">
-          <span class="drawer-link-icon">ðŸ“–</span>
+          <span class="drawer-link-icon">📖</span>
           <div>
             <strong>Disease Info & Medical Guide</strong>
             <small>Scientific compatibility matrix & diseases</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="how-it-works.html" class="drawer-link-item">
-          <span class="drawer-link-icon">âš™ï¸</span>
+          <span class="drawer-link-icon">⚙️</span>
           <div>
             <strong>How It Works</strong>
             <small>Step-by-step coordination guide</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
 
         <a href="dashboard.html" class="drawer-link-item">
-          <span class="drawer-link-icon">ðŸ’¬</span>
+          <span class="drawer-link-icon">💬</span>
           <div>
             <strong>Dashboard & Messages</strong>
             <small>Manage your profile & chat threads</small>
           </div>
-          <span class="drawer-arrow">â†’</span>
+          <span class="drawer-arrow">→</span>
         </a>
       </div>
 
@@ -189,7 +181,7 @@
       </p>
 
       <div class="disease-search-bar">
-        <span class="search-icon">ðŸ”</span>
+        <span class="search-icon">🔍</span>
         <input type="text" id="disease-search-input" placeholder="Search disease, symptoms, or blood product (e.g. Thalassemia, Dengue, Platelets)..." />
       </div>
     </section>
@@ -214,7 +206,7 @@
                   Blood Group
                 </th>
                 <th colspan="8" class="header-donor">
-                  Donor âŸ¶
+                  Donor ⟶
                 </th>
               </tr>
               <tr>
@@ -231,54 +223,54 @@
             <tbody>
               <!-- AB+ -->
               <tr data-recipient="AB+">
-                <th rowspan="8" class="header-recipient">Recipient âŸ¶</th>
+                <th rowspan="8" class="header-recipient">Recipient ⟶</th>
                 <td class="row-group">AB+</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td>
               </tr>
               <!-- AB- -->
               <tr data-recipient="AB-">
                 <td class="row-group">AB-</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td>
               </tr>
               <!-- A+ -->
               <tr data-recipient="A+">
                 <td class="row-group">A+</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td>
               </tr>
               <!-- A- -->
               <tr data-recipient="A-">
                 <td class="row-group">A-</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
               </tr>
               <!-- B+ -->
               <tr data-recipient="B+">
                 <td class="row-group">B+</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
               </tr>
               <!-- B- -->
               <tr data-recipient="B-">
                 <td class="row-group">B-</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
               </tr>
               <!-- O+ -->
               <tr data-recipient="O+">
                 <td class="row-group">O+</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
               </tr>
               <!-- O- -->
               <tr data-recipient="O-">
                 <td class="row-group">O-</td>
-                <td class="compat-yes">ðŸ©¸</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td><td class="compat-no">â€”</td>
+                <td class="compat-yes">🩸</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td><td class="compat-no">—</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <div class="chart-caption-box">
-          <strong>ðŸ’¡ Scientific Principles:</strong><br>
-          â€¢ <strong>Oâˆ’ (O Negative):</strong> Universal Donor â€” Lacks A, B, and Rh antigens on red blood cells and can safely donate red cells to any blood group.<br>
-          â€¢ <strong>AB+ (AB Positive):</strong> Universal Recipient â€” Contains no anti-A, anti-B, or anti-Rh antibodies in plasma and can receive red cells from any blood group.<br>
-          â€¢ <strong>Rh Factor Rule:</strong> Rh-positive blood must never be transfused into an Rh-negative patient. Rh-negative patients must strictly receive Rh-negative blood.
+          <strong>💡 Scientific Principles:</strong><br>
+          • <strong>O− (O Negative):</strong> Universal Donor — Lacks A, B, and Rh antigens on red blood cells and can safely donate red cells to any blood group.<br>
+          • <strong>AB+ (AB Positive):</strong> Universal Recipient — Contains no anti-A, anti-B, or anti-Rh antibodies in plasma and can receive red cells from any blood group.<br>
+          • <strong>Rh Factor Rule:</strong> Rh-positive blood must never be transfused into an Rh-negative patient. Rh-negative patients must strictly receive Rh-negative blood.
         </div>
       </div>
     </section>
@@ -313,7 +305,7 @@
           </div>
 
           <p style="font-size:11.5px; color:#555;">
-            <strong>Doctorâ€™s Guidance:</strong> Always provide leucodepleted red cells to prevent alloimmunization
+            <strong>Doctor’s Guidance:</strong> Always provide leucodepleted red cells to prevent alloimmunization
             and febrile reactions. Monitor serum ferritin routinely to prevent cardiac and liver iron toxicity.
           </p>
           <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Thalassemia</a>
@@ -338,7 +330,7 @@
           </div>
 
           <p style="font-size:11.5px; color:#555;">
-            <strong>Doctorâ€™s Guidance:</strong> Do not transfuse whole blood if iron-deficiency can be corrected with IV iron.
+            <strong>Doctor’s Guidance:</strong> Do not transfuse whole blood if iron-deficiency can be corrected with IV iron.
             In aplastic anemia, blood must be irradiated to prevent graft-versus-host disease (TA-GVHD).
           </p>
           <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Blood for Anemia</a>
@@ -353,17 +345,17 @@
           <h3>Leukemia & Blood Cancers</h3>
           <p>
             Malignancies of blood-forming tissue (ALL, AML, Lymphoma). Chemotherapy and marrow infiltration cause
-            profound pancytopenia â€” life-threatening drops in both red cells and clotting platelets.
+            profound pancytopenia — life-threatening drops in both red cells and clotting platelets.
           </p>
 
           <div class="disease-spec-box">
             <div><span>Transfusion Need:</span><strong>Single Donor Platelets (SDP) & PRBC</strong></div>
-            <div><span>Platelet Trigger:</span><strong>Count &lt; 10,000/ÂµL or active bleeding</strong></div>
+            <div><span>Platelet Trigger:</span><strong>Count &lt; 10,000/µL or active bleeding</strong></div>
             <div><span>Special Processing:</span><strong>Irradiated & Leukodepleted Products</strong></div>
           </div>
 
           <p style="font-size:11.5px; color:#555;">
-            <strong>Doctorâ€™s Guidance:</strong> Platelet transfusions are time-sensitive. Coordinate early with apheresis
+            <strong>Doctor’s Guidance:</strong> Platelet transfusions are time-sensitive. Coordinate early with apheresis
             donors who have not taken aspirin or NSAIDs in the past 72 hours.
           </p>
           <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Platelets / Blood</a>
@@ -388,7 +380,7 @@
           </div>
 
           <p style="font-size:11.5px; color:#555;">
-            <strong>Doctorâ€™s Guidance:</strong> Standard whole blood is ineffective for hemophilia bleeds. Contact the
+            <strong>Doctor’s Guidance:</strong> Standard whole blood is ineffective for hemophilia bleeds. Contact the
             hematology center urgently for factor vials or specialized Cryoprecipitate.
           </p>
           <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Find FFP / Blood Donors</a>
@@ -407,13 +399,13 @@
           </p>
 
           <div class="disease-spec-box">
-            <div><span>Transfusion Criteria:</span><strong>Active bleeding OR count &lt; 10,000/ÂµL</strong></div>
+            <div><span>Transfusion Criteria:</span><strong>Active bleeding OR count &lt; 10,000/µL</strong></div>
             <div><span>Primary Therapy:</span><strong>Judicious IV crystalloid fluid management</strong></div>
             <div><span>Blood Products:</span><strong>Platelet Concentrates / Fresh Whole Blood</strong></div>
           </div>
 
           <p style="font-size:11.5px; color:#555;">
-            <strong>Doctorâ€™s Guidance:</strong> Avoid panicking over numerical platelet counts. Fluid resuscitation
+            <strong>Doctor’s Guidance:</strong> Avoid panicking over numerical platelet counts. Fluid resuscitation
             is paramount. Follow the National Guidelines for Clinical Management of Dengue Syndrome.
           </p>
           <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Request Urgent Platelets</a>
@@ -438,7 +430,7 @@
           </div>
 
           <p style="font-size:11.5px; color:#555;">
-            <strong>Doctorâ€™s Guidance:</strong> In massive hemorrhage, warm blood products to prevent hypothermia
+            <strong>Doctor’s Guidance:</strong> In massive hemorrhage, warm blood products to prevent hypothermia
             and coagulopathy. Always activate hospital emergency transfusion protocols immediately.
           </p>
           <a href="request-blood.html" class="btn btn-light" style="width: 100%; font-size: 12px;">Publish Emergency Request</a>
@@ -451,7 +443,7 @@
     <div class="footer-main">
       <div>
         <a class="brand" href="index.html">
-          <span class="brand-mark">âœš</span>
+          <span class="brand-mark">✚</span>
           <span><strong>Lifeline</strong><small>Blood. Hope. Together.</small></span>
         </a>
         <p>A protected humanitarian network connecting voluntary blood donors and patients worldwide. Verified data, zero commercialization.</p>
@@ -471,14 +463,14 @@
 
       <div class="footer-trust-badges">
         <h4>Compliance & Ethics</h4>
-        <div class="trust-badge-item"><span>ðŸ”’</span> 256-Bit SSL Encrypted Protected Data</div>
-        <div class="trust-badge-item"><span>ðŸ©¸</span> 100% Voluntary, Non-Commercial Donation</div>
-        <div class="trust-badge-item"><span>ðŸŒ</span> WHO & Global Safe Blood Standards Compliant</div>
+        <div class="trust-badge-item"><span>🔒</span> 256-Bit SSL Encrypted Protected Data</div>
+        <div class="trust-badge-item"><span>🩸</span> 100% Voluntary, Non-Commercial Donation</div>
+        <div class="trust-badge-item"><span>🌐</span> WHO & Global Safe Blood Standards Compliant</div>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <span>Â© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
+      <span>© 2026 Lifeline Humanitarian Network. All rights reserved.</span>
       <div class="footer-bottom-links">
         <a href="terms.html">Terms & Conditions</a>
         <a href="privacy.html">Privacy Policy</a>
@@ -596,5 +588,3 @@
   <script src="translator.js"></script>
 </body>
 </html>
-
-
