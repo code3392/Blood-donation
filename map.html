@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Blood Donor Map — Lifeline Humanitarian Network</title>
+  <meta name="description" content="Search verified voluntary blood donors worldwide using an interactive map." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <style>
+    #map {
+      height: 70vh;
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 20px;
+      z-index: 1; /* Keep map behind drawer/modals */
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Red Plasma Fluid Canvas Animation -->
+  <div class="ambient-blood-wrapper" aria-hidden="true">
+    <canvas id="ambient-blood-canvas" class="ambient-blood-canvas"></canvas>
+    <div class="floating-blood-drop drop-1"></div>
+    <div class="floating-blood-drop drop-2"></div>
+    <div class="floating-blood-drop drop-3"></div>
+  </div>
+
+  <div id="toast-root" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="header-brand-group">
+      <a class="brand" href="index.html" aria-label="Lifeline home">
+        <span class="brand-mark">🩸</span>
+        <span>
+          <strong>Lifeline</strong>
+          <small>Interactive Map</small>
+        </span>
+      </a>
+
+      <!-- Menu Button that hides all 7 buttons behind 1 clean button -->
+      <button class="menu-trigger-btn" id="menu-trigger-btn" type="button" aria-label="Explore pages" aria-expanded="false">
+        <span class="menu-burger" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-label">Menu</span>
+        <span class="menu-arrow" aria-hidden="true">▼</span>
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <button class="language-toggle btn btn-light" id="language-toggle" type="button" aria-label="Toggle language">🌐 বাংলা</button>
+      <button class="btn btn-ghost" id="login-btn">Sign in</button>
+      <a href="donate.html" class="btn btn-primary">Become a donor</a>
+    </div>
+  </header>
+
+  <!-- Slide-over Navigation Menu Drawer -->
+  <div id="nav-menu-drawer" class="nav-menu-drawer hidden" aria-hidden="true">
+    <div class="nav-drawer-backdrop" id="nav-drawer-backdrop"></div>
+    <div class="nav-drawer-panel" role="dialog" aria-modal="true" aria-label="Navigation Menu">
+      <div class="nav-drawer-header">
+        <div class="drawer-brand">
+          <span class="brand-mark">🩸</span>
+          <strong>Lifeline Portal</strong>
+        </div>
+        <button class="nav-drawer-close" id="nav-drawer-close" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="nav-drawer-links">
+        <a href="index.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🏠</span>
+          <div>
+            <strong>Home</strong>
+            <small>Main emergency landing page</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Find Donors</strong>
+            <small>Search blood donors by group & district</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+        
+        <a href="map.html" class="drawer-link-item active">
+          <span class="drawer-link-icon">🗺️</span>
+          <div>
+            <strong>Interactive Map</strong>
+            <small>View donors on a live map</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="requests.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🚨</span>
+          <div>
+            <strong>Requested Blood</strong>
+            <small>View live open blood emergencies</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="request-blood.html" class="drawer-link-item">
+          <span class="drawer-link-icon">💉</span>
+          <div>
+            <strong>Request Blood</strong>
+            <small>Post an urgent request with auto-matching</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="donate.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🩸</span>
+          <div>
+            <strong>Become a Donor</strong>
+            <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="diseases.html" class="drawer-link-item">
+          <span class="drawer-link-icon">📋</span>
+          <div>
+            <strong>Disease Info & Medical Guide</strong>
+            <small>Scientific compatibility matrix & diseases</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="how-it-works.html" class="drawer-link-item">
+          <span class="drawer-link-icon">⚙️</span>
+          <div>
+            <strong>How It Works</strong>
+            <small>Step-by-step coordination guide</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="dashboard.html" class="drawer-link-item">
+          <span class="drawer-link-icon">💬</span>
+          <div>
+            <strong>Dashboard & Messages</strong>
+            <small>Manage your profile & chat threads</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+      </div>
+
+      <div class="nav-drawer-footer">
+        <a href="request-blood.html" class="btn btn-primary full-width" style="margin-bottom:8px;">Request Blood Urgently</a>
+        <a href="index.html?auth=signup" class="btn btn-light full-width" id="drawer-signin-btn">Register / Sign In</a>
+      </div>
+    </div>
+  </div>
+  
+  <main>
+    <section class="section" style="padding-top: 50px;">
+      <div class="container">
+        <h1>Interactive Blood Donor Map</h1>
+        <p>Find nearby donors based on their registered locations.</p>
+        <div id="map"></div>
+      </div>
+    </section>
+  </main>
+  
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+  <script src="translator.js"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Initialize map
+      const map = L.map('map').setView([23.8103, 90.4125], 7); // Default to Dhaka, Bangladesh
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+
+      // Fetch donor locations and add markers
+      try {
+        const { data: donors, error } = await supabase
+          .from("donor_profiles")
+          .select("full_name, blood_group, district, area, location_lat, location_lng")
+          .eq("available", true)
+          .not("location_lat", "is", null)
+          .not("location_lng", "is", null);
+          
+        if (donors && donors.length > 0) {
+          const bounds = [];
+          donors.forEach(donor => {
+            if(donor.location_lat && donor.location_lng) {
+              const marker = L.marker([donor.location_lat, donor.location_lng]).addTo(map);
+              marker.bindPopup(`
+                <b>${donor.full_name}</b><br>
+                Blood Group: <strong style="color:red;">${donor.blood_group}</strong><br>
+                ${donor.district ? donor.district : ''}
+              `);
+              bounds.push([donor.location_lat, donor.location_lng]);
+            }
+          });
+          if(bounds.length > 0) {
+            map.fitBounds(bounds);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading donors onto map:", err);
+      }
+    });
+  </script>
+</body>
+</html>
