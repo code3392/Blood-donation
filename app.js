@@ -498,6 +498,20 @@
       });
     });
 
+    // Auto-send urgent message to matched donors
+    if (currentUser && currentUser.id) {
+      scoredDonors.forEach((donor) => {
+        if (donor.user_id && donor.user_id !== currentUser.id) {
+          const payload = {
+            sender_id: currentUser.id,
+            recipient_id: donor.user_id,
+            body: "I need blood urgently!"
+          };
+          supabase.from("messages").insert(payload).then(() => {});
+        }
+      });
+    }
+
     // Smooth scroll directly to the matched results
     setTimeout(() => {
       document.getElementById("auto-match-results")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1064,14 +1078,24 @@
   function updateAuthUI() {
     const login = $("login-btn");
     const signout = $("signout-btn");
-    if (!login || !signout) return;
+    
+    if (login && signout) {
+      if (currentUser) {
+        login.textContent = "Dashboard";
+        signout.classList.remove("hidden");
+      } else {
+        login.textContent = "Sign in";
+        signout.classList.add("hidden");
+      }
+    }
 
-    if (currentUser) {
-      login.textContent = "Dashboard";
-      signout.classList.remove("hidden");
-    } else {
-      login.textContent = "Sign in";
-      signout.classList.add("hidden");
+    const drawerSigninBtn = $("drawer-signin-btn");
+    if (drawerSigninBtn) {
+      if (currentUser) {
+        drawerSigninBtn.style.display = "none";
+      } else {
+        drawerSigninBtn.style.display = "block";
+      }
     }
   }
 
