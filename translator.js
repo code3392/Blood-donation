@@ -319,7 +319,7 @@
     // Wire click events on all language toggle buttons
     document.querySelectorAll(".language-toggle, #language-toggle").forEach(btn => {
       btn.removeEventListener("click", toggleLanguage);
-      btn.addEventListener("click", toggleLanguage);
+      // btn.addEventListener("click", toggleLanguage); // Handled by app.js
     });
 
     // Apply saved language immediately
