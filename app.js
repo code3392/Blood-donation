@@ -1081,8 +1081,10 @@
     
     if (login) {
       if (currentUser) {
-        login.textContent = "Dashboard";
+        // Since Dashboard link is already present in the top bar, hide the Sign in button when logged in
+        login.style.display = "none";
       } else {
+        login.style.display = "";
         login.textContent = "Sign in";
       }
     }
@@ -1097,11 +1099,7 @@
 
     const headerSignout = $("header-signout-btn");
     if (headerSignout) {
-      if (currentUser) {
-        headerSignout.classList.remove("hidden");
-      } else {
-        headerSignout.classList.add("hidden");
-      }
+      headerSignout.style.display = "none";
     }
 
     const drawerSigninBtn = $("drawer-signin-btn");

@@ -280,7 +280,7 @@
 
     // Update all toggle buttons
     document.querySelectorAll(".language-toggle, #language-toggle").forEach(btn => {
-      btn.textContent = targetLang === "en" ? "🌐 বাংলা" : "🌐 English";
+      btn.textContent = targetLang === "en" ? "বাংলা" : "English";
     });
 
     // Translate DOM
