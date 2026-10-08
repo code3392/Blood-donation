@@ -116,12 +116,17 @@
   // AUTH MODAL
   // ==============================
 
-  function openAuth(mode = "signin") {
+  let currentAuthContext = "";
+
+  function openAuth(mode = "signin", context = "") {
     authMode = mode === "signup" ? "signup" : "signin";
+    if (context) currentAuthContext = context;
     const modal = $("auth-modal");
     if (!modal) return;
 
     modal.classList.remove("hidden");
+
+    const isDonorContext = currentAuthContext === "donor" || sessionStorage.getItem("lifeline_auth_redirect") === "donate.html";
 
     if ($("auth-title")) {
       $("auth-title").textContent =
@@ -131,10 +136,17 @@
     }
 
     if ($("auth-subtitle")) {
-      $("auth-subtitle").textContent =
-        authMode === "signin"
-          ? "Sign in to search donor profiles and manage your availability."
-          : "Create an account to safely access the donor network.";
+      if (isDonorContext) {
+        $("auth-subtitle").textContent =
+          authMode === "signin"
+            ? "Sign in to complete your donor registration and save lives."
+            : "Sign up to join our voluntary blood donor network.";
+      } else {
+        $("auth-subtitle").textContent =
+          authMode === "signin"
+            ? "Sign in to search donor profiles and manage your availability."
+            : "Create an account to safely access the donor network.";
+      }
     }
 
     if ($("auth-submit")) {
@@ -164,6 +176,7 @@
 
   function closeAuth() {
     $("auth-modal")?.classList.add("hidden");
+    currentAuthContext = "";
 
     const authPasswordInput = $("auth-password");
     const togglePasswordBtn = $("toggle-password-btn");
@@ -1070,8 +1083,65 @@
       }
       currentUser = data.session?.user ?? null;
       updateAuthUI();
+      await updateDonorPageState();
     } catch (error) {
       console.error("Could not load session:", error);
+    }
+  }
+
+  async function updateDonorPageState() {
+    const authGate = $("donor-auth-gate");
+    const userStatus = $("donor-user-status");
+    const donorForm = $("donor-form");
+    const emailEl = $("donor-logged-email");
+    const submitBtn = $("donor-submit-btn");
+    const heading = $("donor-form-heading");
+    const subheading = $("donor-form-subheading");
+
+    if (!donorForm) return;
+
+    if (currentUser) {
+      authGate?.classList.add("hidden");
+      userStatus?.classList.remove("hidden");
+      donorForm.classList.remove("is-gated");
+      if (emailEl) emailEl.textContent = currentUser.email || "";
+
+      const nameInput = $("donor-name");
+      if (nameInput && !nameInput.value && currentUser.user_metadata?.full_name) {
+        nameInput.value = currentUser.user_metadata.full_name;
+      }
+
+      try {
+        const { data: profile } = await supabase
+          .from("donor_profiles")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .maybeSingle();
+
+        if (profile) {
+          if (nameInput && !nameInput.value) nameInput.value = profile.full_name || "";
+          if ($("donor-blood") && profile.blood_group) $("donor-blood").value = profile.blood_group;
+          if ($("donor-district") && profile.district) $("donor-district").value = profile.district;
+          if ($("donor-area") && profile.area) $("donor-area").value = profile.area;
+          if ($("donor-phone") && profile.phone) $("donor-phone").value = profile.phone;
+          if ($("donor-last") && profile.last_donation_date) $("donor-last").value = profile.last_donation_date;
+          if ($("donor-available")) $("donor-available").checked = !!profile.available;
+          if ($("donor-consent")) $("donor-consent").checked = !!profile.consent;
+
+          if (submitBtn) submitBtn.innerHTML = 'Update my donor profile <span>→</span>';
+          if (heading) heading.textContent = "Update your donor profile";
+          if (subheading) subheading.textContent = "Your profile is registered. Keep your availability and details up to date.";
+        }
+      } catch (err) {
+        console.error("Could not fetch existing donor profile:", err);
+      }
+    } else {
+      authGate?.classList.remove("hidden");
+      userStatus?.classList.add("hidden");
+      donorForm.classList.add("is-gated");
+      if (submitBtn) submitBtn.innerHTML = 'Create my donor profile <span>→</span>';
+      if (heading) heading.textContent = "Donor registration";
+      if (subheading) subheading.textContent = "It takes about 60 seconds.";
     }
   }
 
@@ -1277,73 +1347,80 @@
   async function submitDonor(e) {
     e.preventDefault();
 
-    return requireAuth(async () => {
-      if (!$("donor-consent")?.checked) {
-        toast("Please provide consent before joining the donor network.", "error");
-        return;
-      }
+    if (!currentUser) {
+      toast("Please sign in or create an account first to become a donor.", "error");
+      openAuth("signup", "donor");
+      return;
+    }
 
-      const btn = e.submitter;
-      setLoading(btn, true, "Saving profile…");
+    if (!$("donor-consent")?.checked) {
+      toast("Please provide consent before joining the donor network.", "error");
+      return;
+    }
 
-      const fullName = $("donor-name")?.value?.trim() || "";
-      const bloodGroup = $("donor-blood")?.value?.trim() || "";
-      const district = $("donor-district")?.value?.trim() || "";
-      const area = $("donor-area")?.value?.trim() || null;
-      const phone = safePhone($("donor-phone")?.value || "");
-      const lastDonation = $("donor-last")?.value || null;
-      const available = $("donor-available")?.checked || false;
-      const consent = $("donor-consent")?.checked || false;
+    const btn = e.submitter || $("donor-submit-btn");
+    setLoading(btn, true, "Saving profile…");
 
-      if (!fullName || !bloodGroup || !district || !phone) {
-        setLoading(btn, false);
-        toast("Please complete all required donor information.", "error");
-        return;
-      }
+    const fullName = $("donor-name")?.value?.trim() || "";
+    const bloodGroup = $("donor-blood")?.value?.trim() || "";
+    const district = $("donor-district")?.value?.trim() || "";
+    const area = $("donor-area")?.value?.trim() || null;
+    const phone = safePhone($("donor-phone")?.value || "");
+    const lastDonation = $("donor-last")?.value || null;
+    const available = $("donor-available")?.checked || false;
+    const consent = $("donor-consent")?.checked || false;
 
-      const payload = {
-        user_id: currentUser.id,
-        full_name: fullName,
-        blood_group: bloodGroup,
-        district: district,
-        area: area,
-        phone: phone,
-        last_donation_date: lastDonation,
-        available: available,
-        consent: consent,
-        ...(detectedLocation
-          ? {
-              location_lat: detectedLocation.lat,
-              location_lng: detectedLocation.lng,
-              location_accuracy: detectedLocation.accuracy
-            }
-          : {}),
-        verified: false
-      };
-
-      let { error } = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
-
-      if (error && /location_(lat|lng|accuracy)|column/i.test(error.message || "")) {
-        delete payload.location_lat;
-        delete payload.location_lng;
-        delete payload.location_accuracy;
-        const retry = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
-        error = retry.error;
-      }
-
+    if (!fullName || !bloodGroup || !district || !phone) {
       setLoading(btn, false);
+      toast("Please complete all required donor information.", "error");
+      return;
+    }
 
-      if (error) {
-        console.error("Donor profile error:", error);
-        toast(error.message || "Could not save donor profile.", "error");
-        return;
-      }
+    const payload = {
+      user_id: currentUser.id,
+      full_name: fullName,
+      blood_group: bloodGroup,
+      district: district,
+      area: area,
+      phone: phone,
+      last_donation_date: lastDonation,
+      available: available,
+      consent: consent,
+      ...(detectedLocation
+        ? {
+            location_lat: detectedLocation.lat,
+            location_lng: detectedLocation.lng,
+            location_accuracy: detectedLocation.accuracy
+          }
+        : {}),
+      verified: false
+    };
 
-      toast("Donor profile saved. Thank you for joining Lifeline.", "success");
-      detectedLocation = null;
-      await refreshStats();
-      await searchDonors();
-    });
+    let { error } = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
+
+    if (error && /location_(lat|lng|accuracy)|column/i.test(error.message || "")) {
+      delete payload.location_lat;
+      delete payload.location_lng;
+      delete payload.location_accuracy;
+      const retry = await supabase.from("donor_profiles").upsert(payload, { onConflict: "user_id" });
+      error = retry.error;
+    }
+
+    setLoading(btn, false);
+
+    if (error) {
+      console.error("Donor profile error:", error);
+      toast(error.message || "Could not save donor profile.", "error");
+      return;
+    }
+
+    toast("Donor profile saved. Thank you for joining Lifeline.", "success");
+    detectedLocation = null;
+    await refreshStats();
+    await updateDonorPageState();
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1500);
   }
 
   // ==============================
@@ -1544,6 +1621,19 @@
     toast(authMode === "signin" ? "Signed in successfully." : "Account created successfully.", "success");
     await refreshStats();
     await loadBloodRequests();
+
+    const redirectUrl = sessionStorage.getItem("lifeline_auth_redirect");
+    if (redirectUrl) {
+      sessionStorage.removeItem("lifeline_auth_redirect");
+      if (window.location.pathname.endsWith(redirectUrl) || window.location.pathname.includes(redirectUrl)) {
+        await updateDonorPageState();
+      } else {
+        window.location.href = redirectUrl;
+        return;
+      }
+    } else {
+      await updateDonorPageState();
+    }
   }
 
   // ==============================
@@ -1554,10 +1644,12 @@
     await supabase.auth.signOut();
     currentUser = null;
     lastDonorResults = [];
+    sessionStorage.removeItem("lifeline_auth_redirect");
     updateAuthUI();
     if ($("donor-results")) $("donor-results").innerHTML = "";
     closeProfile();
     closeWhatsAppChat();
+    await updateDonorPageState();
     toast("You have been signed out.", "info");
   }
 
@@ -1622,6 +1714,50 @@
         }
       });
     });
+
+    // "Become a donor" links interceptor: require login or signup first
+    $$('a[href="donate.html"], a[href*="donate.html"]').forEach((link) => {
+      link.addEventListener("click", (e) => {
+        if (!currentUser) {
+          e.preventDefault();
+          const navDrawer = $("nav-menu-drawer");
+          if (navDrawer && !navDrawer.classList.contains("hidden")) {
+            navDrawer.classList.add("hidden");
+            $("menu-trigger-btn")?.setAttribute("aria-expanded", "false");
+            $("menu-trigger-btn")?.classList.remove("is-active");
+            document.body.style.overflow = "";
+          }
+          sessionStorage.setItem("lifeline_auth_redirect", "donate.html");
+          toast("Please sign in or create an account first to become a donor.", "info");
+          openAuth("signup", "donor");
+        }
+      });
+    });
+
+    // Donate page auth gate buttons
+    $("donor-gate-signup")?.addEventListener("click", () => {
+      openAuth("signup", "donor");
+    });
+    $("donor-gate-signin")?.addEventListener("click", () => {
+      openAuth("signin", "donor");
+    });
+
+    // Guard donor form interaction when unauthenticated
+    const donorFormEl = $("donor-form");
+    if (donorFormEl) {
+      donorFormEl.addEventListener(
+        "click",
+        (e) => {
+          if (!currentUser) {
+            e.preventDefault();
+            e.stopPropagation();
+            toast("Please sign in or create an account first to become a donor.", "info");
+            openAuth("signup", "donor");
+          }
+        },
+        true
+      );
+    }
 
     // Forms
     $("auth-form")?.addEventListener("submit", submitAuth);
@@ -1963,6 +2099,16 @@
     await loadSession();
     await refreshStats();
     await loadBloodRequests();
+    await updateDonorPageState();
+
+    // Auto-prompt unauthenticated visitor on donate page
+    if (!currentUser && (window.location.pathname.includes("donate.html") || window.location.pathname.endsWith("/donate"))) {
+      setTimeout(() => {
+        if (!currentUser) {
+          openAuth("signup", "donor");
+        }
+      }, 400);
+    }
 
     // Auto-open auth modal when requested via URL query param or hash
     function checkUrlAuthTriggers() {

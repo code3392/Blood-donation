@@ -1514,6 +1514,22 @@ input, select, textarea {
   box-shadow: 0 22px 65px rgba(0, 0, 0, 0.06);
 }
 
+.donor-form.is-gated {
+  position: relative;
+  user-select: none;
+}
+
+.donor-form.is-gated::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(1px);
+  cursor: pointer;
+  z-index: 5;
+}
+
 .form-head {
   display: flex;
   justify-content: space-between;
