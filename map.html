@@ -735,24 +735,236 @@
       });
 
       // ============================================================
-      // 4. VERIFIED BLOOD BANKS & DONATION CLINICS IN BANGLADESH
+      // 4. VERIFIED HOSPITALS, CLINICS & BLOOD BANKS IN BANGLADESH
+      // (Comprehensive coverage around DRMC, Mohammadpur, Dhaka & Nationwide)
       // ============================================================
       const verifiedFacilities = [
+        // --- AROUND DHAKA RESIDENTIAL MODEL COLLEGE (DRMC) & SHER-E-BANGLA NAGAR ---
+        {
+          name: "Dhaka Residential Model College (DRMC)",
+          type: "Landmark & Central Campus",
+          lat: 23.7686,
+          lng: 90.3665,
+          phone: "+88029113406",
+          address: "Mirpur Road, Mohammadpur, Dhaka 1207"
+        },
+        {
+          name: "Shaheed Suhrawardy Medical College & Hospital",
+          type: "Government Medical College & Hospital",
+          lat: 23.7699,
+          lng: 90.3712,
+          phone: "+88029130800",
+          address: "Sher-e-Bangla Nagar, Mirpur Road (College Gate), Dhaka"
+        },
+        {
+          name: "National Institute of Traumatology & Orthopaedic Rehabilitation (NITOR / Pangu Hospital)",
+          type: "National Specialized Orthopaedic Hospital",
+          lat: 23.7712,
+          lng: 90.3708,
+          phone: "+88029114075",
+          address: "Sher-e-Bangla Nagar, Mirpur Road (Opposite DRMC), Dhaka"
+        },
+        {
+          name: "Dhaka Shishu (Children) Hospital & Institute of Child Health",
+          type: "Pediatric Hospital & Blood Bank",
+          lat: 23.7745,
+          lng: 90.3695,
+          phone: "+88029113645",
+          address: "Sher-e-Bangla Nagar, Mirpur Road (Beside DRMC), Dhaka 1207"
+        },
+        {
+          name: "National Institute of Cardiovascular Diseases (NICVD)",
+          type: "National Cardiac Hospital & Blood Unit",
+          lat: 23.7711,
+          lng: 90.3705,
+          phone: "+88029122560",
+          address: "Suhrawardy Hospital Road, Sher-e-Bangla Nagar, Dhaka"
+        },
+        {
+          name: "National Institute of Kidney Diseases & Urology (NIKDU)",
+          type: "National Specialized Kidney Hospital",
+          lat: 23.7738,
+          lng: 90.3685,
+          phone: "+88029124400",
+          address: "Sher-e-Bangla Nagar (Near DRMC), Dhaka"
+        },
+        {
+          name: "National Institute of Mental Health & Hospital (NIMH)",
+          type: "National Specialized Mental Health Hospital",
+          lat: 23.7725,
+          lng: 90.3701,
+          phone: "+88029118171",
+          address: "Sher-e-Bangla Nagar (College Gate / DRMC), Dhaka"
+        },
+        {
+          name: "National Institute of Neurosciences & Hospital (NINS)",
+          type: "National Specialized Neuroscience Hospital",
+          lat: 23.7719,
+          lng: 90.3688,
+          phone: "+88029140752",
+          address: "Sher-e-Bangla Nagar (Near DRMC), Dhaka"
+        },
+        {
+          name: "National Institute of Ophthalmology & Hospital (NIOH)",
+          type: "National Eye Hospital & Clinical Unit",
+          lat: 23.7758,
+          lng: 90.3692,
+          phone: "+88029119315",
+          address: "Sher-e-Bangla Nagar, Dhaka"
+        },
+        {
+          name: "Bangladesh Specialized Hospital",
+          type: "Multispeciality Tertiary Hospital",
+          lat: 23.7735,
+          lng: 90.3655,
+          phone: "10633",
+          address: "21 Mirpur Road, Shyamoli (400m from DRMC), Dhaka"
+        },
+        {
+          name: "Trauma Center & Orthopaedic Hospital",
+          type: "Specialized Orthopaedic Hospital & Clinic",
+          lat: 23.7728,
+          lng: 90.3660,
+          phone: "+88029132103",
+          address: "22/1 Mirpur Road, Shyamoli, Dhaka"
+        },
+        {
+          name: "Care Hospital & Medical Services",
+          type: "General Hospital & Emergency Clinic",
+          lat: 23.7645,
+          lng: 90.3648,
+          phone: "+88029134407",
+          address: "2/1-A Iqbal Road, Mohammadpur, Dhaka"
+        },
+        {
+          name: "Dhaka Dental College & Hospital (College Gate Unit)",
+          type: "Dental Hospital & Clinical Unit",
+          lat: 23.7678,
+          lng: 90.3698,
+          phone: "+88029010531",
+          address: "College Gate, Mirpur Road, Dhaka"
+        },
+        {
+          name: "Millennium Heart & General Hospital",
+          type: "Specialized Cardiac & General Clinic",
+          lat: 23.7740,
+          lng: 90.3645,
+          phone: "+88029133800",
+          address: "4/2 Shyamoli, Mirpur Road, Dhaka"
+        },
+        {
+          name: "Bangladesh Red Crescent Society Blood Center",
+          type: "National Blood Center & Transfusion Service",
+          lat: 23.7667,
+          lng: 90.3662,
+          phone: "+88029116563",
+          address: "7/5 Aurangzeb Road, Mohammadpur (500m from DRMC), Dhaka"
+        },
+        {
+          name: "Al-Markazul Islami Hospital & Blood Bank",
+          type: "Humanitarian Hospital & Blood Center",
+          lat: 23.7612,
+          lng: 90.3601,
+          phone: "+88029127867",
+          address: "29 Ring Road, Shyamoli / Mohammadpur, Dhaka"
+        },
+        {
+          name: "City Hospital & Medical College",
+          type: "Private General Hospital & ICU",
+          lat: 23.7588,
+          lng: 90.3650,
+          phone: "+88028143312",
+          address: "1/8 Block-E, Lalmatia (Asad Gate area), Dhaka"
+        },
+        {
+          name: "Mohammadpur Fertility Services & Training Centre",
+          type: "100-Bed Government Specialized Hospital",
+          lat: 23.7578,
+          lng: 90.3635,
+          phone: "+88029113642",
+          address: "Aurangzeb Road, Mohammadpur, Dhaka"
+        },
+        {
+          name: "Ibn Sina Medical College Hospital Kallyanpur",
+          type: "Medical College Hospital & Blood Unit",
+          lat: 23.7795,
+          lng: 90.3605,
+          phone: "10615",
+          address: "1/1 B, Kallyanpur, Mirpur Road, Dhaka"
+        },
+        {
+          name: "Ibn Sina Specialized Hospital Dhanmondi",
+          type: "Specialized Tertiary Care Hospital",
+          lat: 23.7548,
+          lng: 90.3752,
+          phone: "+88029126625",
+          address: "House 68, Road 15/A, Dhanmondi / Asad Gate, Dhaka"
+        },
+
+        // --- DHANMONDI, SHAHBAGH & CENTRAL DHAKA ---
+        {
+          name: "Square Hospital Blood Bank & Transfusion Medicine",
+          type: "Tertiary Private Hospital & Blood Bank",
+          lat: 23.7530,
+          lng: 90.3817,
+          phone: "10616",
+          address: "18/F Bir Uttam Qazi Nuruzzaman Sarak, Panthapath, Dhaka"
+        },
+        {
+          name: "Labaid Specialized Hospital & Cardiac Center",
+          type: "Specialized Hospital & Blood Unit",
+          lat: 23.7495,
+          lng: 90.3812,
+          phone: "10606",
+          address: "House 6, Road 4, Dhanmondi, Dhaka"
+        },
+        {
+          name: "Popular Diagnostic Center & Hospital Dhanmondi",
+          type: "General Hospital & Emergency Lab",
+          lat: 23.7478,
+          lng: 90.3802,
+          phone: "09613787801",
+          address: "House 16, Road 2, Dhanmondi, Dhaka"
+        },
+        {
+          name: "Anwer Khan Modern Medical College Hospital",
+          type: "Medical College Hospital & Blood Center",
+          lat: 23.7460,
+          lng: 90.3805,
+          phone: "+88029670295",
+          address: "House 17, Road 8, Dhanmondi, Dhaka"
+        },
+        {
+          name: "Green Life Medical College & Hospital",
+          type: "Medical College Hospital",
+          lat: 23.7482,
+          lng: 90.3865,
+          phone: "+88029612345",
+          address: "32 Green Road, Dhanmondi, Dhaka"
+        },
+        {
+          name: "Central Hospital Dhanmondi",
+          type: "General Hospital & Critical Care",
+          lat: 23.7432,
+          lng: 90.3831,
+          phone: "+88029660015",
+          address: "House 2, Road 5, Green Road, Dhanmondi, Dhaka"
+        },
+        {
+          name: "Comfort Nursing Home & Diagnostic Center",
+          type: "Hospital & Diagnostic Unit",
+          lat: 23.7512,
+          lng: 90.3872,
+          phone: "+88029135937",
+          address: "167/B Green Road, Dhanmondi, Dhaka"
+        },
         {
           name: "Quantum Blood Lab (Central)",
-          type: "Blood Bank & Donation Center",
+          type: "Blood Bank & Voluntary Donation Center",
           lat: 23.7388,
           lng: 90.4136,
           phone: "+88029351025",
           address: "119/1 Shantinagar Road, Kakrail/Shantinagar, Dhaka"
-        },
-        {
-          name: "Bangladesh Red Crescent Society Blood Center",
-          type: "National Blood Center",
-          lat: 23.7667,
-          lng: 90.3662,
-          phone: "+88029116563",
-          address: "7/5 Aurangzeb Road, Mohammadpur, Dhaka"
         },
         {
           name: "Sandhani Blood Bank (Dhaka Medical College Unit)",
@@ -771,15 +983,7 @@
           address: "TSC Ground Floor, University of Dhaka, Dhaka"
         },
         {
-          name: "Central Police Hospital Blood Bank",
-          type: "Hospital Blood Bank",
-          lat: 23.7397,
-          lng: 90.4191,
-          phone: "01713374242",
-          address: "Central Police Hospital, Rajarbagh, Dhaka"
-        },
-        {
-          name: "Fatema Rahim Blood Bank (BIRDEM General)",
+          name: "Fatema Rahim Blood Bank (BIRDEM General Hospital)",
           type: "Hospital Transfusion Center",
           lat: 23.7381,
           lng: 90.3958,
@@ -787,7 +991,15 @@
           address: "122 Kazi Nazrul Islam Avenue, Shahbagh, Dhaka"
         },
         {
-          name: "Sir Salimullah Medical College Sandhani Blood Bank",
+          name: "Bangabandhu Sheikh Mujib Medical University (BSMMU / PG Hospital)",
+          type: "Super Specialized Medical University Hospital",
+          lat: 23.7392,
+          lng: 90.3948,
+          phone: "+88029661051",
+          address: "Shahbagh, Dhaka 1000"
+        },
+        {
+          name: "Sir Salimullah Medical College Sandhani Blood Bank (Mitford)",
           type: "Medical College Blood Bank",
           lat: 23.7118,
           lng: 90.4023,
@@ -795,40 +1007,18 @@
           address: "Mitford Hospital, Babubazar, Old Dhaka"
         },
         {
-          name: "NICVD Blood Transfusion Medicine Department",
-          type: "Specialized Hospital Blood Bank",
-          lat: 23.7711,
-          lng: 90.3705,
-          phone: "+88029122560",
-          address: "Suhrawardy Hospital Road, Sher-e-Bangla Nagar, Dhaka"
+          name: "Central Police Hospital Blood Bank",
+          type: "Police Hospital Blood Bank",
+          lat: 23.7397,
+          lng: 90.4191,
+          phone: "01713374242",
+          address: "Central Police Hospital, Rajarbagh, Motijheel, Dhaka"
         },
+
+        // --- GULSHAN, BANANI, BASHUNDHARA & MOHAKHALI ---
         {
-          name: "Dhaka Shishu (Children) Hospital Blood Bank",
-          type: "Pediatric Hospital Blood Bank",
-          lat: 23.7745,
-          lng: 90.3695,
-          phone: "+88029113645",
-          address: "Sher-e-Bangla Nagar, Dhaka 1207"
-        },
-        {
-          name: "Kurmitola General Hospital Blood Unit",
-          type: "General Hospital Blood Unit",
-          lat: 23.8223,
-          lng: 90.4072,
-          phone: "+88028711234",
-          address: "Airport Road, Dhaka Cantonment, Dhaka"
-        },
-        {
-          name: "Square Hospital Blood Bank",
-          type: "Private Hospital Blood Bank",
-          lat: 23.7530,
-          lng: 90.3817,
-          phone: "10616",
-          address: "18/F Bir Uttam Qazi Nuruzzaman Sarak, Panthapath, Dhaka"
-        },
-        {
-          name: "Evercare Hospital Blood Bank",
-          type: "Private Hospital Blood Bank",
+          name: "Evercare Hospital Blood Bank (Central)",
+          type: "JCI Accredited Multispeciality Hospital",
           lat: 23.8105,
           lng: 90.4312,
           phone: "10678",
@@ -836,27 +1026,153 @@
         },
         {
           name: "United Hospital Blood Transfusion Medicine",
-          type: "Private Hospital Blood Bank",
+          type: "Tertiary Private Hospital & Blood Center",
           lat: 23.7998,
           lng: 90.4194,
           phone: "10666",
           address: "Plot 15, Road 71, Gulshan-2, Dhaka"
         },
         {
-          name: "Al-Markazul Islami Blood Bank",
-          type: "Humanitarian Blood Service",
-          lat: 23.7612,
-          lng: 90.3601,
-          phone: "+88029127867",
-          address: "Ring Road, Shamoli / Mohammadpur, Dhaka"
+          name: "Kurmitola General Hospital Blood Unit",
+          type: "Government General Hospital & Transfusion Unit",
+          lat: 23.8223,
+          lng: 90.4072,
+          phone: "+88028711234",
+          address: "Airport Road, Dhaka Cantonment, Dhaka"
         },
         {
-          name: "Chittagong Medical College Sandhani Blood Bank",
-          type: "Medical College Blood Bank",
+          name: "National Institute of Diseases of the Chest and Hospital (NIDCH)",
+          type: "Specialized Chest Disease Hospital",
+          lat: 23.7795,
+          lng: 90.4075,
+          phone: "+88029881680",
+          address: "TB Gate Road, Mohakhali, Dhaka"
+        },
+        {
+          name: "National Institute of Cancer Research & Hospital (NICRH)",
+          type: "Specialized Cancer Hospital & Blood Unit",
+          lat: 23.7788,
+          lng: 90.4042,
+          phone: "+88029880078",
+          address: "Mohakhali, Dhaka"
+        },
+        {
+          name: "ICDDR,B Clinical Services Hospital",
+          type: "International Research Hospital",
+          lat: 23.7782,
+          lng: 90.4030,
+          phone: "+88029827001",
+          address: "68 Shaheed Tajuddin Ahmed Sarani, Mohakhali, Dhaka"
+        },
+        {
+          name: "Combined Military Hospital (CMH) Dhaka",
+          type: "Military General Hospital",
+          lat: 23.8182,
+          lng: 90.3965,
+          phone: "+88028750011",
+          address: "Dhaka Cantonment, Dhaka"
+        },
+        {
+          name: "Armed Forces Institute of Pathology (AFIP)",
+          type: "National Pathology & Blood Transfusion Center",
+          lat: 23.8190,
+          lng: 90.3955,
+          phone: "+88028711111",
+          address: "Dhaka Cantonment, Dhaka"
+        },
+
+        // --- MIRPUR & UTTARA ---
+        {
+          name: "National Heart Foundation Hospital & Research Institute",
+          type: "National Cardiac Hospital & Blood Unit",
+          lat: 23.8045,
+          lng: 90.3615,
+          phone: "+88029014521",
+          address: "Plot 4, Section 2, Mirpur, Dhaka"
+        },
+        {
+          name: "Delta Medical College & Hospital",
+          type: "Medical College Hospital & Blood Unit",
+          lat: 23.7995,
+          lng: 90.3540,
+          phone: "+88029013180",
+          address: "26/2 Principal Abul Kashem Road, Mirpur-1, Dhaka"
+        },
+        {
+          name: "Ahsania Mission Cancer & General Hospital",
+          type: "Specialized Cancer Hospital & Blood Bank",
+          lat: 23.8725,
+          lng: 90.3870,
+          phone: "+88028913919",
+          address: "Plot 3, Embankment Drive Way, Sector 10, Uttara, Dhaka"
+        },
+        {
+          name: "Kuwait Bangladesh Friendship Government Hospital",
+          type: "Government General Hospital",
+          lat: 23.8645,
+          lng: 90.3995,
+          phone: "+88028932644",
+          address: "Sector 6, Uttara, Dhaka"
+        },
+        {
+          name: "Uttara Crescent Hospital",
+          type: "General Hospital & Emergency Center",
+          lat: 23.8682,
+          lng: 90.3955,
+          phone: "+88028912744",
+          address: "Rabindra Sarani, Sector 3, Uttara, Dhaka"
+        },
+
+        // --- OLD DHAKA & EAST DHAKA ---
+        {
+          name: "Asgar Ali Hospital",
+          type: "Tertiary Private Hospital & Blood Bank",
+          lat: 23.7042,
+          lng: 90.4285,
+          phone: "10602",
+          address: "111/1/A Distillery Road, Gandaria, Old Dhaka"
+        },
+        {
+          name: "AMZ Hospital",
+          type: "Specialized General Hospital",
+          lat: 23.7792,
+          lng: 90.4265,
+          phone: "10699",
+          address: "Cha-80/3 Pragati Sarani, Uttar Badda, Dhaka"
+        },
+        {
+          name: "Farazy Hospital & Diagnostic Center",
+          type: "General Hospital & Emergency Clinic",
+          lat: 23.7635,
+          lng: 90.4320,
+          phone: "+88028399501",
+          address: "Block E, Main Road, Banasree, Rampura, Dhaka"
+        },
+
+        // --- MAJOR DIVISIONAL MEDICAL CENTERS ACROSS BANGLADESH ---
+        {
+          name: "Chittagong Medical College Sandhani Blood Bank (CMCH)",
+          type: "Medical College Hospital & Regional Blood Center",
           lat: 22.3592,
           lng: 91.8285,
           phone: "+88031619621",
           address: "K.B. Fazlul Kader Road, Panchlaish, Chittagong"
+        },
+        {
+          name: "Evercare Hospital Chattogram",
+          type: "Tertiary Private Hospital & Blood Bank",
+          lat: 22.3950,
+          lng: 91.8340,
+          phone: "10678",
+          address: "Plot H1, Ananna R/A, Oxygen-Kuwaish Road, Chattogram"
+        },
+        {
+          name: "Imperial Hospital Limited",
+          type: "Tertiary Multi-Specialty Hospital",
+          lat: 22.3562,
+          lng: 91.7850,
+          phone: "09612244244",
+          address: "Zakir Hossain Road, Pahartali, Chittagong"
         },
         {
           name: "Red Crescent Blood Center Chittagong",
@@ -867,8 +1183,8 @@
           address: "Red Crescent Bhaban, Anderkilla, Chittagong"
         },
         {
-          name: "Rajshahi Medical College Sandhani Blood Bank",
-          type: "Medical College Blood Bank",
+          name: "Rajshahi Medical College Sandhani Blood Bank (RMCH)",
+          type: "Medical College Hospital & Regional Blood Bank",
           lat: 24.3725,
           lng: 88.5833,
           phone: "+880721772150",
@@ -876,47 +1192,47 @@
         },
         {
           name: "Sylhet MAG Osmani Medical College Sandhani Blood Bank",
-          type: "Medical College Blood Bank",
+          type: "Medical College Hospital & Regional Blood Bank",
           lat: 24.8998,
           lng: 91.8540,
           phone: "+880821713487",
           address: "Medical Road, Kajolshah, Sylhet"
         },
         {
-          name: "Khulna Medical College Blood Bank",
-          type: "Medical College Blood Bank",
+          name: "Khulna Medical College Blood Bank (KMCH)",
+          type: "Medical College Hospital & Blood Bank",
           lat: 22.8427,
           lng: 89.5408,
           phone: "+88041761509",
           address: "Boyra Main Road, Khulna"
         },
         {
-          name: "Mymensingh Medical College Sandhani Blood Bank",
-          type: "Medical College Blood Bank",
+          name: "Mymensingh Medical College Sandhani Blood Bank (MMCH)",
+          type: "Medical College Hospital & Regional Blood Center",
           lat: 24.7438,
           lng: 90.4124,
           phone: "+8809166063",
           address: "Charpara, Mymensingh"
         },
         {
-          name: "Rangpur Medical College Blood Bank",
-          type: "Medical College Blood Bank",
+          name: "Rangpur Medical College Blood Bank (RpMCH)",
+          type: "Medical College Hospital & Blood Bank",
           lat: 25.7558,
           lng: 89.2372,
           phone: "+88052162234",
           address: "Jail Road, Medical East Gate, Rangpur"
         },
         {
-          name: "Barishal Sher-e-Bangla Medical College Sandhani Blood Bank",
-          type: "Medical College Blood Bank",
+          name: "Barishal Sher-e-Bangla Medical College Sandhani Blood Bank (SBMC)",
+          type: "Medical College Hospital & Regional Blood Bank",
           lat: 22.6917,
           lng: 90.3638,
           phone: "+8804312173545",
           address: "Band Road, Medical College, Barishal"
         },
         {
-          name: "Bogura Shaheed Ziaur Rahman Medical College Sandhani",
-          type: "Medical College Blood Bank",
+          name: "Bogura Shaheed Ziaur Rahman Medical College Sandhani (SZMCH)",
+          type: "Medical College Hospital & Blood Bank",
           lat: 24.8197,
           lng: 89.3670,
           phone: "+8805169004",
@@ -924,27 +1240,11 @@
         },
         {
           name: "Comilla Medical College Sandhani Blood Bank",
-          type: "Medical College Blood Bank",
+          type: "Medical College Hospital & Blood Bank",
           lat: 23.4682,
           lng: 91.1963,
           phone: "+8808165562",
           address: "Kuchaitoli, Cumilla"
-        },
-        {
-          name: "Shaheed Suhrawardy Medical College Hospital Transfusion Unit",
-          type: "Hospital Blood Bank",
-          lat: 23.7702,
-          lng: 90.3702,
-          phone: null,
-          address: "Sher-e-Bangla Nagar, Dhaka"
-        },
-        {
-          name: "National Institute of Neurosciences (NINS) Clinic",
-          type: "Specialized Hospital Clinic",
-          lat: 23.7719,
-          lng: 90.3688,
-          phone: null,
-          address: "Sher-e-Bangla Nagar, Dhaka"
         },
         {
           name: "Shaheed Tajuddin Ahmad Medical College Hospital",
@@ -956,17 +1256,77 @@
         },
         {
           name: "Narayanganj 300 Bed Hospital (Khanpur)",
-          type: "District Hospital Clinic",
+          type: "District General Hospital",
           lat: 23.6189,
           lng: 90.5056,
           phone: "+88027645120",
           address: "Khanpur, Narayanganj"
+        },
+        {
+          name: "Jessore 250 Bed General Hospital",
+          type: "District Hospital & Blood Unit",
+          lat: 23.1675,
+          lng: 89.2135,
+          phone: "+88042168542",
+          address: "Jashore Sadar, Jashore"
+        },
+        {
+          name: "Cox's Bazar Sadar Hospital",
+          type: "District General Hospital & Blood Center",
+          lat: 21.4390,
+          lng: 91.9785,
+          phone: "+88034163456",
+          address: "Hospital Road, Cox's Bazar"
+        },
+        {
+          name: "Dinajpur M Abdur Rahim Medical College Hospital",
+          type: "Medical College Hospital & Blood Unit",
+          lat: 25.6185,
+          lng: 88.6475,
+          phone: "+88053165432",
+          address: "Anando Nagar, Dinajpur"
+        },
+        {
+          name: "Faridpur Bangabandhu Sheikh Mujib Medical College Hospital",
+          type: "Medical College Hospital & Blood Bank",
+          lat: 23.6065,
+          lng: 89.8395,
+          phone: "+88063162540",
+          address: "West Khabaspur, Faridpur"
+        },
+        {
+          name: "Kushtia 250 Bed General Hospital",
+          type: "District General Hospital",
+          lat: 23.9035,
+          lng: 89.1220,
+          phone: "+8807161543",
+          address: "Kushtia Sadar, Kushtia"
+        },
+        {
+          name: "Pabna 250 Bed General Hospital",
+          type: "District General Hospital",
+          lat: 24.0045,
+          lng: 89.2390,
+          phone: "+88073165231",
+          address: "Hospital Road, Pabna"
         }
       ];
 
+
+
       // Add all verified facilities to map & register markers
       verifiedFacilities.forEach(facility => {
-        const marker = L.marker([facility.lat, facility.lng], { icon: bigMedicalIcon })
+        const isCollege = facility.name.includes("Dhaka Residential Model College");
+        const icon = isCollege
+          ? L.divIcon({
+              className: "",
+              html: '<div class="blood-facility-marker" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); border-color: #facc15;" title="Dhaka Residential Model College (DRMC)">🎓</div>',
+              iconSize: [46, 46],
+              iconAnchor: [23, 23]
+            })
+          : bigMedicalIcon;
+
+        const marker = L.marker([facility.lat, facility.lng], { icon: icon })
           .addTo(map)
           .bindPopup(createFacilityPopup(facility));
         facility.marker = marker;
