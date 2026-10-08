@@ -13,21 +13,198 @@
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <!-- Leaflet Geocoder CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
   
   <style>
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 16px;
+      border-radius: 16px;
+      overflow: visible;
+    }
+
     #map {
       height: 72vh;
-      min-height: 480px;
+      min-height: 500px;
       width: 100%;
       border-radius: 16px;
-      margin-top: 16px;
       z-index: 1;
       border: 1px solid rgba(0, 0, 0, 0.08);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
     }
 
+    /* Transparent Floating Search Overlay */
+    .map-search-overlay {
+      position: absolute;
+      top: 14px;
+      left: 60px; /* leaves room for Leaflet zoom + / - controls */
+      right: 14px;
+      max-width: 480px;
+      z-index: 1000;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 640px) {
+      .map-search-overlay {
+        left: 56px;
+        right: 10px;
+        top: 10px;
+        max-width: none;
+      }
+    }
+
+    .map-search-bar {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.05);
+      border-radius: 99px;
+      padding: 6px 16px;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+
+    .map-search-bar:focus-within {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(220, 38, 38, 0.4);
+      box-shadow: 0 12px 36px rgba(220, 38, 38, 0.16), 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+
+    .map-search-icon {
+      font-size: 16px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      user-select: none;
+    }
+
+    .map-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+      padding: 6px 0;
+    }
+
+    .map-search-input::placeholder {
+      color: #6b7280;
+      font-weight: 400;
+    }
+
+    .map-search-clear {
+      background: rgba(0, 0, 0, 0.06);
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #4b5563;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .map-search-clear:hover {
+      background: rgba(0, 0, 0, 0.14);
+      color: #111827;
+    }
+
+    .map-search-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(220, 38, 38, 0.2);
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: map-spin 0.6s linear infinite;
+    }
+
+    @keyframes map-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .map-search-dropdown {
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+      border-radius: 16px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding: 6px;
+    }
+
+    .map-search-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      font-size: 13.5px;
+    }
+
+    .map-search-item:hover, .map-search-item.is-selected {
+      background: rgba(220, 38, 38, 0.08);
+    }
+
+    .search-item-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .search-item-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-item-title {
+      font-weight: 700;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .search-item-subtitle {
+      font-size: 12px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .search-item-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #fee2e2;
+      color: #b91c1c;
+      flex-shrink: 0;
+    }
+
+    .search-empty {
+      padding: 16px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    /* Map Controls Header */
     .map-header-bar {
       display: flex;
       justify-content: space-between;
@@ -381,15 +558,33 @@
           </div>
         </div>
 
-        <div id="map"></div>
+        <!-- Map Container with Floating Transparent Search Bar -->
+        <div class="map-wrapper">
+          <div class="map-search-overlay">
+            <div class="map-search-bar">
+              <span class="map-search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="map-live-search-input" 
+                class="map-search-input" 
+                placeholder="Search anything: places, hospitals, blood banks..." 
+                autocomplete="off" 
+              />
+              <button type="button" id="map-search-clear-btn" class="map-search-clear" style="display: none;" aria-label="Clear search">✕</button>
+              <div id="map-search-spinner" class="map-search-spinner" style="display: none;"></div>
+            </div>
+            <!-- Search Results Dropdown -->
+            <div id="map-search-dropdown" class="map-search-dropdown" style="display: none;"></div>
+          </div>
+
+          <div id="map"></div>
+        </div>
       </div>
     </section>
   </main>
   
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <!-- Leaflet Geocoder JS -->
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
   
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -410,30 +605,8 @@
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
-      // Add Search Geocoder bar
-      if (typeof L.Control.Geocoder !== "undefined") {
-        L.Control.geocoder({
-          defaultMarkGeocode: false,
-          placeholder: "Search division, district or place in Bangladesh...",
-          collapsed: false
-        })
-        .on('markgeocode', function(e) {
-          const bbox = e.geocode.bbox;
-          map.fitBounds(bbox);
-          L.marker(e.geocode.center, {
-            icon: L.divIcon({
-              className: '',
-              html: '<div style="font-size: 32px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));">📍</div>',
-              iconSize: [32, 32],
-              iconAnchor: [16, 30]
-            })
-          })
-          .addTo(map)
-          .bindPopup('<b>' + e.geocode.name + '</b>')
-          .openPopup();
-        })
-        .addTo(map);
-      }
+      // Search pin layer
+      let searchMarker = null;
 
       // ============================================================
       // 2. LOCATE ME BUTTON (Directly bound, high + low fallback)
@@ -500,7 +673,7 @@
                 locateBtn.disabled = false;
                 let msg = "Could not detect your location.";
                 if (finalErr.code === 1) {
-                  msg = "Location permission denied. Please allow location access in your browser settings (click the lock/icon in your address bar).";
+                  msg = "Location permission denied. Please allow location access in your browser settings (click the lock/tune icon in your address bar).";
                 } else if (finalErr.code === 2) {
                   msg = "Position is unavailable on this device. Please check GPS or connection.";
                 } else if (finalErr.code === 3) {
@@ -791,12 +964,16 @@
         }
       ];
 
-      // Add all verified facilities to map
+      // Add all verified facilities to map & register markers
       verifiedFacilities.forEach(facility => {
-        L.marker([facility.lat, facility.lng], { icon: bigMedicalIcon })
+        const marker = L.marker([facility.lat, facility.lng], { icon: bigMedicalIcon })
           .addTo(map)
           .bindPopup(createFacilityPopup(facility));
+        facility.marker = marker;
       });
+
+      // Registered donors array for searchable pool
+      let registeredDonorsList = [];
 
       // ============================================================
       // 5. FETCH REGISTERED DONORS FROM SUPABASE
@@ -810,6 +987,7 @@
           .not("location_lng", "is", null);
 
         if (donors && donors.length > 0) {
+          registeredDonorsList = donors;
           donors.forEach(donor => {
             if (donor.location_lat && donor.location_lng) {
               const donorIcon = L.divIcon({
@@ -835,7 +1013,7 @@
                 '</div>';
               }
 
-              L.marker([donor.location_lat, donor.location_lng], { icon: donorIcon })
+              const marker = L.marker([donor.location_lat, donor.location_lng], { icon: donorIcon })
                 .addTo(map)
                 .bindPopup(
                   '<div class="facility-popup">' +
@@ -846,12 +1024,237 @@
                     contactPart +
                   '</div>'
                 );
+              donor.marker = marker;
             }
           });
         }
       } catch (err) {
         console.error("Error loading donors onto map:", err);
       }
+
+      // ============================================================
+      // 6. TRANSPARENT LIVE SEARCH LOGIC
+      // ============================================================
+      const searchInput = document.getElementById("map-live-search-input");
+      const searchDropdown = document.getElementById("map-search-dropdown");
+      const searchClearBtn = document.getElementById("map-search-clear-btn");
+      const searchSpinner = document.getElementById("map-search-spinner");
+      let searchDebounceTimer = null;
+      let currentResults = [];
+
+      function showDropdown() {
+        searchDropdown.style.display = "block";
+      }
+
+      function hideDropdown() {
+        searchDropdown.style.display = "none";
+      }
+
+      function renderSearchResults(items) {
+        currentResults = items;
+        if (!items || items.length === 0) {
+          searchDropdown.innerHTML = '<div class="search-empty">No matching places or blood centers found in Bangladesh.</div>';
+          showDropdown();
+          return;
+        }
+
+        let html = '';
+        items.forEach((item, index) => {
+          html += '<div class="map-search-item" data-index="' + index + '">' +
+            '<span class="search-item-icon">' + item.icon + '</span>' +
+            '<div class="search-item-body">' +
+              '<div class="search-item-title">' + item.title + '</div>' +
+              '<div class="search-item-subtitle">' + item.subtitle + '</div>' +
+            '</div>' +
+            '<span class="search-item-tag">' + item.tag + '</span>' +
+          '</div>';
+        });
+
+        searchDropdown.innerHTML = html;
+        showDropdown();
+
+        // Attach click handlers to dropdown items
+        searchDropdown.querySelectorAll('.map-search-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const idx = parseInt(el.dataset.index, 10);
+            selectSearchResult(currentResults[idx]);
+          });
+        });
+      }
+
+      function selectSearchResult(item) {
+        if (!item) return;
+        searchInput.value = item.title;
+        searchClearBtn.style.display = "flex";
+        hideDropdown();
+
+        // Fly to location
+        map.flyTo([item.lat, item.lng], 15, { animate: true, duration: 1.2 });
+
+        if (item.marker) {
+          // Open popup of existing facility or donor
+          setTimeout(() => {
+            item.marker.openPopup();
+          }, 600);
+        } else {
+          // Drop a search pin
+          if (searchMarker) map.removeLayer(searchMarker);
+          const pinIcon = L.divIcon({
+            className: '',
+            html: '<div style="font-size: 34px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));">📍</div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 32]
+          });
+          searchMarker = L.marker([item.lat, item.lng], { icon: pinIcon })
+            .addTo(map)
+            .bindPopup('<div style="font-family: inherit; padding: 4px;"><strong>' + item.title + '</strong><br><small style="color:#4b5563;">' + item.subtitle + '</small></div>')
+            .openPopup();
+        }
+      }
+
+      async function executeSearch(query) {
+        query = query.trim().toLowerCase();
+        if (!query) {
+          hideDropdown();
+          return;
+        }
+
+        const localMatches = [];
+
+        // 1. Search verified facilities (blood banks & clinics)
+        verifiedFacilities.forEach(f => {
+          const matchName = f.name.toLowerCase().includes(query);
+          const matchAddress = f.address.toLowerCase().includes(query);
+          const matchType = f.type.toLowerCase().includes(query);
+          if (matchName || matchAddress || matchType) {
+            localMatches.push({
+              title: f.name,
+              subtitle: f.address,
+              lat: f.lat,
+              lng: f.lng,
+              icon: '🏥',
+              tag: 'Hospital / Bank',
+              marker: f.marker
+            });
+          }
+        });
+
+        // 2. Search registered donors
+        registeredDonorsList.forEach(d => {
+          const matchName = (d.full_name || '').toLowerCase().includes(query);
+          const matchBlood = (d.blood_group || '').toLowerCase().includes(query);
+          const matchDist = (d.district || '').toLowerCase().includes(query);
+          const matchArea = (d.area || '').toLowerCase().includes(query);
+          if (matchName || matchBlood || matchDist || matchArea) {
+            localMatches.push({
+              title: d.full_name + ' (' + (d.blood_group || '') + ')',
+              subtitle: [d.area, d.district].filter(Boolean).join(', ') || 'Registered Donor',
+              lat: d.location_lat,
+              lng: d.location_lng,
+              icon: '🩸',
+              tag: 'Donor',
+              marker: d.marker
+            });
+          }
+        });
+
+        // Render immediate local matches first
+        if (localMatches.length > 0) {
+          renderSearchResults(localMatches);
+        }
+
+        // 3. Search Bangladesh Geocoding via Nominatim
+        searchSpinner.style.display = "block";
+        try {
+          const nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&countrycodes=bd&limit=6&q=' + encodeURIComponent(query);
+          const res = await fetch(nominatimUrl, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const geoMatches = data.map(item => {
+              const parts = item.display_name.split(',');
+              const mainTitle = parts[0];
+              const subTitle = parts.slice(1, 4).join(',').trim();
+              return {
+                title: mainTitle,
+                subtitle: subTitle || item.display_name,
+                lat: parseFloat(item.lat),
+                lng: parseFloat(item.lon),
+                icon: '📍',
+                tag: 'Place / Road',
+                marker: null
+              };
+            });
+
+            // Combine local and geocoded results, deduplicating
+            const combined = [...localMatches, ...geoMatches].slice(0, 8);
+            renderSearchResults(combined);
+          }
+        } catch (err) {
+          console.error("Geocoding error:", err);
+          if (localMatches.length === 0) {
+            renderSearchResults([]);
+          }
+        } finally {
+          searchSpinner.style.display = "none";
+        }
+      }
+
+      // Input event listener
+      searchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (val.trim()) {
+          searchClearBtn.style.display = "flex";
+        } else {
+          searchClearBtn.style.display = "none";
+          hideDropdown();
+          return;
+        }
+
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+          executeSearch(val);
+        }, 280);
+      });
+
+      // Clear button listener
+      searchClearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchClearBtn.style.display = "none";
+        hideDropdown();
+        if (searchMarker) {
+          map.removeLayer(searchMarker);
+          searchMarker = null;
+        }
+        searchInput.focus();
+      });
+
+      // Keyboard navigation (Enter key picks first result)
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (currentResults && currentResults.length > 0) {
+            selectSearchResult(currentResults[0]);
+          }
+        } else if (e.key === 'Escape') {
+          hideDropdown();
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.map-search-overlay')) {
+          hideDropdown();
+        }
+      });
+
+      // Show dropdown on re-focus if text exists
+      searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim() && currentResults.length > 0) {
+          showDropdown();
+        }
+      });
     });
   </script>
 </body>
