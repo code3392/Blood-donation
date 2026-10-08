@@ -1079,13 +1079,28 @@
     const login = $("login-btn");
     const signout = $("signout-btn");
     
-    if (login && signout) {
+    if (login) {
       if (currentUser) {
         login.textContent = "Dashboard";
-        signout.classList.remove("hidden");
       } else {
         login.textContent = "Sign in";
+      }
+    }
+
+    if (signout) {
+      if (currentUser) {
+        signout.classList.remove("hidden");
+      } else {
         signout.classList.add("hidden");
+      }
+    }
+
+    const headerSignout = $("header-signout-btn");
+    if (headerSignout) {
+      if (currentUser) {
+        headerSignout.classList.remove("hidden");
+      } else {
+        headerSignout.classList.add("hidden");
       }
     }
 
@@ -1618,6 +1633,7 @@
     $("detect-donor-location")?.addEventListener("click", detectLocation);
     $("search-donors")?.addEventListener("click", searchDonors);
     $("signout-btn")?.addEventListener("click", signOut);
+    $("header-signout-btn")?.addEventListener("click", signOut);
 
     // Modals close buttons
     $$("[data-close-modal]").forEach((el) => el.addEventListener("click", closeAuth));
