@@ -468,42 +468,6 @@
       });
     });
 
-    // Slide-over Navigation Menu Drawer
-    const navMenuBtn = document.getElementById("menu-trigger-btn");
-    const navDrawer = document.getElementById("nav-menu-drawer");
-    const navBackdrop = document.getElementById("nav-drawer-backdrop");
-    const navClose = document.getElementById("nav-drawer-close");
-
-    function openNavDrawer() {
-      navDrawer?.classList.remove("hidden");
-      navMenuBtn?.setAttribute("aria-expanded", "true");
-      navMenuBtn?.classList.add("is-active");
-      document.body.style.overflow = "hidden";
-    }
-
-    function closeNavDrawer() {
-      navDrawer?.classList.add("hidden");
-      navMenuBtn?.setAttribute("aria-expanded", "false");
-      navMenuBtn?.classList.remove("is-active");
-      document.body.style.overflow = "";
-    }
-
-    navMenuBtn?.addEventListener("click", () => {
-      if (navDrawer?.classList.contains("hidden")) {
-        openNavDrawer();
-      } else {
-        closeNavDrawer();
-      }
-    });
-
-    navClose?.addEventListener("click", closeNavDrawer);
-    navBackdrop?.addEventListener("click", closeNavDrawer);
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !navDrawer?.classList.contains("hidden")) {
-        closeNavDrawer();
-      }
-    });
-
     // Ambient floating canvas
     (function initCanvas() {
       const canvas = document.getElementById('ambient-blood-canvas');

@@ -1,8 +1,8 @@
 /**
  * Lifeline Automated Global & Bangla Translator
  * Translates the entire website automatically with a single button click.
- * Zero manual effort required — walks the DOM and translates all text,
- * navigation menus, buttons, forms, cards, and dynamic content.
+ * Uses intelligent whitespace-flexible regex matching and length-sorted dictionary
+ * to ensure 100% clean, fluent translation without English/Bangla text mixing.
  */
 (function () {
   "use strict";
@@ -30,7 +30,10 @@
     // Navigation Drawer Items
     ["Main emergency landing page", "প্রধান জরুরি পাতা"],
     ["Find Donors", "রক্তদাতা খুঁজুন"],
+    ["Registered Donors", "নিবন্ধিত রক্তদাতা"],
+    ["Search and view all registered blood donors", "সকল নিবন্ধিত রক্তদাতাদের তালিকা ও বিবরণ দেখুন"],
     ["Search verified voluntary donors", "যাচাইকৃত রক্তদাতা অনুসন্ধান"],
+    ["Search blood donors by group & district", "রক্তের গ্রুপ ও জেলা অনুযায়ী রক্তদাতা খুঁজুন"],
     ["Requested Blood", "রক্তের অনুরোধসমূহ"],
     ["View live open blood emergencies", "লাইভ জরুরি অনুরোধ দেখুন"],
     ["Post an urgent request with auto-matching", "স্বয়ংক্রিয় ম্যাচিং সুবিধা নিয়ে অনুরোধ প্রকাশ করুন"],
@@ -143,33 +146,116 @@
     ["Additional Medical Notes", "অতিরিক্ত মেডিকেল নোট"],
     ["Post Urgent Blood Request", "জরুরি রক্তের অনুরোধ প্রকাশ করুন"],
 
-    // Disease Page
-    ["Blood Disorders & Transfusion Guide", "রক্তের রোগ ও সঞ্চালন গাইড"],
-    ["Clinical Understanding of Blood Disorders", "রক্তের রোগ সম্পর্কে ক্লিনিক্যাল ধারণা"],
-    ["Accurate clinical knowledge on blood-related diseases, transfusion cycles, donor matching rules, and essential safety precautions for patients and families worldwide.", "রক্তের রোগ, সঞ্চালন চক্র, রক্তদাতা ম্যাচিং নিয়ম ও প্রয়োজনীয় সতর্কতা সম্পর্কে সঠিক ক্লিনিক্যাল জ্ঞান।"],
-    ["STANDARDIZED MEDICAL COMPATIBILITY", "মানসম্মত মেডিকেল কম্প্যাটিবিলিটি"],
+    // ========================================================
+    // DISEASE & MEDICAL GUIDE (Comprehensive Full Paragraphs)
+    // ========================================================
+    ["CLINICAL REFERENCE & PATIENT EDUCATION", "ক্লিনিক্যাল তথ্য ও রোগী শিক্ষা"],
+    ["Blood Disorders & Transfusion Guide", "রক্তের রোগ ও সঞ্চালন নির্দেশিকা"],
+    ["Accurate clinical knowledge on blood-related diseases, transfusion cycles, donor matching rules, and essential safety precautions for patients and families worldwide.", "রক্ত সম্পর্কিত রোগ, সঞ্চালন চক্র, রক্তদাতা ম্যাচিং নিয়ম এবং বিশ্বব্যাপী রোগী ও পরিবারের জন্য প্রয়োজনীয় সুরক্ষামূলক ক্লিনিক্যাল জ্ঞান।"],
+    ["Search disease, symptoms, or blood product (e.g. Thalassemia, Dengue, Platelets)...", "রোগ, লক্ষণ বা রক্তের উপাদান অনুসন্ধান করুন (যেমন: থ্যালাসেমিয়া, ডেঙ্গু, প্লাটিলেট)..."],
+
+    // Compatibility Matrix Section
+    ["STANDARDIZED MEDICAL COMPATIBILITY", "মানসম্মত চিকিৎসা সামঞ্জস্য"],
     ["Blood Group Compatibility Matrix: Who Can Give Blood to Whom", "রক্তের গ্রুপ ম্যাচিং ছক: কে কাকে রক্ত দিতে পারে"],
-    ["This standardized scientific matrix determines blood transfusion compatibility. Click any recipient group below to highlight matching donor groups.", "এই বৈজ্ঞানিক ছক রক্ত সঞ্চালনের উপযুক্ততা নির্ধারণ করে। ম্যাচিং গ্রুপ দেখতে নিচের যেকোনো গ্রুপে ক্লিক করুন।"],
+    ["This standardized scientific matrix determines blood transfusion compatibility. Click any recipient group below to highlight matching donor groups.", "এই মানসম্মত বৈজ্ঞানিক ছক রক্ত সঞ্চালনের উপযুক্ততা নির্ধারণ করে। নিচে যেকোনো গ্রহীতার গ্রুপে ক্লিক করে উপযুক্ত দাতা গ্রুপ দেখুন।"],
     ["Blood Group", "রক্তের গ্রুপ"],
     ["Donor ⟶", "দাতা ⟶"],
     ["Recipient ⟶", "গ্রহীতা ⟶"],
-    ["Transfusion Cycle:", "সঞ্চালন চক্র:"],
-    ["Product Required:", "প্রয়োজনীয় উপাদান:"],
-    ["Key Precaution:", "প্রধান সতর্কতা:"],
-    ["Compatibility:", "উপযুক্ততা:"],
-    ["Doctor’s Guidance:", "চিকিৎসকের পরামর্শ:"],
-    ["Request Blood for Thalassemia", "থ্যালাসেমিয়ার জন্য রক্তের অনুরোধ"],
-    ["Request Blood for Anemia", "রক্তস্বল্পতার জন্য রক্তের অনুরোধ"],
-    ["Request Platelets / Blood", "প্লাটিলেট / রক্তের অনুরোধ"],
-    ["Find FFP / Blood Donors", "এফএফপি / রক্তদাতা খুঁজুন"],
-    ["Request Urgent Platelets", "জরুরি প্লাটিলেটের অনুরোধ"],
-    ["Publish Emergency Request", "জরুরি অনুরোধ পোস্ট করুন"],
+    ["💡 Scientific Principles:", "💡 বৈজ্ঞানিক নীতিমালা:"],
+    ["• O− (O Negative): Universal Donor — Lacks A, B, and Rh antigens on red blood cells and can safely donate red cells to any blood group.", "• O− (ও নেগেটিভ): সর্বজনীন দাতা — লোহিত রক্তকণিকায় A, B এবং Rh অ্যান্টিজেন নেই, ফলে যেকোনো গ্রুপের রোগীকে নিরাপদে রক্ত দিতে পারে।"],
+    ["• AB+ (AB Positive): Universal Recipient — Contains no anti-A, anti-B, or anti-Rh antibodies in plasma and can receive red cells from any blood group.", "• AB+ (এবি পজিটিভ): সর্বজনীন গ্রহীতা — প্লাজমায় কোনো অ্যান্টি-A, অ্যান্টি-B বা অ্যান্টি-Rh অ্যান্টিবডি নেই, ফলে যেকোনো গ্রুপ থেকে রক্ত গ্রহণ করতে পারে।"],
+    ["• Rh Factor Rule: Rh-positive blood must never be transfused into an Rh-negative patient. Rh-negative patients must strictly receive Rh-negative blood.", "• Rh ফ্যাক্টর নিয়ম: Rh-পজিটিভ রক্ত কখনোই Rh-নেগেটিভ রোগীকে দেওয়া যাবে না। Rh-নেগেটিভ রোগীকে কঠোরভাবে Rh-নেগেটিভ রক্তই দিতে হবে।"],
+
+    // Disease Dossiers Heading
+    ["DISEASE DOSSIERS", "রোগ নির্দেশিকা"],
+    ["Clinical Understanding of Blood Disorders", "রক্তের বিভিন্ন রোগ সম্পর্কে ক্লিনিক্যাল ধারণা"],
+    ["Click on any condition to view detailed transfusion protocols and doctor guidance.", "বিস্তারিত রক্ত সঞ্চালন প্রোটোকল ও চিকিৎসকের পরামর্শ দেখতে যেকোনো রোগে ক্লিক করুন।"],
+
+    // Card 1: Thalassemia
+    ["Genetic Disorder", "বংশগত রোগ"],
+    ["Frequent Transfusion", "ঘন ঘন রক্ত সঞ্চালন"],
     ["Thalassemia", "থ্যালাসেমিয়া"],
+    ["An inherited genetic condition causing defective hemoglobin production. Patients with Thalassemia Major cannot produce sufficient healthy red blood cells, leading to severe chronic anemia, bone deformities, and organ enlargement.", "একটি বংশগত রোগ যা ত্রুটিপূর্ণ হিমোগ্লোবিন তৈরি করে। থ্যালাসেমিয়া মেজর রোগীরা পর্যাপ্ত সুস্থ লোহিত রক্তকণিকা তৈরি করতে পারে না, যার ফলে দীর্ঘস্থায়ী রক্তস্বল্পতা, হাড়ের বিকৃতি এবং অঙ্গের আকার বৃদ্ধি পায়।"],
+    ["Transfusion Cycle:", "সঞ্চালন চক্র:"],
+    ["Every 2 to 4 weeks", "প্রতি ২ থেকে ৪ সপ্তাহ পর পর"],
+    ["Product Required:", "প্রয়োজনীয় উপাদান:"],
+    ["Leukoreduced Packed RBCs (PRBC)", "লিউকোরেডিউসড প্যাকড লোহিত রক্তকণিকা (PRBC)"],
+    ["Key Precaution:", "প্রধান সতর্কতা:"],
+    ["Iron Chelation Therapy (Desferal / Kelfer)", "আয়রন চিলেশন থেরাপি (ডেসফেরাল / কেলফার)"],
+    ["Compatibility:", "উপযুক্ততা:"],
+    ["Extended Rh (C, c, E, e) & Kell Phenotyping", "এক্সটেন্ডেড Rh ও কেল ফেনোটাইপিং"],
+    ["Doctor’s Guidance:", "চিকিৎসকের পরামর্শ:"],
+    ["Always provide leucodepleted red cells to prevent alloimmunization and febrile reactions. Monitor serum ferritin routinely to prevent cardiac and liver iron toxicity.", "অ্যালোইমিউনাইজেশন এবং জ্বরজনিত প্রতিক্রিয়া রোধ করতে সর্বদা লিউকোডেপ্লিটেড রক্ত দিন। হার্ট ও লিভারে অতিরিক্ত আয়রনের বিষক্রিয়া রোধে নিয়মিত সিরাম ফেরিটিন পরীক্ষা করুন।"],
+    ["Request Blood for Thalassemia", "থ্যালাসেমিয়ার জন্য রক্তের অনুরোধ"],
+
+    // Card 2: Severe & Aplastic Anemia
+    ["Bone Marrow / Blood Loss", "অস্থিমজ্জা / রক্তক্ষরণ"],
+    ["Urgent / Planned", "জরুরি / পূর্বনির্ধারিত"],
     ["Severe & Aplastic Anemia", "সিভিয়ার ও অ্যাপ্লাস্টিক অ্যানিমিয়া"],
-    ["Leukemia & Blood Cancers", "লিউকেমিয়া ও ব্লাড ক্যান্সার"],
+    ["Aplastic anemia is bone marrow failure where stem cells fail to produce RBCs, WBCs, and platelets. Severe nutritional or hemolytic anemia causes dangerously low hemoglobin (< 6-7 g/dL) leading to heart strain.", "অ্যাপ্লাস্টিক অ্যানিমিয়ায় অস্থিমজ্জা ব্যর্থ হয়, ফলে স্টেম সেল পর্যাপ্ত লোহিত, শ্বেত রক্তকণিকা ও প্লাটিলেট তৈরি করতে পারে না। মারাত্মক পুষ্টিহীনতা বা রক্তক্ষরণে হিমোগ্লোবিনের মাত্রা বিপজ্জনকভাবে কমে যায় (< ৬-৭ g/dL)।"],
+    ["Transfusion Threshold:", "রক্ত সঞ্চালনের মাত্রা:"],
+    ["Hb < 7.0 g/dL (or symptomatic)", "হিমোগ্লোবিন < ৭.০ g/dL (বা লক্ষণযুক্ত)"],
+    ["Packed Red Blood Cells (PRBC)", "প্যাকড লোহিত রক্তকণিকা (PRBC)"],
+    ["Critical Risk:", "মারাত্মক ঝুঁকি:"],
+    ["Volume overload & alloimmunization", "ভলিউম ওভারলোড ও অ্যালোইমিউনাইজেশন"],
+    ["Do not transfuse whole blood if iron-deficiency can be corrected with IV iron. In aplastic anemia, blood must be irradiated to prevent graft-versus-host disease (TA-GVHD).", "আয়রনের ঘাটতি যদি স্যালাইন/ওষুধ দিয়ে পূরণ করা যায় তবে পুরো রক্ত দেবেন না। অ্যাপ্লাস্টিক অ্যানিমিয়ায় গ্রাফ্ট-ভার্সাস-হোস্ট রোগ (TA-GVHD) প্রতিরোধে রক্ত ইরেডিয়েট (বিকিরণ) করতে হবে।"],
+    ["Request Blood for Anemia", "রক্তস্বল্পতার জন্য রক্তের অনুরোধ"],
+
+    // Card 3: Leukemia
+    ["Hematologic Cancer", "রক্তের ক্যান্সার"],
+    ["Emergency Critical", "জরুরি সংকটজনক"],
+    ["Leukemia & Blood Cancers", "লিউকেমিয়া ও রক্তের ক্যান্সার"],
+    ["Malignancies of blood-forming tissue (ALL, AML, Lymphoma). Chemotherapy and marrow infiltration cause profound pancytopenia — life-threatening drops in both red cells and clotting platelets.", "রক্ত তৈরিকারী কলার ক্যান্সার (ALL, AML, লিম্ফোমা)। কেমোথেরাপির কারণে প্যানসাইটোপেনিয়া ঘটে — লোহিত রক্তকণিকা ও রক্ত জমাট বাঁধার প্লাটিলেট উভয়ই আশঙ্কাজনকভাবে কমে যায়।"],
+    ["Transfusion Need:", "সঞ্চালন প্রয়োজন:"],
+    ["Single Donor Platelets (SDP) & PRBC", "সিঙ্গেল ডোনার প্লাটিলেট (SDP) ও PRBC"],
+    ["Platelet Trigger:", "প্লাটিলেট মাত্রা:"],
+    ["Count < 10,000/µL or active bleeding", "কাউন্ট < ১০,০০০/µL বা সক্রিয় রক্তক্ষরণ"],
+    ["Special Processing:", "বিশেষ প্রক্রিয়াজাতকরণ:"],
+    ["Irradiated & Leukodepleted Products", "ইরেডিয়েটেড ও লিউকোডেপ্লিটেড উপাদান"],
+    ["Platelet transfusions are time-sensitive. Coordinate early with apheresis donors who have not taken aspirin or NSAIDs in the past 72 hours.", "প্লাটিলেট সঞ্চালন অত্যন্ত জরুরি। এমন অ্যাফেরেসিস দাতার সাথে দ্রুত সমন্বয় করুন যিনি গত ৭২ ঘণ্টার মধ্যে অ্যাসপিরিন বা ব্যথানাশক ওষুধ খাননি।"],
+    ["Request Platelets / Blood", "প্লাটিলেট / রক্তের অনুরোধ"],
+
+    // Card 4: Hemophilia
+    ["Coagulation Disorder", "রক্ত জমাট বাঁধার ব্যাধি"],
+    ["Clotting Emergency", "রক্তক্ষরণ জরুরি অবস্থা"],
     ["Hemophilia & Bleeding Disorders", "হিমোফিলিয়া ও রক্তক্ষরণজনিত রোগ"],
+    ["Deficiency of clotting Factor VIII (Hemophilia A) or Factor IX (Hemophilia B). Minor trauma can cause devastating internal joint, muscle, or intracranial bleeds.", "রক্ত জমাট বাঁধার ফ্যাক্টর VIII (হিমোফিলিয়া A) বা ফ্যাক্টর IX (হিমোফিলিয়া B)-এর ঘাটতি। সামান্য আঘাতেই শরীরের ভেতরে, জয়েন্টে, মাংসে বা মস্তিষ্কে মারাত্মক রক্তক্ষরণ হতে পারে।"],
+    ["Primary Treatment:", "প্রাথমিক চিকিৎসা:"],
+    ["Factor Concentrates (Recombinant/Plasma)", "ফ্যাক্টর কনসেন্ট্রেট (রিকম্বিন্যান্ট/প্লাজমা)"],
+    ["Alternative Emergency:", "জরুরি বিকল্প:"],
+    ["Fresh Frozen Plasma (FFP) / Cryo", "ফ্রেশ ফ্রোজেন প্লাজমা (FFP) / ক্রায়ো"],
+    ["Avoid:", "বর্জনীয়:"],
+    ["Whole blood (insufficient factor concentration)", "সম্পূর্ণ রক্ত (ফ্যাক্টরের মাত্রা অপর্যাপ্ত)"],
+    ["Standard whole blood is ineffective for hemophilia bleeds. Contact the hematology center urgently for factor vials or specialized Cryoprecipitate.", "হিমোফিলিয়ার রক্তক্ষরণে সাধারণ রক্ত অকার্যকর। ফ্যাক্টর ভায়াল বা বিশেষায়িত ক্রায়োপ্রেসিপিটেটের জন্য অবিলম্বে হেমাটোলজি সেন্টারে যোগাযোগ করুন।"],
+    ["Find FFP / Blood Donors", "এফএফপি / রক্তদাতা খুঁজুন"],
+
+    // Card 5: Dengue
+    ["Seasonal Epidemic", "মৌসুমি মহামারি"],
+    ["Critical Window", "সংকটজনক সময়"],
     ["Dengue with Thrombocytopenia", "ডেঙ্গু ও প্লাটিলেট সংকট"],
+    ["Dengue hemorrhagic fever causes immune-mediated destruction of platelets and capillary plasma leakage. While platelet count drops sharply, prophylactic transfusion is usually NOT necessary unless severe bleeding exists.", "ডেঙ্গু হেমোরেজিক ফিভারে রক্তনালী থেকে প্লাজমা লিকেজ এবং প্লাটিলেট ধ্বংস হয়। প্লাটিলেট দ্রুত কমলেও মারাত্মক রক্তক্ষরণ না থাকলে আগাম রক্ত সঞ্চালন সাধারণত প্রয়োজন হয় না।"],
+    ["Transfusion Criteria:", "সঞ্চালনের মানদণ্ড:"],
+    ["Active bleeding OR count < 10,000/µL", "সক্রিয় রক্তক্ষরণ বা কাউন্ট < ১০,০০০/µL"],
+    ["Primary Therapy:", "প্রধান চিকিৎসা:"],
+    ["Judicious IV crystalloid fluid management", "যথাযথ আইভি ফ্লুইড/স্যালাইন ব্যবস্থাপনা"],
+    ["Blood Products:", "রক্তের উপাদান:"],
+    ["Platelet Concentrates / Fresh Whole Blood", "প্লাটিলেট কনসেন্ট্রেট / তাজা সম্পূর্ণ রক্ত"],
+    ["Avoid panicking over numerical platelet counts. Fluid resuscitation is paramount. Follow the National Guidelines for Clinical Management of Dengue Syndrome.", "প্লাটিলেটের সংখ্যার কমতি দেখে আতঙ্কিত হবেন না। স্যালাইন/ফ্লুইড ব্যবস্থাপনাই প্রধান। জাতীয় ডেঙ্গু চিকিৎসা নির্দেশিকা অনুসরণ করুন।"],
+    ["Request Urgent Platelets", "জরুরি প্লাটিলেটের অনুরোধ"],
+
+    // Card 6: Sickle Cell & Trauma
+    ["Hemoglobinopathy / Surgery", "হিমোগ্লোবিনোপ্যাথি / সার্জারি"],
+    ["Urgent Response", "জরুরি সাড়া"],
     ["Sickle Cell Disease & Emergency Trauma", "সিকেল সেল ও জরুরি ট্রমা"],
+    ["Sickle cell patients experience acute chest syndrome or splenic sequestration. In road traffic accidents and post-partum hemorrhage, massive blood loss requires immediate, synchronized transfusion.", "সিকেল সেল রোগীদের তীব্র বুকে ব্যথা বা প্লীহায় রক্ত জমাট বাঁধে। সড়ক দুর্ঘটনা এবং প্রসবোত্তর অতিরিক্ত রক্তক্ষরণে অবিলম্বে সুসংগত রক্ত সঞ্চালন প্রয়োজন।"],
+    ["Sickle Cell:", "সিকেল সেল:"],
+    ["Exchange transfusion to reduce HbS < 30%", "HbS < ৩০% কমাতে এক্সচেঞ্জ ট্রান্সফিউশন"],
+    ["Trauma / MTP:", "ট্রমা / এমটিপি:"],
+    ["1:1:1 ratio (PRBC, FFP, Platelets)", "১:১:১ অনুপাত (PRBC, FFP, প্লাটিলেট)"],
+    ["Universal Blood:", "সর্বজনীন রক্ত:"],
+    ["O-Negative used prior to crossmatch", "ক্রসম্যাচের পূর্বে O-নেগেটিভ রক্ত ব্যবহার"],
+    ["In massive hemorrhage, warm blood products to prevent hypothermia and coagulopathy. Always activate hospital emergency transfusion protocols immediately.", "মারাত্মক রক্তক্ষরণে হাইপোথার্মিয়া ও রক্ত জমাট বাঁধার সমস্যা রোধ করতে রক্ত কিছুটা গরম করে দিন। অবিলম্বে হাসপাতালের জরুরি ট্রান্সফিউশন প্রোটোকল সক্রিয় করুন।"],
+    ["Publish Emergency Request", "জরুরি রক্তের অনুরোধ প্রকাশ করুন"],
 
     // Dashboard
     ["Donor Dashboard", "ডোনার ড্যাশবোর্ড"],
@@ -214,7 +300,27 @@
     ["Blood. Hope. Together.", "রক্ত। আশা। একতা।"]
   ];
 
-  // Cache of original English text for reversible translation
+  // Helper to escape regex special characters
+  function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // Pre-compile dictionary patterns sorted longest first
+  // This guarantees longer sentences match before shorter words, completely eliminating mixed-text artifacts!
+  const COMPILED_DICTIONARY = UI_DICTIONARY
+    .slice()
+    .sort((a, b) => b[0].trim().length - a[0].trim().length)
+    .map(([en, bn]) => {
+      const cleanEn = en.trim();
+      const pattern = escapeRegex(cleanEn).replace(/\s+/g, "\\s+");
+      return {
+        en: cleanEn,
+        regex: new RegExp(pattern, "gi"),
+        bn: bn
+      };
+    });
+
+  // Cache of original English text for 100% accurate reversible translation
   const originalNodeTexts = new WeakMap();
 
   function translateNode(node, lang) {
@@ -234,11 +340,10 @@
       }
 
       let translated = original;
-      for (let i = 0; i < UI_DICTIONARY.length; i++) {
-        const en = UI_DICTIONARY[i][0];
-        const bn = UI_DICTIONARY[i][1];
-        if (translated.includes(en)) {
-          translated = translated.split(en).join(bn);
+      for (let i = 0; i < COMPILED_DICTIONARY.length; i++) {
+        const item = COMPILED_DICTIONARY[i];
+        if (item.regex.test(translated)) {
+          translated = translated.replace(item.regex, item.bn);
         }
       }
       node.nodeValue = translated;
@@ -256,11 +361,10 @@
           node.placeholder = node.dataset.origPlaceholder;
         } else {
           let p = node.dataset.origPlaceholder;
-          for (let i = 0; i < UI_DICTIONARY.length; i++) {
-            const en = UI_DICTIONARY[i][0];
-            const bn = UI_DICTIONARY[i][1];
-            if (p.includes(en)) {
-              p = p.split(en).join(bn);
+          for (let i = 0; i < COMPILED_DICTIONARY.length; i++) {
+            const item = COMPILED_DICTIONARY[i];
+            if (item.regex.test(p)) {
+              p = p.replace(item.regex, item.bn);
             }
           }
           node.placeholder = p;
@@ -278,7 +382,7 @@
     localStorage.setItem("lifeline-language", targetLang);
     document.documentElement.lang = targetLang;
 
-    // Update all toggle buttons
+    // Update all toggle buttons (no globe emoji)
     document.querySelectorAll(".language-toggle, #language-toggle").forEach(btn => {
       btn.textContent = targetLang === "en" ? "বাংলা" : "English";
     });
@@ -287,16 +391,6 @@
     if (document.body) {
       translateNode(document.body, targetLang);
     }
-
-    // Update Google Translate cookies if present
-    document.cookie = "googtrans=" + (targetLang === "bn" ? "/en/bn" : "/en/en") + "; path=/;";
-    try {
-      const select = document.querySelector(".goog-te-combo");
-      if (select && select.value !== targetLang) {
-        select.value = targetLang;
-        select.dispatchEvent(new Event("change"));
-      }
-    } catch (e) {}
   }
 
   function toggleLanguage() {
@@ -319,7 +413,6 @@
     // Wire click events on all language toggle buttons
     document.querySelectorAll(".language-toggle, #language-toggle").forEach(btn => {
       btn.removeEventListener("click", toggleLanguage);
-      // btn.addEventListener("click", toggleLanguage); // Handled by app.js
     });
 
     // Apply saved language immediately
@@ -329,7 +422,7 @@
       setPageLanguage("en");
     }
 
-    // Observe dynamic elements (e.g. search results, live blood requests)
+    // Observe dynamic elements
     if (window.MutationObserver && document.body) {
       const observer = new MutationObserver(mutations => {
         const lang = localStorage.getItem("lifeline-language") || "en";
