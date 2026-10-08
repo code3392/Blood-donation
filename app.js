@@ -900,7 +900,7 @@
     localStorage.setItem("lifeline-language", currentLanguage);
     document.documentElement.lang = currentLanguage === "bn" ? "bn" : "en";
     const toggle = $("language-toggle");
-    if (toggle) toggle.textContent = currentLanguage === "en" ? "🌐 বাংলা" : "🌐 English";
+    if (toggle) toggle.textContent = currentLanguage === "en" ? "বাংলা" : "English";
     Object.entries(translations[currentLanguage]).forEach(([key, value]) => {
       document.querySelectorAll(`[data-i18n="${key}"]`).forEach((el) => {
         el.textContent = value;
