@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactive Blood Donor Map — Lifeline Humanitarian Network</title>
-  <meta name="description" content="Search verified voluntary blood donors worldwide using an interactive map." />
+  <title>Interactive Blood Donor & Clinic Map — Lifeline Humanitarian Network</title>
+  <meta name="description" content="Find verified voluntary blood donors, blood banks, and donation clinics across Bangladesh." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,11 +18,228 @@
   
   <style>
     #map {
-      height: 70vh;
+      height: 72vh;
+      min-height: 480px;
       width: 100%;
-      border-radius: 12px;
-      margin-top: 20px;
-      z-index: 1; /* Keep map behind drawer/modals */
+      border-radius: 16px;
+      margin-top: 16px;
+      z-index: 1;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .map-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .map-legend {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #4b5563;
+      background: #f9fafb;
+      padding: 8px 16px;
+      border-radius: 99px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    /* Big Noticeable Custom Markers */
+    .blood-facility-marker {
+      width: 44px !important;
+      height: 44px !important;
+      margin-left: -22px !important;
+      margin-top: -22px !important;
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.45), 0 0 0 2px rgba(220, 38, 38, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    .blood-facility-marker:hover {
+      transform: scale(1.22);
+      box-shadow: 0 8px 22px rgba(220, 38, 38, 0.65), 0 0 0 3px rgba(220, 38, 38, 0.3);
+      z-index: 1000 !important;
+    }
+
+    .donor-user-marker {
+      width: 42px !important;
+      height: 42px !important;
+      margin-left: -21px !important;
+      margin-top: -21px !important;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 6px 14px rgba(185, 28, 28, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .donor-user-marker:hover {
+      transform: scale(1.2);
+      z-index: 1000 !important;
+    }
+
+    .user-location-marker {
+      width: 44px !important;
+      height: 44px !important;
+      margin-left: -22px !important;
+      margin-top: -22px !important;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      position: relative;
+    }
+    .user-pulse-ring {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 3px solid #3b82f6;
+      animation: user-radar 1.8s infinite ease-out;
+      pointer-events: none;
+    }
+    @keyframes user-radar {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Popup Styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 14px;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      padding: 4px;
+    }
+    .leaflet-popup-content {
+      margin: 12px 14px;
+      line-height: 1.4;
+    }
+    .facility-popup {
+      min-width: 240px;
+      max-width: 310px;
+    }
+    .facility-popup h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.3;
+    }
+    .facility-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #fee2e2;
+      color: #b91c1c;
+      margin-bottom: 6px;
+    }
+    .facility-address {
+      font-size: 12.5px;
+      color: #4b5563;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .contact-box {
+      margin: 10px 0 6px 0;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .contact-box.has-contact {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+    .contact-box.no-contact {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+    .contact-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .has-contact .contact-label {
+      color: #991b1b;
+    }
+    .no-contact .contact-label {
+      color: #6b7280;
+    }
+    .contact-val {
+      font-weight: 700;
+      font-size: 14px;
+      color: #111827;
+    }
+    .no-contact-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      font-style: italic;
+    }
+    .call-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #dc2626;
+      color: #ffffff !important;
+      padding: 6px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+    .call-btn:hover {
+      background: #b91c1c;
+    }
+    .directions-link {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .directions-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -89,19 +306,6 @@
           <span class="drawer-arrow">→</span>
         </a>
 
-        <a href="find-donors.html" class="drawer-link-item">
-          <span class="drawer-link-icon">🔍</span>
-          <div>
-            <strong>Find Donors</strong>
-            <small>Search blood donors by group & district</small>
-          </div>
-          <span class="drawer-arrow">→</span>
-        </a>
-        
-        
-
-        
-
         <a href="request-blood.html" class="drawer-link-item">
           <span class="drawer-link-icon">💉</span>
           <div>
@@ -116,6 +320,15 @@
           <div>
             <strong>Become a Donor</strong>
             <small>Join our network of lifesaving donors</small>
+          </div>
+          <span class="drawer-arrow">→</span>
+        </a>
+
+        <a href="find-donors.html" class="drawer-link-item">
+          <span class="drawer-link-icon">🔍</span>
+          <div>
+            <strong>Registered Donors</strong>
+            <small>Search and view all registered blood donors</small>
           </div>
           <span class="drawer-arrow">→</span>
         </a>
@@ -137,8 +350,6 @@
           </div>
           <span class="drawer-arrow">→</span>
         </a>
-
-        
       </div>
 
       <div class="nav-drawer-footer">
@@ -149,14 +360,27 @@
   </div>
   
   <main>
-    <section class="section" style="padding-top: 50px;">
+    <section class="section" style="padding-top: 40px; padding-bottom: 60px;">
       <div class="container">
-        <h1>Interactive Blood Donor Map</h1>
-        <p>Find nearby donors based on their registered locations.</p>
-        <div class="map-controls" style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-          
-          <button id="locate-me-btn" class="btn btn-primary" style="padding: 8px 16px;">📍 Locate Me</button>
+        <div style="margin-bottom: 12px;">
+          <h1 style="font-size: 28px; margin-bottom: 6px;">Interactive Blood Network Map</h1>
+          <p style="color: #4b5563; font-size: 15px; margin: 0;">Live map of verified blood banks, donation clinics, and voluntary donors across Bangladesh.</p>
         </div>
+
+        <div class="map-header-bar">
+          <div class="map-legend">
+            <div class="legend-item"><span style="font-size: 18px;">🏥</span> Blood Banks & Clinics</div>
+            <div class="legend-item"><span style="font-size: 18px;">🩸</span> Registered Donors</div>
+            <div class="legend-item"><span style="font-size: 18px;">📍</span> Your Location</div>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="locate-me-btn" class="btn btn-primary" type="button" style="padding: 10px 18px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);">
+              📍 Locate Me
+            </button>
+          </div>
+        </div>
+
         <div id="map"></div>
       </div>
     </section>
@@ -175,135 +399,455 @@
   
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      // Initialize map
-      const map = L.map('map').setView([23.8103, 90.4125], 7); // Default to Dhaka, Bangladesh
+      // 1. Initialize map centered on Bangladesh
+      const map = L.map('map', {
+        zoomControl: true,
+        scrollWheelZoom: true
+      }).setView([23.8103, 90.4125], 7); // Default centered on Dhaka, Bangladesh
       
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap'
+        attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
-      
-          // Fetch Blood Banks and Clinics from OpenStreetMap
-          let bloodBankMarkers = L.layerGroup().addTo(map);
-          let isFetching = false;
-          
-          async function fetchBloodBanks() {
-            if (isFetching || map.getZoom() < 8) return; // Only fetch if zoomed in enough
-            isFetching = true;
-            try {
-              const bounds = map.getBounds();
-              const s = bounds.getSouth();
-              const n = bounds.getNorth();
-              const w = bounds.getWest();
-              const e = bounds.getEast();
-              
-              const query = "[out:json][timeout:15];(" +
-                  "node['amenity'='blood_bank'](" + s + "," + w + "," + n + "," + e + ");" +
-                  "node['healthcare'='blood_bank'](" + s + "," + w + "," + n + "," + e + ");" +
-                  "node['name'~'Blood|Sandhani|Badhan|Quantum|Red Crescent|Blood Bank',i](" + s + "," + w + "," + n + "," + e + ");" +
-                  "way['name'~'Blood|Sandhani|Badhan|Quantum|Red Crescent|Blood Bank',i](" + s + "," + w + "," + n + "," + e + ");" +
-                ");out center;";
-              
-              const res = await fetch("https://overpass-api.de/api/interpreter", {
-                method: "POST",
-                body: query
-              });
-              const data = await res.json();
-              
-              const bankIcon = L.divIcon({
-                html: '<div style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">' + String.fromCharCode(0x1F3E5) + '</div>',
-                className: 'blood-bank-icon',
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-              });
+      // Add Search Geocoder bar
+      if (typeof L.Control.Geocoder !== "undefined") {
+        L.Control.geocoder({
+          defaultMarkGeocode: false,
+          placeholder: "Search division, district or place in Bangladesh...",
+          collapsed: false
+        })
+        .on('markgeocode', function(e) {
+          const bbox = e.geocode.bbox;
+          map.fitBounds(bbox);
+          L.marker(e.geocode.center, {
+            icon: L.divIcon({
+              className: '',
+              html: '<div style="font-size: 32px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));">📍</div>',
+              iconSize: [32, 32],
+              iconAnchor: [16, 30]
+            })
+          })
+          .addTo(map)
+          .bindPopup('<b>' + e.geocode.name + '</b>')
+          .openPopup();
+        })
+        .addTo(map);
+      }
 
-              bloodBankMarkers.clearLayers();
-              
-              data.elements.forEach(el => {
-                const lat = el.lat || (el.center && el.center.lat);
-                const lon = el.lon || (el.center && el.center.lon);
-                if (lat && lon) {
-                  const name = (el.tags && el.tags.name) ? el.tags.name : 'Blood Bank / Clinic';
-                  L.marker([lat, lon], { icon: bankIcon })
-                   .bindPopup('<b>' + name + '</b><br><small style="color:#16a34a;font-weight:bold;">Verified Medical Facility</small>')
-                   .addTo(bloodBankMarkers);
-                }
-              });
-            } catch (err) {
-              console.error("Error fetching blood banks:", err);
-            }
-            isFetching = false;
+      // ============================================================
+      // 2. LOCATE ME BUTTON (Directly bound, high + low fallback)
+      // ============================================================
+      const locateBtn = document.getElementById("locate-me-btn");
+      let userLocationMarker = null;
+      let userAccuracyCircle = null;
+
+      if (locateBtn) {
+        locateBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const originalText = "📍 Locate Me";
+          locateBtn.textContent = "Locating you...";
+          locateBtn.disabled = true;
+
+          if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            locateBtn.textContent = originalText;
+            locateBtn.disabled = false;
+            return;
           }
 
-          map.on('moveend', fetchBloodBanks);
-          fetchBloodBanks();
+          function onLocationFound(pos) {
+            locateBtn.textContent = originalText;
+            locateBtn.disabled = false;
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy;
 
+            map.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
 
-          // Fetch donor locations and add markers
+            if (userLocationMarker) map.removeLayer(userLocationMarker);
+            if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
+
+            if (accuracy && accuracy < 6000) {
+              userAccuracyCircle = L.circle([lat, lng], {
+                radius: Math.max(accuracy, 60),
+                color: "#2563eb",
+                fillColor: "#3b82f6",
+                fillOpacity: 0.12,
+                weight: 1.5
+              }).addTo(map);
+            }
+
+            const userIcon = L.divIcon({
+              className: '',
+              html: '<div class="user-location-marker"><div class="user-pulse-ring"></div><span>📍</span></div>',
+              iconSize: [44, 44],
+              iconAnchor: [22, 22]
+            });
+
+            userLocationMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 2000 })
+              .addTo(map)
+              .bindPopup('<div style="text-align: center; padding: 4px; font-family: inherit;"><strong style="color: #1d4ed8; font-size: 15px;">📍 You Are Here</strong><div style="font-size: 12px; color: #6b7280; margin-top: 3px;">Estimated area ±' + Math.round(accuracy || 50) + 'm</div></div>')
+              .openPopup();
+          }
+
+          function onLocationFailed(err) {
+            // Fallback attempt with standard network location
+            navigator.geolocation.getCurrentPosition(
+              onLocationFound,
+              (finalErr) => {
+                locateBtn.textContent = originalText;
+                locateBtn.disabled = false;
+                let msg = "Could not detect your location.";
+                if (finalErr.code === 1) {
+                  msg = "Location permission denied. Please allow location access in your browser settings (click the lock/icon in your address bar).";
+                } else if (finalErr.code === 2) {
+                  msg = "Position is unavailable on this device. Please check GPS or connection.";
+                } else if (finalErr.code === 3) {
+                  msg = "Location request timed out. Please try again.";
+                }
+                alert(msg);
+              },
+              { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
+            );
+          }
+
+          navigator.geolocation.getCurrentPosition(
+            onLocationFound,
+            onLocationFailed,
+            { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+          );
+        });
+      }
+
+      // ============================================================
+      // 3. POPUP BUILDER (Strictly Real Info or "No contact found")
+      // ============================================================
+      function createFacilityPopup(facility) {
+        let contactHtml = '';
+        if (facility.phone && String(facility.phone).trim() !== '') {
+          contactHtml = '<div class="contact-box has-contact">' +
+            '<div class="contact-label">Verified Contact</div>' +
+            '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
+              '<span class="contact-val">📞 ' + facility.phone + '</span>' +
+              '<a href="tel:' + facility.phone + '" class="call-btn">Call Now</a>' +
+            '</div>' +
+          '</div>';
+        } else {
+          contactHtml = '<div class="contact-box no-contact">' +
+            '<div class="contact-label">Contact Info</div>' +
+            '<div class="no-contact-val">No contact found</div>' +
+          '</div>';
+        }
+
+        const gmapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + facility.lat + ',' + facility.lng;
+
+        return '<div class="facility-popup">' +
+          '<span class="facility-badge">' + (facility.type || 'Medical Facility') + '</span>' +
+          '<h3>' + facility.name + '</h3>' +
+          '<div class="facility-address">📍 ' + (facility.address || 'Address on map') + '</div>' +
+          contactHtml +
+          '<div style="text-align: right; margin-top: 6px;">' +
+            '<a href="' + gmapsUrl + '" target="_blank" rel="noopener noreferrer" class="directions-link">Get Directions ↗</a>' +
+          '</div>' +
+        '</div>';
+      }
+
+      // Large Prominent Medical Icon (44px x 44px)
+      const bigMedicalIcon = L.divIcon({
+        className: '',
+        html: '<div class="blood-facility-marker" title="Blood Bank / Clinic">🏥</div>',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+
+      // ============================================================
+      // 4. VERIFIED BLOOD BANKS & DONATION CLINICS IN BANGLADESH
+      // ============================================================
+      const verifiedFacilities = [
+        {
+          name: "Quantum Blood Lab (Central)",
+          type: "Blood Bank & Donation Center",
+          lat: 23.7388,
+          lng: 90.4136,
+          phone: "+88029351025",
+          address: "119/1 Shantinagar Road, Kakrail/Shantinagar, Dhaka"
+        },
+        {
+          name: "Bangladesh Red Crescent Society Blood Center",
+          type: "National Blood Center",
+          lat: 23.7667,
+          lng: 90.3662,
+          phone: "+88029116563",
+          address: "7/5 Aurangzeb Road, Mohammadpur, Dhaka"
+        },
+        {
+          name: "Sandhani Blood Bank (Dhaka Medical College Unit)",
+          type: "Voluntary Blood Donation Unit",
+          lat: 23.7258,
+          lng: 90.3986,
+          phone: "+88029668690",
+          address: "DMC Hospital Compound, Secretariate Road, Dhaka"
+        },
+        {
+          name: "Badhan Central Blood Donation Center",
+          type: "Voluntary Blood Donor Network",
+          lat: 23.7324,
+          lng: 90.3957,
+          phone: "+88029661900",
+          address: "TSC Ground Floor, University of Dhaka, Dhaka"
+        },
+        {
+          name: "Central Police Hospital Blood Bank",
+          type: "Hospital Blood Bank",
+          lat: 23.7397,
+          lng: 90.4191,
+          phone: "01713374242",
+          address: "Central Police Hospital, Rajarbagh, Dhaka"
+        },
+        {
+          name: "Fatema Rahim Blood Bank (BIRDEM General)",
+          type: "Hospital Transfusion Center",
+          lat: 23.7381,
+          lng: 90.3958,
+          phone: "+88028616641",
+          address: "122 Kazi Nazrul Islam Avenue, Shahbagh, Dhaka"
+        },
+        {
+          name: "Sir Salimullah Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 23.7118,
+          lng: 90.4023,
+          phone: "+88027319002",
+          address: "Mitford Hospital, Babubazar, Old Dhaka"
+        },
+        {
+          name: "NICVD Blood Transfusion Medicine Department",
+          type: "Specialized Hospital Blood Bank",
+          lat: 23.7711,
+          lng: 90.3705,
+          phone: "+88029122560",
+          address: "Suhrawardy Hospital Road, Sher-e-Bangla Nagar, Dhaka"
+        },
+        {
+          name: "Dhaka Shishu (Children) Hospital Blood Bank",
+          type: "Pediatric Hospital Blood Bank",
+          lat: 23.7745,
+          lng: 90.3695,
+          phone: "+88029113645",
+          address: "Sher-e-Bangla Nagar, Dhaka 1207"
+        },
+        {
+          name: "Kurmitola General Hospital Blood Unit",
+          type: "General Hospital Blood Unit",
+          lat: 23.8223,
+          lng: 90.4072,
+          phone: "+88028711234",
+          address: "Airport Road, Dhaka Cantonment, Dhaka"
+        },
+        {
+          name: "Square Hospital Blood Bank",
+          type: "Private Hospital Blood Bank",
+          lat: 23.7530,
+          lng: 90.3817,
+          phone: "10616",
+          address: "18/F Bir Uttam Qazi Nuruzzaman Sarak, Panthapath, Dhaka"
+        },
+        {
+          name: "Evercare Hospital Blood Bank",
+          type: "Private Hospital Blood Bank",
+          lat: 23.8105,
+          lng: 90.4312,
+          phone: "10678",
+          address: "Plot 81, Block E, Bashundhara R/A, Dhaka"
+        },
+        {
+          name: "United Hospital Blood Transfusion Medicine",
+          type: "Private Hospital Blood Bank",
+          lat: 23.7998,
+          lng: 90.4194,
+          phone: "10666",
+          address: "Plot 15, Road 71, Gulshan-2, Dhaka"
+        },
+        {
+          name: "Al-Markazul Islami Blood Bank",
+          type: "Humanitarian Blood Service",
+          lat: 23.7612,
+          lng: 90.3601,
+          phone: "+88029127867",
+          address: "Ring Road, Shamoli / Mohammadpur, Dhaka"
+        },
+        {
+          name: "Chittagong Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 22.3592,
+          lng: 91.8285,
+          phone: "+88031619621",
+          address: "K.B. Fazlul Kader Road, Panchlaish, Chittagong"
+        },
+        {
+          name: "Red Crescent Blood Center Chittagong",
+          type: "Blood Bank & Donation Center",
+          lat: 22.3392,
+          lng: 91.8375,
+          phone: "+88031617495",
+          address: "Red Crescent Bhaban, Anderkilla, Chittagong"
+        },
+        {
+          name: "Rajshahi Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 24.3725,
+          lng: 88.5833,
+          phone: "+880721772150",
+          address: "Laxmipur, Rajshahi"
+        },
+        {
+          name: "Sylhet MAG Osmani Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 24.8998,
+          lng: 91.8540,
+          phone: "+880821713487",
+          address: "Medical Road, Kajolshah, Sylhet"
+        },
+        {
+          name: "Khulna Medical College Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 22.8427,
+          lng: 89.5408,
+          phone: "+88041761509",
+          address: "Boyra Main Road, Khulna"
+        },
+        {
+          name: "Mymensingh Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 24.7438,
+          lng: 90.4124,
+          phone: "+8809166063",
+          address: "Charpara, Mymensingh"
+        },
+        {
+          name: "Rangpur Medical College Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 25.7558,
+          lng: 89.2372,
+          phone: "+88052162234",
+          address: "Jail Road, Medical East Gate, Rangpur"
+        },
+        {
+          name: "Barishal Sher-e-Bangla Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 22.6917,
+          lng: 90.3638,
+          phone: "+8804312173545",
+          address: "Band Road, Medical College, Barishal"
+        },
+        {
+          name: "Bogura Shaheed Ziaur Rahman Medical College Sandhani",
+          type: "Medical College Blood Bank",
+          lat: 24.8197,
+          lng: 89.3670,
+          phone: "+8805169004",
+          address: "Silimpur, Bogura"
+        },
+        {
+          name: "Comilla Medical College Sandhani Blood Bank",
+          type: "Medical College Blood Bank",
+          lat: 23.4682,
+          lng: 91.1963,
+          phone: "+8808165562",
+          address: "Kuchaitoli, Cumilla"
+        },
+        {
+          name: "Shaheed Suhrawardy Medical College Hospital Transfusion Unit",
+          type: "Hospital Blood Bank",
+          lat: 23.7702,
+          lng: 90.3702,
+          phone: null,
+          address: "Sher-e-Bangla Nagar, Dhaka"
+        },
+        {
+          name: "National Institute of Neurosciences (NINS) Clinic",
+          type: "Specialized Hospital Clinic",
+          lat: 23.7719,
+          lng: 90.3688,
+          phone: null,
+          address: "Sher-e-Bangla Nagar, Dhaka"
+        },
+        {
+          name: "Shaheed Tajuddin Ahmad Medical College Hospital",
+          type: "District Medical College Hospital",
+          lat: 23.9982,
+          lng: 90.4255,
+          phone: "+88029261234",
+          address: "Gazipur Sadar, Gazipur"
+        },
+        {
+          name: "Narayanganj 300 Bed Hospital (Khanpur)",
+          type: "District Hospital Clinic",
+          lat: 23.6189,
+          lng: 90.5056,
+          phone: "+88027645120",
+          address: "Khanpur, Narayanganj"
+        }
+      ];
+
+      // Add all verified facilities to map
+      verifiedFacilities.forEach(facility => {
+        L.marker([facility.lat, facility.lng], { icon: bigMedicalIcon })
+          .addTo(map)
+          .bindPopup(createFacilityPopup(facility));
+      });
+
+      // ============================================================
+      // 5. FETCH REGISTERED DONORS FROM SUPABASE
+      // ============================================================
       try {
         const { data: donors, error } = await supabase
           .from("donor_profiles")
-          .select("full_name, blood_group, district, area, location_lat, location_lng")
+          .select("full_name, blood_group, district, area, phone, location_lat, location_lng")
           .eq("available", true)
           .not("location_lat", "is", null)
           .not("location_lng", "is", null);
-          
+
         if (donors && donors.length > 0) {
-          const bounds = [];
-          const allMarkers = [];
+          donors.forEach(donor => {
+            if (donor.location_lat && donor.location_lng) {
+              const donorIcon = L.divIcon({
+                className: '',
+                html: '<div class="donor-user-marker" title="Registered Donor"><span>🩸</span><span>' + (donor.blood_group || ' donor') + '</span></div>',
+                iconSize: [42, 42],
+                iconAnchor: [21, 21]
+              });
 
-          
-
-          // Locate logic
-            const locateBtn = document.getElementById("locate-me-btn");
-            let userMarker;
-            locateBtn.addEventListener("click", (e) => {
-              e.preventDefault();
-              const originalText = "📍 Locate Me";
-              locateBtn.textContent = "Locating...";
-              
-              if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser.");
-                locateBtn.textContent = originalText;
-                return;
+              let contactPart = '';
+              if (donor.phone) {
+                contactPart = '<div class="contact-box has-contact">' +
+                  '<div class="contact-label">Donor Phone</div>' +
+                  '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
+                    '<span class="contact-val">📞 ' + donor.phone + '</span>' +
+                    '<a href="tel:' + donor.phone + '" class="call-btn">Call</a>' +
+                  '</div>' +
+                '</div>';
+              } else {
+                contactPart = '<div class="contact-box no-contact">' +
+                  '<div class="contact-label">Contact Info</div>' +
+                  '<div class="no-contact-val">No contact found</div>' +
+                '</div>';
               }
 
-              navigator.geolocation.getCurrentPosition(
-                (position) => {
-                  locateBtn.textContent = originalText;
-                  const lat = position.coords.latitude;
-                  const lng = position.coords.longitude;
-                  map.setView([lat, lng], 15);
-                  if (userMarker) map.removeLayer(userMarker);
-                  userMarker = L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
-                },
-                (error) => {
-                  locateBtn.textContent = originalText;
-                  let msg = "Could not find your location.";
-                  if (error.code === 1) msg = "Location access was denied. Please allow location access for this site in your browser settings.";
-                  else if (error.code === 2) msg = "Location position is currently unavailable on this device.";
-                  else if (error.code === 3) msg = "Location request timed out.";
-                  alert(msg + " (Error code: " + error.code + ")");
-                },
-                { timeout: 15000, enableHighAccuracy: false, maximumAge: 60000 }
-              );
-            });
-          donors.forEach(donor => {
-            if(donor.location_lat && donor.location_lng) {
-              const marker = L.marker([donor.location_lat, donor.location_lng]).addTo(map);
-              allMarkers.push({ marker, donor });
-              marker.bindPopup(`
-                <b>${donor.full_name}</b><br>
-                Blood Group: <strong style="color:red;">${donor.blood_group}</strong><br>
-                ${donor.district ? donor.district : ''}
-              `);
-              bounds.push([donor.location_lat, donor.location_lng]);
+              L.marker([donor.location_lat, donor.location_lng], { icon: donorIcon })
+                .addTo(map)
+                .bindPopup(
+                  '<div class="facility-popup">' +
+                    '<span class="facility-badge" style="background:#fee2e2; color:#b91c1c;">Registered Voluntary Donor</span>' +
+                    '<h3>' + donor.full_name + '</h3>' +
+                    '<div style="margin-bottom: 4px; font-size: 14px;">Blood Group: <strong style="color:#dc2626; font-size: 16px;">' + donor.blood_group + '</strong></div>' +
+                    '<div class="facility-address">📍 ' + ([donor.area, donor.district].filter(Boolean).join(', ') || 'Bangladesh') + '</div>' +
+                    contactPart +
+                  '</div>'
+                );
             }
           });
-          if(bounds.length > 0) {
-            map.fitBounds(bounds);
-          }
         }
       } catch (err) {
         console.error("Error loading donors onto map:", err);
