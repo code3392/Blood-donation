@@ -467,7 +467,6 @@
                   <small style="display:block; color:#888;">${escapeHtml(donor.area || donor.district || "Worldwide")}</small>
                   <span class="match-tag ${donor.category}">${donor.tag}</span>
                 </div>
-                <span class="match-score-badge">${donor.score}% Match</span>
               </div>
 
               <div style="font-size:11px; color:#555; background:#fafafa; padding:8px 10px; border-radius:10px;">
