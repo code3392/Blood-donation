@@ -178,31 +178,312 @@
     }
   }
 
+  const BLOOD_COMPATIBILITY = {
+    "O-": { canDonateTo: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"], canReceiveFrom: ["O-"] },
+    "O+": { canDonateTo: ["O+", "A+", "B+", "AB+"], canReceiveFrom: ["O+", "O-"] },
+    "A-": { canDonateTo: ["A-", "A+", "AB-", "AB+"], canReceiveFrom: ["A-", "O-"] },
+    "A+": { canDonateTo: ["A+", "AB+"], canReceiveFrom: ["A+", "A-", "O+", "O-"] },
+    "B-": { canDonateTo: ["B-", "B+", "AB-", "AB+"], canReceiveFrom: ["B-", "O-"] },
+    "B+": { canDonateTo: ["B+", "AB+"], canReceiveFrom: ["B+", "B-", "O+", "O-"] },
+    "AB-": { canDonateTo: ["AB-", "AB+"], canReceiveFrom: ["AB-", "A-", "B-", "O-"] },
+    "AB+": { canDonateTo: ["AB+"], canReceiveFrom: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"] }
+  };
+
+  function extractBloodGroups(str) {
+    if (!str) return [];
+    const s = str
+      .replace(/এবি/gi, "AB")
+      .replace(/এ/gi, "A")
+      .replace(/বি/gi, "B")
+      .replace(/ও/gi, "O")
+      .replace(/পজিটিভ|\+ve|positive/gi, "+")
+      .replace(/নেগেটিভ|-ve|negative/gi, "-");
+
+    const regex = /\b(AB|A|B|O)\s*([+-])/gi;
+    const groups = [];
+    let m;
+    while ((m = regex.exec(s)) !== null) {
+      groups.push(m[1].toUpperCase() + m[2]);
+    }
+    return groups;
+  }
+
   function assistantReply(question) {
-    const q = String(question || "").toLowerCase();
-    const bn = currentLanguage === "bn";
-    if (/fig.*6\.12|transfusion|compatibility|chart|matrix|donor.*match/.test(q)) {
-      return bn
-        ? "মানসম্মত ট্রান্সফিউশন প্রোটোকল অনুযায়ী: O− সর্বজনীন দাতা এবং AB+ সর্বজনীন গ্রহীতা। বিস্তারিত দেখতে 'Medical Guide' পেজে যান।"
-        : "According to standard transfusion protocols: O- is universal red-cell donor and AB+ is universal recipient. Check our Disease Info page for the full matrix.";
+    const raw = String(question || "").trim();
+    if (!raw) {
+      return (typeof currentLanguage !== "undefined" && currentLanguage === "bn")
+        ? "কীভাবে সাহায্য করতে পারি? রক্তদানের নিয়ম, গ্রুপ সামঞ্জস্য বা জরুরি তথ্য জানতে আমাকে লিখুন।"
+        : "How can I help you? Ask me about blood group compatibility, donation rules, or emergency requests.";
     }
-    if (/o-.*(donate|give)|universal|b-.*ab-/.test(q)) {
-      return bn
-        ? "O− লোহিত রক্তকণিকার universal donor এবং B−, AB−-কে দিতে পারে। হাসপাতালকে cross-match করতেই হবে।"
-        : "O− is universal red-cell donor, and B− can donate red cells to AB−. The hospital blood bank must always cross-match.";
+
+    const q = raw.toLowerCase();
+    const isBn = (typeof currentLanguage !== "undefined" && currentLanguage === "bn") || /[\u0980-\u09FF]/.test(raw);
+
+    // 1. GREETINGS
+    if (/^(hi|hello|hey|hola|salam|assalamu|good\s*(morning|afternoon|evening)|হ্যালো|হাই|সালাম|নমস্কার)[\s!.,?]*$/i.test(q)) {
+      return isBn
+        ? "হ্যালো! আমি লাইফলাইন এআই (Lifeline AI)। আমি রক্তের গ্রুপ সামঞ্জস্য (compatibility), রক্তদানের শারীরিক যোগ্যতা, জরুরি রক্তের অনুরোধ এবং হেমাটোলজি সংক্রান্ত নির্দেশিকা দিয়ে সহায়তা করি। আজ আপনাকে কীভাবে সাহায্য করতে পারি?"
+        : "Hello! I am Lifeline AI. I can assist you with blood group compatibility, donor eligibility criteria, emergency blood requests, and hematological guidelines. How can I help you today?";
     }
-    if (/thalassemia|anemia|leukemia|hemophilia|sickle|dengue|disease|রোগ|থ্যালাসেমিয়া|ডেঙ্গু/.test(q)) {
-      return bn
-        ? "রক্ত-সম্পর্কিত রোগে কোন blood product লাগবে তা treating hematologist ঠিক করবেন। বিস্তারিত জানতে 'Disease Guide' দেখুন।"
-        : "For blood-related diseases, the treating hematologist determines needed components. See our Disease Guide page.";
+
+    // 2. GRATITUDE / THANKS
+    if (/^(thank\s*you|thanks|thx|ধন্যবাদ|অনেক ধন্যবাদ|shukriya)[\s!.,?]*$/i.test(q)) {
+      return isBn
+        ? "আপনাকে অনেক ধন্যবাদ! রক্তদানের যেকোনো তথ্য বা জরুরি প্রয়োজনে আমি সর্বদা প্রস্তুত। রক্ত দিন, জীবন বাঁচান!"
+        : "You are very welcome! If you have any more questions about blood donation or compatibility, feel free to ask anytime. Stay safe and save lives!";
     }
-    return bn
-      ? "আমি blood group, donor compatibility, requests এবং Lifeline ব্যবহারে সাহায্য করতে পারি।"
-      : "I can help with blood groups, donor compatibility, requests, and using Lifeline.";
+
+    // 3. WHO ARE YOU / IDENTITY
+    if (/who\s+are\s+you|what\s+is\s+lifeline|কে\s*তুমি|তুমি\s*কে|তোমার\s*কাজ\s*কী|who\s+made\s+you/.test(q)) {
+      return isBn
+        ? "আমি লাইফলাইনের স্মার্ট এআই অ্যাসিস্ট্যান্ট। আমার কাজ হলো রক্তদাতা ও রোগীদের রক্তের গ্রুপ সামঞ্জস্য, রক্তদানের নিয়মাবলী, থ্যালাসেমিয়া/ডেঙ্গুর মতো রক্তের রোগ এবং লাইফলাইন প্ল্যাটফর্ম ব্যবহারে সঠিক তথ্য দিয়ে সহায়তা করা।"
+        : "I am Lifeline's AI Medical & Platform Assistant. I provide instant guidance on blood compatibility, donor eligibility, blood disorders (Thalassemia, Dengue), and navigating Lifeline's emergency network.";
+    }
+
+    // 4. SPECIFIC TWO-GROUP COMPATIBILITY: "Can A+ give to O+?", "B+ কি A+ কে রক্ত দিতে পারবে?"
+    const bgs = extractBloodGroups(raw);
+    if (bgs.length >= 2 && /(can|give|donate|receive|transfus|match|possible|দিতে|নিতে|হবে|পারবে|সম্ভব|যাবে)/i.test(q)) {
+      const donor = bgs[0];
+      const recipient = bgs[1];
+      const info = BLOOD_COMPATIBILITY[donor];
+      if (info) {
+        const isCompatible = info.canDonateTo.includes(recipient);
+        if (isCompatible) {
+          return isBn
+            ? `হ্যাঁ! ${donor} রক্তের লোহিত কণিকা নিরাপদে ${recipient} রোগীকে দেওয়া যেতে পারে। তবে রক্ত সঞ্চালনের পূর্বে হাসপাতালের ব্লাড ব্যাংকে ক্রস-ম্যাচিং (Cross-match) করা আবশ্যক।`
+            : `Yes! ${donor} red blood cells can safely be transfused to a ${recipient} recipient. Hospital blood bank cross-matching is always required prior to transfusion.`;
+        } else {
+          return isBn
+            ? `না, ${donor} গ্রুপের রক্ত ${recipient} গ্রহীতাকে দেওয়া যাবে না। এতে বিপজ্জনক অ্যান্টিবডি রিঅ্যাকশন (Hemolytic reaction) হতে পারে। ${recipient} রোগীর জন্য কেবল ${BLOOD_COMPATIBILITY[recipient].canReceiveFrom.join(", ")} গ্রুপের রক্ত নিরাপদ।`
+            : `No. ${donor} red blood cells cannot be given to a ${recipient} recipient due to antibody incompatibility. A ${recipient} recipient can only safely receive from: ${BLOOD_COMPATIBILITY[recipient].canReceiveFrom.join(", ")}.`;
+        }
+      }
+    }
+
+    // 5. SINGLE BLOOD GROUP QUERY: "Who can O- donate to?" / "Who can A+ receive from?"
+    if (bgs.length === 1) {
+      const bg = bgs[0];
+      const info = BLOOD_COMPATIBILITY[bg];
+      if (info) {
+        if (/receive|take|need|accept|কার\s*কাছ\s*থেকে|নিতে|গ্রহীতা/.test(q)) {
+          return isBn
+            ? `${bg} রক্তের গ্রহীতারা নিরাপদে ${info.canReceiveFrom.join(", ")} গ্রুপ থেকে লোহিত রক্তকণিকা নিতে পারেন।`
+            : `A ${bg} recipient can safely receive red blood cells from: ${info.canReceiveFrom.join(", ")}.`;
+        }
+        if (/donate|give|কাকে\s*দিতে|দিতে\s*পারে|দাতা|কাকে/.test(q)) {
+          return isBn
+            ? `${bg} গ্রুপের রক্তদাতা নিরাপদে ${info.canDonateTo.join(", ")} গ্রুপের রোগীদের লোহিত রক্তকণিকা দান করতে পারেন।`
+            : `A ${bg} donor can safely donate red blood cells to: ${info.canDonateTo.join(", ")}.`;
+        }
+      }
+    }
+
+    // 6. UNIVERSAL DONOR & UNIVERSAL RECIPIENT
+    if (/universal\s*donor|universal\s*recipient|universal|সর্বজনীন\s*দাতা|সর্বজনীন\s*গ্রহীতা|সার্বজনীন/.test(q)) {
+      return isBn
+        ? "• সার্বজনীন রক্তদাতা (Universal Donor): O− (ও নেগেটিভ)। এর লোহিত কণিকায় A, B বা Rh কোনো অ্যান্টিজেন নেই, তাই যেকোনো রোগীকে জরুরি মুহূর্তে দেওয়া যায়।\n• সার্বজনীন গ্রহীতা (Universal Recipient): AB+ (এবি পজিটিভ)। এরা যেকোনো গ্রুপের রক্ত গ্রহণ করতে পারে।"
+        : "• Universal Red Cell Donor: O− (O Negative). It lacks A, B, and Rh antigens, making it safe for all 8 blood groups in emergencies.\n• Universal Red Cell Recipient: AB+ (AB Positive). They have no anti-A, anti-B, or anti-Rh antibodies and can receive red cells from all groups.";
+    }
+
+    // 7. FREQUENCY & INTERVAL
+    if (/how\s*(often|frequent)|interval|how\s*many\s*(months|days)|frequency|কত\s*দিন\s*পর\s*পর|কত\s*মাস|ব্যবধান|কতবার/.test(q)) {
+      return isBn
+        ? "• পুরুষেরা প্রতি ৩ মাস (৯০ দিন) পর পর সম্পূর্ণ রক্ত (Whole Blood) দান করতে পারেন।\n• নারীরা প্রতি ৪ মাস (১২০ দিন) পর পর রক্ত দান করতে পারেন।\n• প্লেটলেট (Apheresis) প্রতি ১৫ দিন পর পর দেওয়া যায় (বছরে সর্বোচ্চ ২৪ বার)।"
+        : "• Men can donate whole blood every 3 months (90 days).\n• Women can donate whole blood every 4 months (120 days).\n• Platelets (apheresis) can be donated every 14 days (up to 24 times a year).";
+    }
+
+    // 8. MEDICAL CONDITIONS: DIABETES, BP, TATTOOS, SMOKING, ALCOHOL, MEDICATIONS, PREGNANCY, PERIODS
+    if (/diabet|ডায়াবেটিস/.test(q)) {
+      return isBn
+        ? "যাদের ডায়াবেটিস খাদ্যাভ্যাস বা মুখে খাওয়ার ওষুধের মাধ্যমে নিয়ন্ত্রণে রয়েছে এবং কোনো জটিলতা নেই, তারা রক্ত দিতে পারেন। তবে যারা ইনসুলিন গ্রহণ করেন বা রক্তে শর্করার মাত্রা অনিয়ন্ত্রিত, তাদের রক্তদান থেকে বিরত থাকতে বলা হয়।"
+        : "If your diabetes is well-controlled through diet or oral medication and you have no cardiovascular or kidney complications, you can usually donate blood. Donors taking insulin are generally deferred.";
+    }
+
+    if (/pressure|hypertension|হাইপারটেনশন|প্রেসার|রক্তচাপ/.test(q)) {
+      return isBn
+        ? "উচ্চ রক্তচাপ ওষুধ দিয়ে নিয়ন্ত্রণে থাকলে এবং রক্তদানের সময় স্বাভাবিক মাত্রায় (১৪০/৯০ এর নিচে) থাকলে রক্ত দেওয়া সম্ভব। রক্তদানের পূর্বে ব্লাড ব্যাংকে প্রেশার মেপে নিশ্চিত করা হয়।"
+        : "You can donate if your blood pressure is well-controlled by medication and falls within the acceptable range (systolic under 140 mmHg, diastolic under 90 mmHg) at the time of donation.";
+    }
+
+    if (/tattoo|piercing|ট্যাটু|উল্কি|ছিদ্র/.test(q)) {
+      return isBn
+        ? "ট্যাটু, পিয়ার্সিং বা আকুপাংচার করানোর পর সাধারণত ৬ থেকে ১২ মাস অপেক্ষা করতে হয় (হেপাটাইটিস বি/সি ও এইচআইভি ভাইরাসের উইন্ডো পিরিয়ড অতিক্রমের জন্য)। এরপর রক্তদান সম্পূর্ণ নিরাপদ।"
+        : "You must wait 6 to 12 months after getting a tattoo, body piercing, or acupuncture before donating blood to ensure the window period for viral infections (Hepatitis B/C, HIV) has safely elapsed.";
+    }
+
+    if (/medication|medicine|antibiotic|ওষুধ|অ্যান্টিবায়োটিক/.test(q)) {
+      return isBn
+        ? "প্যারাসিটামল বা ভিটামিনের মতো সাধারণ ওষুধে রক্তদানে বাধা নেই। তবে অ্যান্টিবায়োটিক সেবন শেষ হওয়ার পর অন্তত ৪৮ থেকে ৭২ ঘণ্টা এবং সংক্রমণ পুরোপুরি সেরে যাওয়া পর্যন্ত অপেক্ষা করতে হবে। রক্ত পাতলা করার ওষুধ (যেমন অ্যাসপিরিন) খেলে প্লেটলেট দান করা যায় না।"
+        : "Common medications like paracetamol or vitamins do not prevent blood donation. If taking antibiotics for active infection, wait at least 48 to 72 hours after completing your course. Blood thinners (like aspirin) may defer platelet donation.";
+    }
+
+    if (/smok|alcohol|cigarette|ধূমপান|মদ|সিগারেট/.test(q)) {
+      return isBn
+        ? "রক্তদানের অন্তত ২৪ ঘণ্টা আগে অ্যালকোহল পরিহার করুন এবং রক্তদানের অন্তত ৩ ঘণ্টা আগে ও পরে ধূমপান করা থেকে বিরত থাকুন। এতে মাথা ঘোরা বা প্রেশার কমার ঝুঁকি কমে।"
+        : "Avoid alcohol for at least 24 hours prior to donation. Avoid smoking for at least 2 to 3 hours before and after donating to prevent dizziness and blood pressure drops.";
+    }
+
+    if (/pregnant|pregnancy|breastfeeding|গর্ভবতী|স্তন্যপান|মা/.test(q)) {
+      return isBn
+        ? "গর্ভবতী নারীরা রক্ত দান করতে পারেন না। সন্তান প্রসবের পর অন্তত ৬ মাস এবং স্তন্যপান করানো সমাপ্ত হওয়ার পর রক্তদান বিবেচনা করা যায়।"
+        : "Pregnant individuals cannot donate blood. After childbirth, you should wait at least 6 months and ensure breastfeeding is completed before voluntary donation.";
+    }
+
+    if (/period|menstruat|মাসিক|ঋতুস্রাব/.test(q)) {
+      return isBn
+        ? "মাসিক চলাকালীন সাধারণ সুস্থতা অনুভব করলে এবং হিমোগ্লোবিন স্বাভাবিক (১২.৫ g/dL বা বেশি) থাকলে রক্তদান করা যায়। তবে তীব্র ব্যথা, দুর্বলতা বা অতিরিক্ত রক্তক্ষরণ থাকলে সেই দিনগুলোতে রক্তদান থেকে বিরত থাকা উত্তম।"
+        : "You can donate blood during menstruation as long as you feel healthy and your hemoglobin is normal (>= 12.5 g/dL). If you have severe cramping or heavy flow, it is best to postpone until it passes.";
+    }
+
+    // 9. MESSAGING DONOR / CONTACT
+    if (/(?:message|msg|chat|whatsapp|contact|মেসেজ|বার্তা|যোগাযোগ)/i.test(q)) {
+      return isBn
+        ? "রক্তদাতাদের সাথে সরাসরি যোগাযোগ করতে রক্তদাতা কার্ডের '💬 Message' বা WhatsApp বাটনে ক্লিক করুন। আপনি ড্যাশবোর্ড বা সার্চ পেজ থেকেও মেসেজ আদান-প্রদান করতে পারেন।"
+        : "To contact a donor, click the '💬 Message' or WhatsApp button on their donor card in Donor Search or Dashboard. You can chat directly via WhatsApp or in-platform messaging.";
+    }
+
+    // 10. HOW TO BECOME / REGISTER AS DONOR
+    if (/(?:how\s+(?:can\s+i|to|do\s+i)?\s*(?:become|register|join|be(?:\s+a)?)\s+donor|become\s+a?\s*donor|register\s+as\s+a?\s*donor|রক্তদাতা\s*হব|নিবন্ধন)/i.test(q)) {
+      return isBn
+        ? "রক্তদাতা হতে ওপরের নেভিগেশন বার থেকে 'Become a donor' লিঙ্কে যান। প্রথমে সাইন ইন বা অ্যাকাউন্ট তৈরি করুন, এরপর আপনার রক্তের গ্রুপ, জেলা ও ফোন নম্বর দিয়ে প্রোফাইল সম্পূর্ণ করুন!"
+        : "To become a donor, click 'Become a donor' in the navigation bar. Sign in or create an account, fill in your blood group, district, and contact info, and your voluntary profile will be active in seconds!";
+    }
+
+    // 11. HOW TO REQUEST BLOOD / EMERGENCY
+    if (/(?:how\s+to\s+request|need\s*blood|request\s*blood|emergency\s*blood|blood\s*for|রোগীর\s*জন্য|রক্ত\s*চাই|রক্তের\s*অনুরোধ|অনুরোধ\s*কীভাবে)/i.test(q)) {
+      return isBn
+        ? "রক্তের জরুরি প্রয়োজনের জন্য 'Request blood' পেজে যান। রোগীর নাম, রক্তের গ্রুপ, হাসপাতাল ও ইউনিটের সংখ্যা লিখে পোস্ট করুন। লাইফলাইন তাৎক্ষণিকভাবে নিকটস্থ রক্তদাতাদের সাথে অটো-ম্যাচ করে দেবে!"
+        : "To post an emergency request, navigate to 'Request blood'. Submit the patient's blood group, hospital location, and units needed. Lifeline will instantly broadcast and auto-match nearby compatible donors!";
+    }
+
+    // 12. MAP & HOSPITALS
+    if (/map|hospital|clinic|dhaka|drmc|মানচিত্র|হাসপাতাল|ক্লিনিক/.test(q)) {
+      return isBn
+        ? "লাইফলাইনের ইন্টারেক্টিভ 'Map' পেজে ঢাকা রেসিডেনসিয়াল মডেল কলেজ (DRMC), ধানমন্ডি, শাহবাগ এবং সারা দেশের সকল অনুমোদিত ব্লাড ব্যাংক ও হাসপাতালের পিন, ফোন নম্বর এবং দিকনির্দেশনা দেখতে পাবেন।"
+        : "Check our interactive 'Map' page! It features verified blood banks and hospitals around Dhaka Residential Model College (DRMC), Dhanmondi, Shahbagh, and nationwide with direct contact details and routing.";
+    }
+
+    // 13. ELIGIBILITY: AGE, WEIGHT, HEMOGLOBIN, CRITERIA
+    if (/\bage\b|\bweight\b|hemoglobin|requirement|criteria|eligible|eligibility|ব[\u09DF\u09AF]়?স|ওজন|যোগ্যতা|শর্ত|হিমোগ্লোবিন/.test(q)) {
+      return isBn
+        ? "রক্তদানের সাধারণ শারীরিক যোগ্যতা:\n1. বয়স: ১৮ থেকে ৬০ বছর (সুস্থ নিয়মিত দাতাদের ক্ষেত্রে ৬৫ পর্যন্ত)।\n2. ওজন: পুরুষদের ন্যূনতম ৫০ কেজি, নারীদের ৪৫ কেজি।\n3. হিমোগ্লোবিন: ন্যূনতম ১২.৫ g/dL।\n4. রক্তচাপ: সিস্টোলিক ১০০–১৪০ এবং ডায়াস্টোলিক ৬০–৯০ mmHg স্বাভাবিক থাকা উচিত।\n5. সাধারণ সুস্থতা: জ্বর, সর্দি বা কোনো তীব্র সংক্রমণ মুক্ত থাকতে হবে।"
+        : "General Blood Donation Criteria:\n1. Age: 18–60 years (up to 65 for regular healthy donors).\n2. Weight: Minimum 50 kg for males, 45 kg for females.\n3. Hemoglobin: Minimum 12.5 g/dL.\n4. Blood Pressure: Systolic 100–140 mmHg, Diastolic 60–90 mmHg.\n5. General Health: Free of active infection, cold, or fever on donation day.";
+    }
+
+    // 14. PREPARATION & RECOVERY (BEFORE / AFTER DONATION)
+    if (/before\s*(donate|donation)|eat|drink|খাওয়ার|আগে\s*কী|প্রস্তুতি/.test(q)) {
+      return isBn
+        ? "রক্তদানের আগের প্রস্তুতি:\n• রক্তদানের ১-২ ঘণ্টা আগে ৫০০ মিলি পানি বা স্বাস্থ্যকর পানীয় পান করুন।\n• রক্তদানের ২-৩ ঘণ্টা আগে হালকা, পুষ্টিকর খাবার খান। অতিরিক্ত তেল-চর্বিযুক্ত খাবার এড়িয়ে চলুন।\n• পর্যাপ্ত ঘুম ও বিশ্রাম নিন।"
+        : "Preparation Before Donation:\n• Drink plenty of water or fluids (at least 500ml 1-2 hours prior).\n• Eat a balanced, low-fat meal 2-3 hours before donating. Avoid heavy oily foods.\n• Ensure 7-8 hours of good sleep the night before.";
+    }
+
+    if (/after\s*(donate|donation)|recovery|দিয়ে\s*কী|পরে\s*কী|মাথা\s*ঘোরা|অসুস্থ/.test(q)) {
+      return isBn
+        ? "রক্তদানের পরবর্তী যত্ন:\n• রক্তদানের পর ১০-১৫ মিনিট বিশ্রাম নিয়ে জুস বা তরল খাবার গ্রহণ করুন।\n• সারাদিনে প্রচুর পানি ও তরল পান করুন।\n• সেদিন ভারী কাজ, ব্যায়াম বা ওজন তোলা থেকে বিরত থাকুন।\n• মাথা ঘুরলে তৎক্ষণাৎ শুয়ে পড়ে পা কিছুটা উঁচুতে রাখুন।"
+        : "Post-Donation Care:\n• Rest for 10-15 minutes at the center and have fluids/snacks.\n• Drink extra fluids throughout the next 24-48 hours.\n• Avoid strenuous exercise or heavy lifting for the rest of the day.\n• If you feel dizzy, sit or lie down immediately with feet elevated.";
+    }
+
+    // 15. PAIN & AMOUNT OF BLOOD
+    if (/pain|hurt|needle|ব্যথা|কষ্ট|ভয়|سوئی/.test(q)) {
+      return isBn
+        ? "রক্তদানে কোনো তীব্র ব্যথা হয় না! সুই প্রবেশের সময় মাত্র ১-২ সেকেন্ড একটি ছোট পিঁপড়ার কামড়ের মতো অনুভূতি হতে পারে। পুরো রক্তদান প্রক্রিয়াটি মাত্র ৮-১০ মিনিট সময় নেয় এবং সম্পূর্ণ নিরাপদ।"
+        : "Donating blood does not hurt! You only feel a minor prick for 1-2 seconds when the needle is inserted. The actual blood collection takes only 8-10 minutes and is very safe.";
+    }
+
+    if (/how\s*much\s*blood|volume|পরিমাণ|কতটুকু\s*রক্ত/.test(q)) {
+      return isBn
+        ? "একবারে সাধারণত ৩৫০ থেকে ৪৫০ মিলিলিটার (১ ইউনিট) রক্ত নেওয়া হয়, যা শরীরের মোট রক্তের মাত্র ৮-১০%। রক্তদানের ২৪ থেকে ৪৮ ঘণ্টার মধ্যে শরীরে তরলের ঘাটতি পূরণ হয়ে যায়।"
+        : "Typically, 350ml to 450ml (about 1 pint) is collected per donation, which is only about 8-10% of an adult's blood volume. Your body replaces the fluid within 24 to 48 hours.";
+    }
+
+    // 16. BENEFITS OF DONATING
+    if (/benefit|advantage|উপকার|সুবিধা|লাভ/.test(q)) {
+      return isBn
+        ? "রক্তদানের শারীরিক ও মানসিক উপকারিতা:\n• নতুন রক্তকণিকা তৈরিতে (hematopoiesis) সহায়তা করে।\n• শরীরে অতিরিক্ত আয়রন জমে থাকা কমায়, যা হার্টের জন্য ভালো।\n• নিয়মিত রক্তদানে বিনামূল্যে রক্তচাপ, পালস ও রক্তবাহিত রোগের প্রাথমিক স্ক্রিনিং হয়।\n• সবচেয়ে বড় কথা, ১ ব্যাগ রক্ত দিয়ে ৩ জনের জীবন বাঁচানো সম্ভব!"
+        : "Benefits of Blood Donation:\n• Stimulates fresh blood cell production (hematopoiesis).\n• Reduces harmful iron overload, benefiting heart and liver health.\n• Includes complimentary mini-checkup (BP, pulse, hemoglobin, viral screening).\n• Most importantly: 1 donation can save up to 3 lives!";
+    }
+
+    // 17. SAFETY & TESTING (IS BLOOD TESTED / HIV / HEPATITIS)
+    if (/test|safe|screening|hiv|hepatitis|নিরাপদ|পরীক্ষা/.test(q)) {
+      return isBn
+        ? "সংগৃহীত প্রতি ইউনিট রক্ত রোগীর দেহে দেওয়ার আগে পাঁচটি মারাত্মক সংক্রামক রোগের (HIV, Hepatitis B, Hepatitis C, Syphilis, Malaria) জন্য বাধ্যতামূলকভাবে পরীক্ষা করা হয়। এছাড়া ক্রস-ম্যাচিং নিশ্চিত করে তবেই রক্ত দেওয়া হয়।"
+        : "Every collected unit undergoes mandatory Transfusion-Transmissible Infection (TTI) screening for HIV, Hepatitis B (HBsAg), Hepatitis C (HCV), Syphilis, and Malaria, along with strict blood typing and cross-matching.";
+    }
+
+    // 18. DISEASES (THALASSEMIA, DENGUE, LEUKEMIA, HEMOPHILIA)
+    if (/thalassemia|থ্যালাসেমিয়া/.test(q)) {
+      return isBn
+        ? "থ্যালাসেমিয়া একটি জন্মগত রক্তস্বল্পতাজনিত রোগ যেখানে শরীরে পর্যাপ্ত হিমোগ্লোবিন তৈরি হয় না। থ্যালাসেমিয়া মেজর আক্রান্ত রোগীদের প্রতি ২ থেকে ৪ সপ্তাহ পর পর নিয়মিত লোহিত রক্তকণিকা (PRBC) সঞ্চালনের প্রয়োজন হয়। লিউকো-ডিপ্লিটেড রক্ত ব্যবহার করা সবচেয়ে নিরাপদ।"
+        : "Thalassemia is an inherited hemoglobin disorder. Severe cases (Thalassemia Major) require lifelong packed red blood cell (PRBC) transfusions every 2 to 4 weeks, along with iron chelation therapy to manage iron overload. Leuko-depleted blood is strongly recommended.";
+    }
+
+    if (/dengue|platelet|ডেঙ্গু|প্লেটলেট/.test(q)) {
+      return isBn
+        ? "ডেঙ্গু জ্বরে রক্তে প্লেটলেট (অণুচক্রিকা) আশঙ্কাজনকভাবে কমে যেতে পারে। সাধারণত প্লেটলেট কাউন্ট ১০,০০০–২০,০০০-এর নিচে নামলে অথবা রক্তক্ষরণের লক্ষণ দেখা দিলে ডাক্তার প্লেটলেট (SDP বা RDP) দেওয়ার নির্দেশ দেন।"
+        : "Dengue can cause severe thrombocytopenia (platelet drop). Platelet transfusions (Single Donor Platelets / SDP or Random Donor Platelets / RDP) are clinically indicated if platelets drop below 10,000–20,000/μL or active bleeding occurs, as guided by the physician.";
+    }
+
+    if (/hemophilia|হিমোফিলিয়া/.test(q)) {
+      return isBn
+        ? "হিমোফিলিয়া হলো রক্ত জমাট না বাঁধার বংশগত রোগ (Factor VIII বা IX-এর ঘাটতি)। এদের সম্পূর্ণ রক্তের বদলে নির্দিষ্ট ক্লটিং ফ্যাক্টর কনসেন্ট্রেট বা ফ্রেশ ফ্রোজেন প্লাজমা (FFP) দেওয়া হয়।"
+        : "Hemophilia is a genetic clotting disorder (Factor VIII or IX deficiency). Patients require specific clotting factor concentrates or Fresh Frozen Plasma (FFP)/Cryoprecipitate, rather than whole blood.";
+    }
+
+    if (/leukemia|cancer|লিউকেমিয়া|ক্যান্সার/.test(q)) {
+      return isBn
+        ? "লিউকেমিয়া ও ক্যান্সারের কেমোথেরাপির সময় অস্থিমজ্জা দুর্বল হয়ে পড়ায় রোগীদের ঘন ঘন লোহিত রক্তকণিকা ও প্লেটলেট সঞ্চালনের প্রয়োজন হতে পারে। এই রক্ত সাধারণত রেডিয়েটেড বা ফিল্টার করা হওয়া উচিত।"
+        : "Leukemia and cancer chemotherapy cause bone marrow suppression, frequently requiring repeated platelet transfusions and packed red blood cells, ideally irradiated to prevent transfusion-associated complications.";
+    }
+
+    // 19. SMART CONTEXTUAL FALLBACK
+    return isBn
+      ? "আপনার প্রশ্নের সঠিক উত্তরের জন্য আমি প্রস্তুত! আপনি আমাকে জিজ্ঞেস করতে পারেন:\n• রক্তের সামঞ্জস্য (যেমন: 'A+ কি O+ কে দিতে পারে?')\n• রক্তদানের নিয়ম (যেমন: 'কত দিন পর পর রক্ত দেওয়া যায়?')\n• রক্তদানের বয়স ও ওজন\n• থ্যালাসেমিয়া বা ডেঙ্গু প্লেটলেট সংক্রান্ত তথ্য\n• কীভাবে রক্তদাতা হবেন বা রক্তের অনুরোধ করবেন।"
+      : "I'm here to give you accurate medical and blood matching answers! Try asking:\n• Compatibility checks (e.g. 'Can B+ donate to A+?')\n• Eligibility rules (e.g. 'How often can I donate?', 'What weight is required?')\n• Medical conditions (e.g. 'Can diabetics donate?', 'Tattoo rules')\n• Blood diseases (e.g. 'Platelets in Dengue', 'Thalassemia frequency')\n• How to request blood or register as a donor.";
+  }
+
+  function renderAssistantChips() {
+    const messages = $("assistant-messages");
+    if (!messages || messages.querySelector(".assistant-chips")) return;
+    const isBn = (typeof currentLanguage !== "undefined" && currentLanguage === "bn");
+    const chips = isBn
+      ? ["A+ কি O+ কে দিতে পারে?", "কত দিন পর পর রক্ত দেওয়া যায়?", "সার্বজনীন রক্তদাতা কে?", "ডেঙ্গু ও প্লেটলেট", "রক্তদাতা হব কীভাবে?"]
+      : ["Can A+ give to O+?", "How often can I donate?", "Who is universal donor?", "Dengue & Platelets", "Eligibility criteria"];
+
+    const chipContainer = document.createElement("div");
+    chipContainer.className = "assistant-chips";
+    chipContainer.style.cssText = "display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; padding: 0 2px;";
+    chips.forEach((chipText) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "assistant-chip-btn";
+      btn.textContent = chipText;
+      btn.style.cssText = "background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 12px; padding: 4px 10px; font-size: 11px; cursor: pointer; color: #334155; transition: all 0.2s; white-space: nowrap;";
+      btn.addEventListener("mouseenter", () => {
+        btn.style.background = "#e2e8f0";
+        btn.style.borderColor = "#94a3b8";
+      });
+      btn.addEventListener("mouseleave", () => {
+        btn.style.background = "#f1f5f9";
+        btn.style.borderColor = "#cbd5e1";
+      });
+      btn.addEventListener("click", () => {
+        const input = $("assistant-input");
+        if (input) {
+          input.value = chipText;
+          $("assistant-form")?.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+      });
+      chipContainer.appendChild(btn);
+    });
+    messages.appendChild(chipContainer);
+    messages.scrollTop = messages.scrollHeight;
   }
 
   function wireAssistant() {
-    $("assistant-open")?.addEventListener("click", () => $("assistant-panel")?.classList.remove("hidden"));
+    $("assistant-open")?.addEventListener("click", () => {
+      $("assistant-panel")?.classList.remove("hidden");
+      renderAssistantChips();
+    });
     $("assistant-close")?.addEventListener("click", () => $("assistant-panel")?.classList.add("hidden"));
     $("assistant-form")?.addEventListener("submit", (event) => {
       event.preventDefault();
