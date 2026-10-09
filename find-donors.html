@@ -318,12 +318,13 @@
   <div id="whatsapp-modal" class="modal hidden">
     <div class="modal-backdrop" data-close-whatsapp></div>
     <div class="whatsapp-modal-card" role="dialog" aria-modal="true" aria-labelledby="wa-contact-name">
+      <!-- Chat Header -->
       <div class="wa-header">
         <div class="wa-contact-info">
           <button type="button" class="wa-action-btn" data-close-whatsapp title="Back">←</button>
           <div class="wa-avatar" id="wa-avatar-box">✚</div>
           <div class="wa-contact-text">
-            <h4 id="wa-contact-name">Rahim Ahmed</h4>
+            <h4 id="wa-contact-name">Donor Contact</h4>
             <div class="wa-online-status">
               <span class="wa-online-dot"></span>
               <span id="wa-status-text">online</span>
@@ -332,45 +333,57 @@
         </div>
 
         <div class="wa-header-actions">
-          <button type="button" class="wa-action-btn" id="wa-header-call-btn" title="Call">📞</button>
-          <a href="dashboard.html" class="wa-action-btn" title="Open Full Chat in Dashboard" style="text-decoration:none; display:grid; place-items:center;">↗</a>
+          <a href="#" class="wa-action-btn" id="wa-call-btn" title="Call Donor">📞</a>
           <button type="button" class="wa-action-btn" data-close-whatsapp title="Close">✕</button>
         </div>
       </div>
 
-      <div class="wa-chat-body" id="wa-chat-body">
-        <div class="wa-encryption-notice">
-          <span>🔒 Messages and calls are end-to-end encrypted. No one outside of this chat, not even Lifeline, can read or listen to them.</span>
-        </div>
-        <div id="wa-messages-container"></div>
+      <!-- Optional Request Context Strip -->
+      <div class="wa-context-bar" id="wa-context-bar" style="display:none;">
+        <span id="wa-context-text">🩸 Coordinating blood request</span>
       </div>
 
-      <div class="wa-quick-chips">
+      <!-- Chat Body -->
+      <div class="wa-chat-body" id="wa-chat-body">
+        <div class="wa-encryption-pill">
+          <span>🔒 Messages and calls are end-to-end encrypted. Coordinate directly for emergency blood support.</span>
+        </div>
+        <div id="wa-messages-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <!-- Attachment Staging Banner (Appears when a file is selected) -->
+      <div class="wa-attachment-staging" id="wa-attachment-staging" style="display:none;">
+        <div class="wa-staging-info">
+          <span id="wa-staging-icon">📎</span>
+          <img id="wa-staging-thumb" class="wa-staging-thumb" style="display:none;" alt="Preview" />
+          <div>
+            <strong id="wa-staging-name">prescription.jpg</strong>
+            <small id="wa-staging-size" style="display:block; color:#667781;">120 KB</small>
+          </div>
+        </div>
+        <button type="button" class="wa-staging-remove" id="wa-remove-file-btn" title="Remove attachment">✕</button>
+      </div>
+
+      <!-- Quick Template Chips -->
+      <div class="wa-quick-replies">
         <button type="button" class="wa-chip" data-quick="Hello, I saw your Lifeline donor profile. Are you currently available to donate?">Available to donate?</button>
         <button type="button" class="wa-chip" data-quick="Urgent: Patient needs blood today. Can you please help?">Urgent patient need</button>
-        <button type="button" class="wa-chip" data-quick="Which hospital is convenient for you?">Preferred hospital?</button>
+        <button type="button" class="wa-chip" data-quick="Which hospital and area is convenient for you?">Preferred hospital?</button>
+        <button type="button" class="wa-chip" data-quick="Sharing patient and hospital details.">Patient details</button>
       </div>
 
-      <div id="wa-attachment-preview" class="wa-attachment-preview hidden">
-        <div class="wa-preview-thumb-wrap">
-          <img id="wa-preview-img" src="" alt="Attachment preview" class="hidden" />
-          <div id="wa-preview-file-icon" class="wa-preview-file-icon">📄</div>
-        </div>
-        <div class="wa-preview-details">
-          <strong id="wa-preview-name">prescription.pdf</strong>
-          <small id="wa-preview-size">145 KB</small>
-        </div>
-        <button type="button" class="wa-remove-file-btn" id="wa-remove-file-btn" title="Remove attachment">✕</button>
-      </div>
+      <!-- WhatsApp Input Bar with File Picker -->
+      <form class="wa-input-bar" id="wa-chat-form">
+        <input type="file" id="wa-file-input" accept="image/*,application/pdf,.doc,.docx,.txt" style="display:none;" />
+        
+        <button type="button" class="wa-attach-btn" id="wa-attach-btn" title="Attach file or prescription">
+          📎
+        </button>
 
-      <form class="wa-footer" id="wa-chat-form">
-        <input type="file" id="wa-file-input" style="display:none;" accept="image/*,application/pdf,.doc,.docx" />
-        <button type="button" class="wa-icon-btn" id="wa-attach-btn" title="Attach file or prescription" aria-label="Attach prescription or file">📎</button>
-        <input type="text" id="wa-message-input" placeholder="Type a message..." autocomplete="off" />
-        <button type="submit" class="wa-send-btn" id="wa-send-btn" aria-label="Send message">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
+        <input type="text" class="wa-input-field" id="wa-message-input" placeholder="Type a message..." autocomplete="off" />
+
+        <button type="submit" class="wa-send-btn" id="wa-send-btn" title="Send message">
+          ➤
         </button>
       </form>
     </div>

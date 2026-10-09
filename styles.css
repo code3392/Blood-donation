@@ -1786,6 +1786,7 @@ input, select, textarea {
   inset: 0;
   background: rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(6px);
+  z-index: 1;
 }
 
 .modal-card {
@@ -2216,6 +2217,8 @@ input, select, textarea {
 /* ============================================================ */
 
 .whatsapp-modal-card {
+  position: relative;
+  z-index: 10;
   width: min(580px, calc(100% - 24px));
   max-width: 580px;
   padding: 0;
@@ -2559,44 +2562,63 @@ input, select, textarea {
   font-weight: 800;
 }
 
-/* WhatsApp Input Bar */
-.wa-input-bar {
+/* WhatsApp Input Bar & Footer */
+.wa-input-bar,
+.wa-footer {
   background: #f0f2f5;
-  padding: 8px 14px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  border-top: 1px solid #e9edef;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.wa-attach-btn {
+.wa-attach-btn,
+.wa-icon-btn {
   background: transparent;
   border: 0;
   color: #54656f;
-  font-size: 19px;
-  width: 36px;
-  height: 36px;
+  font-size: 20px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
   transition: var(--transition-smooth);
+  flex-shrink: 0;
 }
 
-.wa-attach-btn:hover {
+.wa-attach-btn:hover,
+.wa-icon-btn:hover {
   background: #e2e5e9;
   color: #075e54;
 }
 
-.wa-input-field {
+.wa-input-field,
+.wa-footer input[type="text"],
+.wa-input-bar input[type="text"] {
   flex: 1;
   background: #fff;
-  border: 0;
-  border-radius: 20px;
+  border: 1px solid #d1d7db;
+  border-radius: 22px;
   padding: 10px 16px;
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
   color: #111b21;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.wa-input-field:focus,
+.wa-footer input[type="text"]:focus,
+.wa-input-bar input[type="text"]:focus {
+  border-color: #00a884;
+  box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.15);
 }
 
 .wa-send-btn {
@@ -2618,6 +2640,22 @@ input, select, textarea {
 .wa-send-btn:hover {
   background: #008f6f;
   transform: scale(1.05);
+}
+
+.wa-quick-replies,
+.wa-quick-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 14px;
+  background: #f0f2f5;
+  border-top: 1px solid #e9edef;
+  scrollbar-width: none;
+}
+
+.wa-quick-replies::-webkit-scrollbar,
+.wa-quick-chips::-webkit-scrollbar {
+  display: none;
 }
 
 /* Dashboard WhatsApp Web Split-View */

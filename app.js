@@ -571,7 +571,7 @@
     if ($("wa-contact-name")) $("wa-contact-name").textContent = target.name || "Donor Contact";
     if ($("wa-avatar-box")) $("wa-avatar-box").textContent = initials(target.name);
 
-    const callBtn = $("wa-call-btn");
+    const callBtn = $("wa-call-btn") || $("wa-header-call-btn");
     if (callBtn) {
       if (target.phone) {
         callBtn.href = `tel:${safePhone(target.phone)}`;
@@ -1279,7 +1279,7 @@
 
       card.querySelector(".donor-wa-btn")?.addEventListener("click", () => {
         openWhatsAppChat({
-          id: donor.user_id,
+          id: donor.user_id || donor.id,
           name: donorName,
           phone: donor.phone
         });
@@ -1333,7 +1333,7 @@
     if (messageBtn) {
       messageBtn.onclick = () => {
         closeProfile();
-        openWhatsAppChat({ id: donor.user_id, name: donor.full_name, phone: donor.phone });
+        openWhatsAppChat({ id: donor.user_id || donor.id, name: donor.full_name, phone: donor.phone });
       };
     }
 
