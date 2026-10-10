@@ -193,6 +193,30 @@
             </div>
             <div class="field"><label>Phone</label><input id="donor-phone" required inputmode="tel" maxlength="20" placeholder="01XXXXXXXXX" /></div>
             <div class="field"><label>Last donation date <span class="optional">(optional)</span></label><input id="donor-last" type="date" /></div>
+            <div class="field full prescription-field">
+              <label for="donor-prescription-input">
+                <span>Upload prescription / medical certificate <span class="optional">(optional)</span></span>
+              </label>
+              <input type="file" id="donor-prescription-input" accept="image/*,application/pdf" style="display:none;" />
+              <div class="prescription-dropzone" id="donor-prescription-dropzone">
+                <div class="upload-icon">📄</div>
+                <div class="upload-prompt">
+                  <strong>Click or drag to upload medical prescription</strong>
+                  <small>Doctor's advice, cross-matching slip or blood test report (JPG, PNG, PDF up to 5MB)</small>
+                </div>
+              </div>
+              <div class="prescription-preview-wrap" id="donor-prescription-preview">
+                <a class="prescription-preview-left" id="donor-prescription-link" href="#" target="_blank">
+                  <img id="donor-prescription-thumb" class="prescription-thumb-img" alt="Preview" style="display:none;" />
+                  <div id="donor-prescription-badge" class="prescription-doc-badge" style="display:none;">PDF</div>
+                  <div class="prescription-file-info">
+                    <strong id="donor-prescription-name">prescription.pdf</strong>
+                    <small id="donor-prescription-size">1.4 MB</small>
+                  </div>
+                </a>
+                <button type="button" class="prescription-remove-btn" id="donor-prescription-remove" title="Remove prescription">&times;</button>
+              </div>
+            </div>
           </div>
 
           <label class="check-row">

@@ -237,6 +237,30 @@
                 <label for="edit-last">Last donation date <span class="optional">(optional)</span></label>
                 <input id="edit-last" type="date" />
               </div>
+              <div class="field full prescription-field">
+                <label for="edit-prescription-input">
+                  <span>Prescription / medical certificate <span class="optional">(optional)</span></span>
+                </label>
+                <input type="file" id="edit-prescription-input" accept="image/*,application/pdf" style="display:none;" />
+                <div class="prescription-dropzone" id="edit-prescription-dropzone">
+                  <div class="upload-icon">📄</div>
+                  <div class="upload-prompt">
+                    <strong>Click or drag to upload medical prescription</strong>
+                    <small>Doctor's advice, cross-matching slip or blood test report (JPG, PNG, PDF up to 5MB)</small>
+                  </div>
+                </div>
+                <div class="prescription-preview-wrap" id="edit-prescription-preview">
+                  <a class="prescription-preview-left" id="edit-prescription-link" href="#" target="_blank">
+                    <img id="edit-prescription-thumb" class="prescription-thumb-img" alt="Preview" style="display:none;" />
+                    <div id="edit-prescription-badge" class="prescription-doc-badge" style="display:none;">PDF</div>
+                    <div class="prescription-file-info">
+                      <strong id="edit-prescription-name">prescription.pdf</strong>
+                      <small id="edit-prescription-size">1.4 MB</small>
+                    </div>
+                  </a>
+                  <button type="button" class="prescription-remove-btn" id="edit-prescription-remove" title="Remove prescription">&times;</button>
+                </div>
+              </div>
             </div>
 
             <div style="margin: 20px 0 10px;">

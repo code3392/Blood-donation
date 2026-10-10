@@ -217,6 +217,30 @@
               <label>Additional note <span class="optional">(optional)</span></label>
               <textarea id="request-note" maxlength="300" placeholder="Add information a donor needs to know (e.g. cabin/ward number)."></textarea>
             </div>
+            <div class="field full prescription-field">
+              <label for="request-prescription-input">
+                <span>Hospital prescription / blood requisition slip <span class="optional">(optional)</span></span>
+              </label>
+              <input type="file" id="request-prescription-input" accept="image/*,application/pdf" style="display:none;" />
+              <div class="prescription-dropzone" id="request-prescription-dropzone">
+                <div class="upload-icon">📄</div>
+                <div class="upload-prompt">
+                  <strong>Click or drag to upload hospital requisition or prescription</strong>
+                  <small>Doctor's requisition order or cross-match form (JPG, PNG, PDF up to 5MB)</small>
+                </div>
+              </div>
+              <div class="prescription-preview-wrap" id="request-prescription-preview">
+                <a class="prescription-preview-left" id="request-prescription-link" href="#" target="_blank">
+                  <img id="request-prescription-thumb" class="prescription-thumb-img" alt="Preview" style="display:none;" />
+                  <div id="request-prescription-badge" class="prescription-doc-badge" style="display:none;">PDF</div>
+                  <div class="prescription-file-info">
+                    <strong id="request-prescription-name">prescription.pdf</strong>
+                    <small id="request-prescription-size">1.4 MB</small>
+                  </div>
+                </a>
+                <button type="button" class="prescription-remove-btn" id="request-prescription-remove" title="Remove prescription">&times;</button>
+              </div>
+            </div>
           </div>
 
           <button class="btn btn-primary btn-large full-width" type="submit" id="request-submit-btn">

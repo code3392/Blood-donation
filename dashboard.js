@@ -31,6 +31,7 @@
   let currentUser = null;
   let currentProfile = null;
   let currentAvatarUrl = null;
+  let currentDashPrescription = null;
   let isAvatarRemoved = false;
   let userRequests = [];
   let detectedLocation = null;
@@ -1396,6 +1397,25 @@
         if ($("edit-consent")) $("edit-consent").checked = profile.consent !== false;
 
         if (profile.avatar_url) currentAvatarUrl = profile.avatar_url;
+
+        let savedPrescription = null;
+        try {
+          const raw = localStorage.getItem("lifeline_donor_prescription_" + currentUser.id);
+          if (raw) savedPrescription = JSON.parse(raw);
+        } catch (e) {}
+
+        if (profile.prescription_url) {
+          savedPrescription = {
+            url: profile.prescription_url,
+            name: profile.prescription_name || "Doctor_Prescription.pdf",
+            type: profile.prescription_url.startsWith("data:image") ? "image/jpeg" : "application/pdf"
+          };
+        }
+
+        if (savedPrescription && savedPrescription.url) {
+          currentDashPrescription = savedPrescription;
+          renderDashPrescriptionPreview(savedPrescription);
+        }
 
         if ($("info-profile-status")) {
           $("info-profile-status").textContent = profile.verified ? "Verified Donor" : "Registered Donor";

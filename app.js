@@ -54,6 +54,8 @@
   let messageTarget = null;
   let chatPollingTimer = null;
   let currentAttachment = null;
+  let currentDonorPrescription = null;
+  let currentRequestPrescription = null;
   let detectedLocation = null;
   let currentLanguage = localStorage.getItem("lifeline-language") || "en";
 
@@ -824,6 +826,105 @@
   // 5. COOKIE PREFERENCES & CONSENT BANNER (REQ 5)
   // ============================================================
 
+  function renderPrescriptionPreview(prefix, fileData) {
+    const dropzone = $(`${prefix}-prescription-dropzone`);
+    const preview = $(`${prefix}-prescription-preview`);
+    const thumb = $(`${prefix}-prescription-thumb`);
+    const badge = $(`${prefix}-prescription-badge`);
+    const nameEl = $(`${prefix}-prescription-name`);
+    const sizeEl = $(`${prefix}-prescription-size`);
+    const linkEl = $(`${prefix}-prescription-link`);
+
+    if (!preview) return;
+
+    if (nameEl) nameEl.textContent = fileData.name || "Medical Prescription";
+    if (sizeEl) sizeEl.textContent = fileData.size ? formatBytes(fileData.size) : "Attached Document";
+    if (linkEl && fileData.url) linkEl.href = fileData.url;
+
+    const isImg = fileData.type?.startsWith("image/") || (typeof fileData.url === "string" && fileData.url.startsWith("data:image/"));
+    if (isImg && thumb && badge) {
+      thumb.src = fileData.url;
+      thumb.style.display = "block";
+      badge.style.display = "none";
+    } else if (thumb && badge) {
+      thumb.style.display = "none";
+      badge.style.display = "flex";
+      const ext = (fileData.name || "").split(".").pop().toUpperCase();
+      badge.textContent = ext && ext.length <= 4 ? ext : "DOC";
+    }
+
+    if (dropzone) dropzone.style.display = "none";
+    preview.style.display = "flex";
+  }
+
+  function initPrescriptionUpload(prefix, onSet, onRemove) {
+    const input = $(`${prefix}-prescription-input`);
+    const dropzone = $(`${prefix}-prescription-dropzone`);
+    const preview = $(`${prefix}-prescription-preview`);
+    const removeBtn = $(`${prefix}-prescription-remove`);
+
+    if (!input || !dropzone) return;
+
+    dropzone.addEventListener("click", () => input.click());
+
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.classList.remove("dragover");
+    });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files?.[0]) {
+        processPrescriptionFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    input.addEventListener("change", (e) => {
+      if (e.target.files?.[0]) {
+        processPrescriptionFile(e.target.files[0]);
+      }
+    });
+
+    removeBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      input.value = "";
+      dropzone.style.display = "flex";
+      preview.style.display = "none";
+      if (onRemove) onRemove();
+      toast("Prescription removed.", "info");
+    });
+
+    function processPrescriptionFile(file) {
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        toast("File size should be under 5MB.", "error");
+        input.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const fileData = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          url: evt.target.result
+        };
+
+        renderPrescriptionPreview(prefix, fileData);
+        if (onSet) onSet(fileData);
+        toast(`Attached prescription: ${file.name}`, "success");
+      };
+
+      reader.onerror = () => toast("Failed to read prescription file.", "error");
+      reader.readAsDataURL(file);
+    }
+  }
+
   function initCookieConsent() {
     const consent = localStorage.getItem("lifeline_cookie_consent");
     if (!consent) {
@@ -1402,6 +1503,25 @@
           if ($("donor-available")) $("donor-available").checked = !!profile.available;
           if ($("donor-consent")) $("donor-consent").checked = !!profile.consent;
 
+          let savedPrescription = null;
+          try {
+            const raw = localStorage.getItem("lifeline_donor_prescription_" + currentUser.id);
+            if (raw) savedPrescription = JSON.parse(raw);
+          } catch (e) {}
+
+          if (profile.prescription_url) {
+            savedPrescription = {
+              url: profile.prescription_url,
+              name: profile.prescription_name || "Doctor_Prescription.pdf",
+              type: profile.prescription_url.startsWith("data:image") ? "image/jpeg" : "application/pdf"
+            };
+          }
+
+          if (savedPrescription && savedPrescription.url) {
+            currentDonorPrescription = savedPrescription;
+            renderPrescriptionPreview("donor", savedPrescription);
+          }
+
           if (submitBtn) submitBtn.innerHTML = 'Update my donor profile <span>→</span>';
           if (heading) heading.textContent = "Update your donor profile";
           if (subheading) subheading.textContent = "Your profile is registered. Keep your availability and details up to date.";
@@ -1688,6 +1808,15 @@
       return;
     }
 
+    if (currentDonorPrescription) {
+      try {
+        localStorage.setItem("lifeline_donor_prescription_" + currentUser.id, JSON.stringify(currentDonorPrescription));
+      } catch (e) {}
+    } else {
+      try {
+        localStorage.removeItem("lifeline_donor_prescription_" + currentUser.id);
+      } catch (e) {}
+    }
     toast("Donor profile saved. Thank you for joining Lifeline.", "success");
     detectedLocation = null;
     await refreshStats();
@@ -2038,6 +2167,18 @@
     $("donor-form")?.addEventListener("submit", submitDonor);
     $("request-form")?.addEventListener("submit", submitRequest);
     $("request-condition")?.addEventListener("change", showConditionGuidance);
+
+    initPrescriptionUpload("donor", (data) => {
+      currentDonorPrescription = data;
+    }, () => {
+      currentDonorPrescription = null;
+    });
+
+    initPrescriptionUpload("request", (data) => {
+      currentRequestPrescription = data;
+    }, () => {
+      currentRequestPrescription = null;
+    });
     $("detect-donor-location")?.addEventListener("click", detectLocation);
     $("search-donors")?.addEventListener("click", searchDonors);
     $("signout-btn")?.addEventListener("click", signOut);
